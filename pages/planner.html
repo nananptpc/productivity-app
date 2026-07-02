@@ -1,0 +1,3081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planner - Task Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.2);
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --font: 'American Typewriter', 'Courier New', monospace;
+            --radius: 8px;
+            --transition: 0.3s ease;
+            --completed-opacity: 0.4;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --shadow: 0 4px 16px rgba(0,0,0,0.4);
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 14px;
+            transition: background var(--transition), color var(--transition);
+        }
+        * {
+            font-family: var(--font);
+        }
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            transition: background var(--transition);
+        }
+        header h1 {
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .header-actions button,
+        .header-actions a {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            cursor: pointer;
+            transition: background var(--transition), transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .header-actions button:hover,
+        .header-actions a:hover {
+            background: var(--accent);
+            transform: scale(1.02);
+        }
+        .theme-toggle {
+            background: transparent;
+            border: 2px solid var(--accent);
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: var(--font);
+            cursor: pointer;
+            color: var(--text);
+            transition: 0.3s;
+        }
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* LEFT PANEL */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: calc(100vh - 96px);
+            overflow-y: auto;
+            padding-right: 4px;
+            position: sticky;
+            top: 14px;
+        }
+
+        /* CALENDAR */
+        .calendar-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .calendar-header .month-year-label {
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+        .calendar-nav {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .calendar-nav button {
+            padding: 4px 12px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .calendar-nav button:hover {
+            background: var(--accent2);
+        }
+        .calendar-nav .today-btn {
+            font-size: 12px;
+            padding: 4px 12px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .calendar-grid .day-name {
+            text-align: center;
+            font-size: 11px;
+            opacity: 0.6;
+            padding: 4px 0;
+            font-weight: bold;
+        }
+        .calendar-grid .day-cell {
+            text-align: center;
+            padding: 6px 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+            border: 2px solid transparent;
+            min-height: 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .calendar-grid .day-cell:hover {
+            background: var(--accent2);
+        }
+        .calendar-grid .day-cell.today {
+            border-color: var(--accent);
+            background: var(--accent2);
+        }
+        .calendar-grid .day-cell.selected {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .calendar-grid .day-cell.other-month {
+            opacity: 0.3;
+        }
+        .calendar-grid .day-cell .day-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-top: 1px;
+        }
+
+        /* DAY TASKS - dropdown */
+        .day-tasks-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: background var(--transition);
+        }
+        .day-tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            user-select: none;
+        }
+        .day-tasks-header:hover {
+            background: var(--accent2);
+        }
+        .day-tasks-header .day-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .day-tasks-header .arrow {
+            font-size: 14px;
+            transition: transform 0.3s;
+            opacity: 0.5;
+        }
+        .day-tasks-header .arrow.open {
+            transform: rotate(180deg);
+        }
+        .day-tasks-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        .day-tasks-body.open {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .day-tasks-body-inner {
+            padding: 0 16px 16px 16px;
+        }
+        .day-task-item {
+            font-size: 13px;
+            padding: 8px 10px;
+            background: var(--bg);
+            border-radius: 6px;
+            margin: 3px 0;
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 16px minmax(0, 1fr) auto;
+            align-items: start;
+            gap: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .day-task-item input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 13px;
+            height: 13px;
+            min-width: 13px;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .day-task-item .task-title.done {
+            text-decoration: line-through;
+            opacity: var(--completed-opacity);
+        }
+        .day-task-item .task-title {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            white-space: normal;
+            line-height: 1.35;
+        }
+        .day-task-item .task-category {
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            opacity: 0.8;
+            justify-self: start;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+        .day-task-item .task-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1px solid currentColor;
+            background: transparent;
+            justify-self: start;
+            white-space: nowrap;
+        }
+        .day-task-main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-width: 0;
+        }
+        .day-task-item .task-status.todo {
+            color: #b46d00;
+        }
+        .day-task-item .task-status.doing {
+            color: #2176a8;
+        }
+        .day-task-item .task-status.done {
+            color: #208a4d;
+        }
+        .day-task-item .task-status.cancel {
+            color: #c73b5a;
+        }
+        .day-tasks-body .no-tasks {
+            font-size: 13px;
+            opacity: 0.6;
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        /* HEATMAP */
+        .heatmap-section {
+            background: var(--card);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+        }
+        .heatmap-section h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .heatmap-controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .heatmap-controls button {
+            padding: 3px 12px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .heatmap-controls button.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .heatmap-controls button:hover {
+            background: var(--accent2);
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: var(--border);
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+        }
+        .heatmap-cell.level-0 {
+            background: var(--border);
+        }
+        .heatmap-cell.level-1 {
+            background: #f8d7e0;
+        }
+        .heatmap-cell.level-2 {
+            background: #f5b7c1;
+        }
+        .heatmap-cell.level-3 {
+            background: #f1948a;
+        }
+        .heatmap-cell.level-4 {
+            background: #e74c6f;
+        }
+        .heatmap-legend {
+            display: flex;
+            gap: 10px;
+            font-size: 10px;
+            opacity: 0.6;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .heatmap-legend .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        /* MENSTRUAL CYCLE */
+        .cycle-section {
+            background: var(--card);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+        }
+        .cycle-section h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .cycle-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .cycle-row input,
+        .cycle-row select {
+            padding: 5px 10px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+        }
+        .cycle-row .day-display {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--accent);
+            padding: 0 6px;
+        }
+        .cycle-note {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        /* RIGHT PANEL - TASKS */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .section {
+            background: var(--card);
+            padding: 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+        }
+        .section h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .form-row input,
+        .form-row select,
+        .form-row textarea {
+            padding: 7px 12px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            flex: 1 1 140px;
+            transition: border 0.3s;
+        }
+        .form-row input:focus,
+        .form-row select:focus,
+        .form-row textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-row textarea {
+            flex: 1 1 200px;
+            border-radius: 16px;
+            min-height: 40px;
+            resize: vertical;
+        }
+        .form-row button {
+            padding: 7px 18px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .form-row button:hover {
+            opacity: 0.85;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        .filter-bar select,
+        .filter-bar input {
+            padding: 6px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+        }
+        .filter-bar .bulk-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+        .filter-bar .bulk-actions button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .filter-bar .bulk-actions button:hover {
+            background: var(--accent);
+        }
+        .filter-bar .bulk-actions .danger {
+            background: #e74c6f;
+            color: #fff;
+        }
+        .filter-bar .bulk-actions .danger:hover {
+            background: #c0392b;
+        }
+        .filter-bar .bulk-actions .success {
+            background: #2ecc71;
+            color: #fff;
+        }
+        .filter-bar .bulk-actions .success:hover {
+            background: #27ae60;
+        }
+        .date-filter {
+            display: none;
+        }
+        .date-filter.show {
+            display: inline-flex;
+        }
+        .date-filter input {
+            width: 100%;
+        }
+
+        .view-shell {
+            margin-top: 8px;
+        }
+
+        .focus-panel {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            display: grid;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 12px;
+        }
+        .focus-top {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .focus-title {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .focus-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .focus-controls select,
+        .focus-controls label {
+            font-size: 12px;
+        }
+        .most-important {
+            background: #fffafb;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: grid;
+            gap: 6px;
+            padding: 8px 10px;
+        }
+        .most-important-top {
+            align-items: center;
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .most-important-label {
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .most-important-controls {
+            align-items: center;
+            display: flex;
+            gap: 6px;
+        }
+        .most-important-controls select {
+            font-size: 11px;
+            min-height: 28px;
+            padding: 3px 8px;
+        }
+        .most-important-title {
+            font-size: 18px;
+            font-weight: 800;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .most-important-title.marquee span {
+            display: inline-block;
+            min-width: 100%;
+            padding-left: 100%;
+            animation: importantMarquee 12s linear infinite;
+        }
+        .most-important-empty {
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 800;
+        }
+        @keyframes importantMarquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+        }
+        .star-btn,
+        .mini-action {
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 14px;
+            min-height: 0;
+            padding: 0 3px;
+        }
+        .star-btn.active,
+        .star-btn:hover,
+        .mini-action:hover {
+            color: var(--accent);
+        }
+        .task-title-line {
+            align-items: flex-start;
+            display: flex;
+            gap: 6px;
+        }
+        .task-title-line .star-btn {
+            line-height: 1.2;
+            margin-top: 1px;
+        }
+        .progress-wrap {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            height: 12px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: var(--accent);
+            height: 100%;
+            transition: width 0.25s ease;
+        }
+        .focus-stats {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .focus-stat {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px;
+        }
+        .focus-stat span {
+            display: block;
+            font-size: 11px;
+            opacity: 0.65;
+        }
+        .focus-stat strong {
+            font-size: 18px;
+        }
+        .focus-list {
+            display: grid;
+            gap: 6px;
+        }
+        .focus-item {
+            align-items: center;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: grid;
+            gap: 8px;
+            grid-template-columns: 14px minmax(0, 1fr) auto;
+            padding: 7px 8px;
+        }
+        .focus-item input[type="checkbox"] {
+            height: 13px;
+            min-width: 13px;
+            padding: 0;
+            width: 13px;
+        }
+        .priority-badge {
+            border: 1px solid currentColor;
+            border-radius: 6px;
+            display: inline-block;
+            font-size: 10px;
+            padding: 1px 6px;
+            white-space: nowrap;
+        }
+        .priority-high { color: #c73b5a; }
+        .priority-medium { color: #b46d00; }
+        .priority-low { color: #2176a8; }
+        .subtask-toggle {
+            margin-top: 6px;
+        }
+        .subtask-toggle summary {
+            cursor: pointer;
+            font-size: 11px;
+            opacity: 0.75;
+        }
+        .subtask-list {
+            display: grid;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .subtask-item {
+            align-items: start;
+            display: grid;
+            gap: 6px;
+            grid-template-columns: 13px minmax(0, 1fr);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+        .subtask-text {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+        .subtask-date {
+            display: block;
+            font-size: 10px;
+            opacity: 0.58;
+            margin-top: 2px;
+        }
+        .subtask-item input {
+            height: 12px;
+            min-width: 12px;
+            padding: 0;
+            width: 12px;
+        }
+        .subtask-item.done span {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        body.compact-mode {
+            font-size: 14px;
+        }
+        body.compact-mode .section,
+        body.compact-mode .calendar-section,
+        body.compact-mode .day-tasks-section,
+        body.compact-mode .heatmap-section,
+        body.compact-mode .cycle-section {
+            padding: 12px;
+        }
+        body.compact-mode .task-table th,
+        body.compact-mode .task-table td {
+            padding: 7px 8px;
+        }
+        body.compact-mode .left-panel {
+            gap: 10px;
+        }
+
+        .table-wrap {
+            min-height: 260px;
+            max-height: min(54vh, 620px);
+            max-width: 100%;
+            width: 100%;
+            overflow: auto;
+            resize: both;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg);
+        }
+        .task-table {
+            width: max-content;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 720px;
+            table-layout: fixed;
+        }
+        .task-table th,
+        .task-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+        .task-table td {
+            min-width: 120px;
+            max-width: 300px;
+            overflow: auto;
+            resize: horizontal;
+            overflow-wrap: anywhere;
+        }
+        .task-table th:first-child,
+        .task-table td:first-child {
+            width: 34px;
+            min-width: 34px;
+            max-width: 34px;
+            padding: 8px 6px;
+            text-align: center;
+        }
+        .task-table td:first-child {
+            overflow: visible;
+            resize: none;
+        }
+        .task-table th:last-child,
+        .task-table td:last-child {
+            width: 96px;
+            min-width: 96px;
+            max-width: 112px;
+            padding: 8px 6px;
+        }
+        .task-table td:last-child {
+            overflow: visible;
+            resize: none;
+        }
+        .task-table th {
+            background: var(--card);
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .task-table tr:last-child td {
+            border-bottom: none;
+        }
+        .task-table input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 13px;
+            height: 13px;
+            min-width: 13px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .task-table .table-task-title.done {
+            text-decoration: line-through;
+            opacity: var(--completed-opacity);
+        }
+        .task-table .table-description {
+            opacity: 0.75;
+            max-width: 280px;
+            white-space: pre-wrap;
+        }
+        .task-table .table-task-title,
+        .calendar-task-row span,
+        .dashboard-task-row span,
+        .focus-item span,
+        .kanban-item .item-title {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+        .status-badge,
+        .category-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1px solid currentColor;
+            background: transparent;
+            white-space: nowrap;
+            font-size: 11px;
+        }
+        .category-badge {
+            color: var(--text);
+            border-color: var(--border);
+        }
+        .status-badge.todo {
+            color: #b46d00;
+        }
+        .status-badge.doing {
+            color: #2176a8;
+        }
+        .status-badge.done {
+            color: #208a4d;
+        }
+        .status-badge.cancel {
+            color: #c73b5a;
+        }
+        .view-empty {
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.55;
+            padding: 28px 16px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            background: var(--bg);
+        }
+
+        .calendar-task-view,
+        .dashboard-grid {
+            display: grid;
+            gap: 12px;
+        }
+        .calendar-day-group,
+        .dashboard-card {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+        }
+        .calendar-day-group h4,
+        .dashboard-card h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .calendar-task-row,
+        .dashboard-task-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 0;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .calendar-task-row:first-of-type,
+        .dashboard-task-row:first-of-type {
+            border-top: none;
+        }
+        .dashboard-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .dashboard-card .big-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        /* KANBAN BOARD */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        @media (max-width: 1000px) {
+            .kanban-board {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 600px) {
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .kanban-column {
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 12px;
+            border: 2px solid var(--border);
+            min-height: 150px;
+        }
+        .kanban-column .col-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .kanban-column .col-title .count {
+            font-size: 12px;
+            opacity: 0.5;
+            font-weight: normal;
+        }
+        .kanban-column .col-title .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .kanban-column .status-dot.todo {
+            background: #f39c12;
+        }
+        .kanban-column .status-dot.doing {
+            background: #3498db;
+        }
+        .kanban-column .status-dot.done {
+            background: #2ecc71;
+        }
+        .kanban-column .status-dot.cancel {
+            background: #e74c6f;
+        }
+
+        .kanban-item {
+            background: var(--card);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .kanban-item:hover {
+            transform: translateX(2px);
+            box-shadow: var(--shadow);
+        }
+        .kanban-item input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 13px;
+            height: 13px;
+            min-width: 13px;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .kanban-item .item-title {
+            flex: 1;
+            font-size: 13px;
+        }
+        .kanban-item .item-title.done {
+            text-decoration: line-through;
+            opacity: var(--completed-opacity);
+        }
+        .kanban-item .item-category {
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+        .kanban-item .item-deadline {
+            font-size: 10px;
+            opacity: 0.4;
+            flex-shrink: 0;
+        }
+        .item-del {
+            color: #e74c6f;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+            line-height: 1;
+            flex-shrink: 0;
+            display: inline-grid;
+            place-items: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            vertical-align: middle;
+        }
+        .item-del:hover {
+            background: rgba(231, 76, 111, 0.12);
+        }
+        .item-change,
+        .task-cancel-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: auto;
+            min-height: 26px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            box-shadow: none;
+            white-space: nowrap;
+        }
+        .item-change:hover,
+        .task-cancel-btn:hover {
+            background: var(--accent2);
+        }
+        .item-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+        .task-cancel-btn {
+            display: none;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .task-cancel-btn.show {
+            display: inline-flex;
+        }
+
+        .kanban-empty {
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.4;
+            padding: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+            .form-row input,
+            .form-row select,
+            .form-row textarea {
+                flex: 1 1 auto;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-bar .bulk-actions {
+                margin-left: 0;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .focus-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="./ui-cleanup.css" />
+    <style>
+        body.planner-notion {
+            --bg: #fbf7f8;
+            --text: #3d3539;
+            --card: #fffdfd;
+            --shadow: none;
+            --border: #ecd8df;
+            --accent: #e989a2;
+            --accent2: #f8d9e2;
+            --radius: 7px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        body.planner-notion.dark {
+            --bg: #231d20;
+            --text: #f4e9ed;
+            --card: #2d2529;
+            --border: #57424b;
+            --accent: #d77b93;
+            --accent2: #6b4452;
+        }
+        body.planner-notion .container {
+            max-width: 1280px;
+        }
+        body.planner-notion header,
+        body.planner-notion .calendar-section,
+        body.planner-notion .day-tasks-section,
+        body.planner-notion .heatmap-section,
+        body.planner-notion .cycle-section,
+        body.planner-notion .section {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: none;
+            background: var(--card);
+        }
+        body.planner-notion header {
+            margin-bottom: 14px;
+            padding: 10px 12px;
+        }
+        body.planner-notion header h1 {
+            font-size: 24px;
+            letter-spacing: 0;
+        }
+        body.planner-notion .header-actions {
+            gap: 6px;
+        }
+        body.planner-notion .header-actions button,
+        body.planner-notion .header-actions a,
+        body.planner-notion .theme-toggle,
+        body.planner-notion details.actions-menu > summary {
+            background: #fff8fa;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: var(--text);
+            min-height: 32px;
+            padding: 6px 10px;
+            transform: none;
+        }
+        body.planner-notion .header-actions button:hover,
+        body.planner-notion .header-actions a:hover,
+        body.planner-notion .theme-toggle:hover,
+        body.planner-notion details.actions-menu > summary:hover {
+            background: var(--accent2);
+            color: var(--text);
+            transform: none;
+        }
+        body.planner-notion .main-layout {
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 14px;
+        }
+        body.planner-notion .left-panel {
+            gap: 10px;
+            max-height: calc(100vh - 108px);
+            overflow-y: auto;
+            padding-right: 6px;
+            position: sticky;
+            top: 12px;
+            scrollbar-color: var(--accent2) transparent;
+            scrollbar-width: thin;
+        }
+        body.planner-notion .calendar-section,
+        body.planner-notion .day-tasks-section,
+        body.planner-notion .heatmap-section,
+        body.planner-notion .cycle-section,
+        body.planner-notion .section {
+            padding: 12px;
+        }
+        body.planner-notion .day-tasks-section {
+            flex: 0 0 auto;
+            overflow: visible;
+        }
+        body.planner-notion .day-tasks-header {
+            padding: 10px 12px;
+        }
+        body.planner-notion .day-tasks-body {
+            overflow: hidden;
+        }
+        body.planner-notion .day-tasks-body.open {
+            max-height: 260px;
+            overflow-y: auto;
+            scrollbar-color: var(--accent2) transparent;
+            scrollbar-width: thin;
+        }
+        body.planner-notion .day-tasks-body-inner {
+            padding: 0 12px 12px;
+        }
+        body.planner-notion .section h2,
+        body.planner-notion .day-tasks-header .day-title {
+            font-size: 18px;
+            letter-spacing: 0;
+        }
+        body.planner-notion .form-row,
+        body.planner-notion .filter-bar {
+            gap: 8px;
+        }
+        body.planner-notion .form-row input,
+        body.planner-notion .form-row select,
+        body.planner-notion .form-row textarea,
+        body.planner-notion .filter-bar input,
+        body.planner-notion .filter-bar select,
+        body.planner-notion .cycle-row input,
+        body.planner-notion .cycle-row select,
+        body.planner-notion .focus-controls select {
+            background: #fff9fb;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            min-height: 34px;
+            padding: 7px 10px;
+        }
+        body.planner-notion .form-row textarea {
+            border-radius: 7px;
+        }
+        body.planner-notion .task-entry-row {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.7fr) minmax(130px, 0.9fr) minmax(120px, 0.8fr) minmax(240px, 1.6fr) auto auto;
+            align-items: stretch;
+        }
+        body.planner-notion .task-entry-row > * {
+            min-width: 0;
+            width: 100%;
+        }
+        body.planner-notion .task-entry-row .task-desc-input {
+            height: 34px;
+            min-height: 34px !important;
+            line-height: 1.35;
+            resize: vertical;
+        }
+        body.planner-notion .task-entry-row button {
+            height: 34px;
+            min-height: 34px;
+            padding: 0 12px;
+            align-self: stretch;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        body.planner-notion button,
+        body.planner-notion .form-row button,
+        body.planner-notion .filter-bar .bulk-actions button,
+        body.planner-notion .heatmap-controls button,
+        body.planner-notion .calendar-nav button,
+        body.planner-notion .day-task-item button {
+            border-radius: 7px;
+            box-shadow: none;
+            min-height: 32px;
+            padding: 6px 10px;
+            transform: none;
+        }
+        body.planner-notion button:hover,
+        body.planner-notion .form-row button:hover,
+        body.planner-notion .filter-bar .bulk-actions button:hover {
+            transform: none;
+        }
+        body.planner-notion .star-btn,
+        body.planner-notion .mini-action {
+            background: transparent;
+            border: 0;
+            border-radius: 4px;
+            box-shadow: none;
+            min-height: 0;
+            padding: 0 4px;
+        }
+        body.planner-notion .star-btn:hover,
+        body.planner-notion .mini-action:hover {
+            background: #fff0f5;
+        }
+        body.planner-notion .focus-panel,
+        body.planner-notion .table-wrap,
+        body.planner-notion .calendar-day-group,
+        body.planner-notion .dashboard-card,
+        body.planner-notion .kanban-column {
+            background: #fff9fb;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        body.planner-notion .focus-panel {
+            padding: 10px;
+        }
+        body.planner-notion .most-important {
+            border-radius: 7px;
+        }
+        body.planner-notion .progress-wrap {
+            height: 7px;
+        }
+        body.planner-notion .focus-stat {
+            border-radius: 7px;
+            padding: 7px 9px;
+        }
+        body.planner-notion .focus-item,
+        body.planner-notion .day-task-item,
+        body.planner-notion .kanban-item {
+            background: #fffafb;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            box-shadow: none;
+        }
+        body.planner-notion .day-task-item {
+            grid-template-columns: 12px minmax(0, 1fr) auto;
+            gap: 7px;
+            padding: 7px 8px;
+        }
+        body.planner-notion .task-table {
+            font-size: 13px;
+        }
+        body.planner-notion .task-table th {
+            background: #fff8fa;
+            font-weight: 700;
+        }
+        body.planner-notion .task-table th,
+        body.planner-notion .task-table td {
+            padding: 8px 10px;
+        }
+        body.planner-notion .task-table th:first-child,
+        body.planner-notion .task-table td:first-child {
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            padding: 7px 5px;
+        }
+        body.planner-notion input[type="checkbox"],
+        body.planner-notion .task-table input[type="checkbox"],
+        body.planner-notion .focus-item input[type="checkbox"],
+        body.planner-notion .subtask-item input[type="checkbox"] {
+            height: 11px;
+            min-height: 11px;
+            min-width: 11px;
+            padding: 0;
+            width: 11px;
+        }
+        body.planner-notion .status-badge,
+        body.planner-notion .category-badge,
+        body.planner-notion .priority-badge {
+            border-radius: 5px;
+            padding: 1px 6px;
+        }
+        body.planner-notion .day-cell {
+            border-radius: 6px;
+            min-height: 31px;
+        }
+        body.planner-notion .day-cell.selected {
+            background: var(--accent);
+        }
+        body.planner-notion .actions-menu-list,
+        body.planner-notion .compact-panel-body {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(151, 95, 112, 0.14);
+        }
+        @media (max-width: 900px) {
+            body.planner-notion .main-layout {
+                grid-template-columns: 1fr;
+            }
+            body.planner-notion .task-entry-row {
+                grid-template-columns: 1fr;
+            }
+            body.planner-notion .left-panel {
+                position: static;
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body class="planner-notion">
+    <div class="container">
+
+        <header>
+            <h1>📋 Planner</h1>
+            <div class="header-actions">
+                <input type="file" id="importCSV" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" onchange="importCSV(event)" />
+                <a href="../index.html">🏠 Home</a>
+                <a href="../settings.html">⚙️ Settings</a>
+                <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+                <details class="actions-menu">
+                    <summary>More</summary>
+                    <div class="actions-menu-list">
+                        <button onclick="exportCSV()">📥 Export CSV</button>
+                        <button onclick="exportICS()">📅 Export Apple Calendar</button>
+                        <button onclick="document.getElementById('importCSV').click()">📤 Import CSV/TSV</button>
+                    </div>
+                </details>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- LEFT: Calendar + Day Tasks + Heatmap + Cycle -->
+            <div class="left-panel">
+                <!-- CALENDAR -->
+                <div class="calendar-section">
+                    <div class="calendar-header">
+                        <span class="month-year-label" id="monthLabel">January 2026</span>
+                        <div class="calendar-nav">
+                            <button onclick="changeMonth(-1)">◀</button>
+                            <button onclick="changeMonth(1)">▶</button>
+                            <button class="today-btn" onclick="goToToday()">Today</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+
+                <!-- DAY TASKS (dropdown) -->
+                <div class="day-tasks-section">
+                    <div class="day-tasks-header" onclick="toggleDayTasks()">
+                        <span class="day-title" id="dayTasksTitle">📅 Select a date</span>
+                        <span class="arrow open" id="dayTasksArrow">▼</span>
+                    </div>
+                    <div class="day-tasks-body open" id="dayTasksBody">
+                        <div class="day-tasks-body-inner" id="dayTasksInner">
+                            <div class="no-tasks">Click on a day to see tasks</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEATMAP -->
+                <div class="heatmap-section">
+                    <h3>🔥 Heatmap</h3>
+                    <div class="heatmap-controls">
+                        <button class="active" onclick="setHeatmapRange('week')" id="hmWeek">Week</button>
+                        <button onclick="setHeatmapRange('month')" id="hmMonth">Month</button>
+                        <button onclick="setHeatmapRange('quarter')" id="hmQuarter">Quarter</button>
+                        <button onclick="setHeatmapRange('year')" id="hmYear">Year</button>
+                    </div>
+                    <div class="heatmap-grid" id="heatmapGrid"></div>
+                    <div class="heatmap-legend">
+                        <span><span class="dot" style="background:var(--border);"></span> 0</span>
+                        <span><span class="dot" style="background:#f8d7e0;"></span> 1</span>
+                        <span><span class="dot" style="background:#f5b7c1;"></span> 2</span>
+                        <span><span class="dot" style="background:#f1948a;"></span> 3</span>
+                        <span><span class="dot" style="background:#e74c6f;"></span> 4+</span>
+                    </div>
+                </div>
+
+                <!-- MENSTRUAL CYCLE -->
+                <div class="cycle-section">
+                    <h3>🔄 Menstrual Cycle</h3>
+                    <div class="cycle-row">
+                        <span>Start:</span>
+                        <input type="date" id="cycleStart" />
+                        <span>End:</span>
+                        <input type="date" id="cycleEnd" />
+                        <span>Cycle:</span>
+                        <input type="number" id="cycleLength" value="28" min="21" max="35" style="width:60px;" />
+                    </div>
+                    <div class="cycle-note" id="cycleSummary">Set start and end dates.</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Tasks -->
+            <div class="right-panel">
+                <div class="section">
+                    <h3>📝 Tasks</h3>
+                    <div class="focus-panel">
+                        <div class="focus-top">
+                            <div>
+                                <div class="focus-title" id="focusTitle">Today</div>
+                                <div style="font-size:12px;opacity:0.65;" id="focusRangeLabel">What needs attention now</div>
+                            </div>
+                            <div class="focus-controls">
+                                <select id="focusScope" onchange="setFocusScope(this.value)">
+                                    <option value="day">Day</option>
+                                    <option value="week">Week</option>
+                                    <option value="month">Month</option>
+                                    <option value="quarter">Quarter</option>
+                                    <option value="year">Year</option>
+                                </select>
+                                <label style="display:flex;align-items:center;gap:6px;">
+                                    <input type="checkbox" id="compactModeToggle" onchange="toggleCompactMode(this.checked)" />
+                                    Compact
+                                </label>
+                            </div>
+                        </div>
+                        <div class="most-important" id="mostImportantBox"></div>
+                        <div class="progress-wrap" aria-label="Task completion progress">
+                            <div class="progress-fill" id="focusProgress"></div>
+                        </div>
+                        <div class="focus-stats">
+                            <div class="focus-stat"><span>Total</span><strong id="focusTotal">0</strong></div>
+                            <div class="focus-stat"><span>Done</span><strong id="focusDone">0</strong></div>
+                            <div class="focus-stat"><span>Doing</span><strong id="focusDoing">0</strong></div>
+                            <div class="focus-stat"><span>Progress</span><strong id="focusPercent">0%</strong></div>
+                        </div>
+                        <div class="focus-list" id="focusList"></div>
+                    </div>
+                    <div class="form-row task-entry-row">
+                        <input type="text" id="taskTitle" placeholder="Task" style="flex:2;" />
+                        <select id="taskCategory" style="flex:1;">
+                            <option value="Work">💼 Work</option>
+                            <option value="Study">📚 Study</option>
+                            <option value="Personal">🧘 Personal</option>
+                            <option value="Health">💪 Health</option>
+                            <option value="Other">📌 Other</option>
+                        </select>
+                        <select id="taskStatus" style="flex:0.8;">
+                            <option value="todo">⏳ To-do</option>
+                            <option value="doing">🔄 Doing</option>
+                            <option value="done">✅ Done</option>
+                            <option value="cancel">❌ Cancel</option>
+                        </select>
+                        <textarea id="taskDesc" class="task-desc-input" placeholder="Description" style="flex:2;"></textarea>
+                        <button id="taskSubmitBtn" onclick="saveTask()">➕ Add</button>
+                        <button id="taskCancelEditBtn" class="task-cancel-btn" onclick="cancelTaskEdit()">Cancel</button>
+                    </div>
+                    <details class="subtask-toggle" style="margin-bottom:10px;">
+                        <summary>Task details</summary>
+                        <div class="form-row" style="margin-top:8px;">
+                            <input type="date" id="taskStartDate" title="Start date" style="flex:0.8;" />
+                            <input type="date" id="taskEndDate" title="End date" style="flex:0.8;" />
+                            <textarea id="taskSubtasks" placeholder="Subtasks, one per line. Optional: Subtask | 2026-07-01 | 2026-07-07" style="flex:2;min-height:78px;"></textarea>
+                        </div>
+                    </details>
+                    <div class="form-row">
+                        <input type="text" id="newCategoryInput" placeholder="New category" style="flex:1;" />
+                        <button onclick="addSharedCategory()">Add Category</button>
+                        <button onclick="deleteSharedCategory()">Delete Category</button>
+                    </div>
+                    <div class="filter-bar">
+                        <select id="filterStatus" onchange="renderTasks()">
+                            <option value="all">All</option>
+                            <option value="todo">⏳ To-do</option>
+                            <option value="doing">🔄 Doing</option>
+                            <option value="done">✅ Done</option>
+                            <option value="cancel">❌ Cancel</option>
+                        </select>
+                        <select id="filterCategory" onchange="renderTasks()">
+                            <option value="all">All categories</option>
+                        </select>
+                        <select id="filterTime" onchange="renderTasks()">
+                            <option value="day">Selected day</option>
+                            <option value="week">Selected week</option>
+                            <option value="month">Selected month</option>
+                            <option value="quarter">Selected quarter</option>
+                            <option value="year">Selected year</option>
+                            <option value="all">All time</option>
+                            <option value="custom">Custom range</option>
+                        </select>
+                        <span class="date-filter date-filter-day" title="Selected day">
+                            <input type="date" id="filterDate" onchange="selectDate(this.value)" />
+                        </span>
+                        <span class="date-filter date-filter-range" title="From date">
+                            <input type="date" id="filterFromDate" onchange="renderTasks()" />
+                        </span>
+                        <span class="date-filter date-filter-range" title="To date">
+                            <input type="date" id="filterToDate" onchange="renderTasks()" />
+                        </span>
+                        <select id="viewMode" onchange="setViewMode(this.value)">
+                            <option value="table">Table view</option>
+                            <option value="calendar">Calendar view</option>
+                            <option value="dashboard">Dashboard view</option>
+                            <option value="board">Board view</option>
+                        </select>
+                        <div class="bulk-actions">
+                            <span style="font-size:13px;opacity:0.7;">
+                                <input type="checkbox" id="selectAllTasks" onchange="toggleAllTasks()" /> Select all
+                            </span>
+                            <button class="danger" onclick="bulkDeleteTasks()">🗑 Delete</button>
+                            <button class="success" onclick="bulkExportTasks()">📥 Export</button>
+                            <button onclick="bulkExportTasksICS()">📅 Calendar</button>
+                        </div>
+                    </div>
+
+                    <div class="view-shell" id="taskView"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        // THEME
+        // ============================================================
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('plannerTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('plannerTheme') === 'dark') document.body.classList.add('dark');
+
+        // ============================================================
+        // DATA
+        // ============================================================
+        function getData() {
+            try {
+                return normalizeData(JSON.parse(localStorage.getItem('plannerData')));
+            } catch { return { tasks: [] }; }
+        }
+
+        function saveData(d) {
+            localStorage.setItem('plannerData', JSON.stringify(normalizeData(d)));
+        }
+
+        function normalizeData(data) {
+            const tasks = Array.isArray(data?.tasks) ? data.tasks : [];
+            return {
+                tasks: tasks.map(t => ({
+                    id: t.id || Date.now() + '_task',
+                    title: t.title || t.task || '',
+                    category: t.category || 'Other',
+                    status: ['todo', 'doing', 'done', 'cancel'].includes(t.status) ? t.status : 'todo',
+                    date: t.date || t.startDate || t.deadline || '',
+                    startDate: t.startDate || t.date || t.deadline || '',
+                    endDate: t.endDate || t.date || t.startDate || t.deadline || '',
+                    desc: t.desc || t.description || '',
+                    priority: ['low', 'medium', 'high'].includes(t.priority) ? t.priority : 'medium',
+                    subtasks: normalizeSubtasks(t.subtasks)
+                })).filter(t => t.title)
+            };
+        }
+
+        function normalizeSubtasks(subtasks) {
+            if (Array.isArray(subtasks)) {
+                return subtasks.map(item => ({
+                    id: item.id || Date.now() + '_sub_' + Math.random().toString(16).slice(2),
+                    title: item.title || item.text || '',
+                    startDate: item.startDate || item.date || '',
+                    endDate: item.endDate || item.startDate || item.date || '',
+                    done: Boolean(item.done)
+                })).filter(item => item.title);
+            }
+            if (typeof subtasks === 'string') {
+                const lines = subtasks.includes('\n')
+                    ? subtasks.split(/\r?\n/)
+                    : subtasks.split(/\s\|\s(?=\[(?:x|\s)\]\s)/i);
+                return lines.map(line => line.trim()).filter(Boolean).map(line => {
+                    const done = /^\[x\]/i.test(line);
+                    const parts = line.replace(/^\[(x|\s)\]\s*/i, '').split('|').map(part => part.trim());
+                    const title = cleanTaskLine(parts[0] || '');
+                    const startDate = normalizeDateInput(parts[1] || '');
+                    const endDate = normalizeDateInput(parts[2] || startDate || '');
+                    return {
+                        id: Date.now() + '_sub_' + Math.random().toString(16).slice(2),
+                        title,
+                        startDate,
+                        endDate,
+                        done
+                    };
+                }).filter(item => item.title);
+            }
+            return [];
+        }
+
+        function cleanTaskLine(value) {
+            return String(value || '').replace(/^[-*•]\s*/, '').replace(/^\d+[.)]\s*/, '').trim();
+        }
+
+        function normalizeDateInput(value) {
+            const text = String(value || '').trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+            const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            return match ? `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}` : '';
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function formatDate(year, month, day) {
+            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+
+        function displayDate(dateStr) {
+            const [y, m, d] = String(dateStr).split('-').map(Number);
+            if (!y || !m || !d) return '';
+            return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+        }
+
+        function todayDate() {
+            const now = new Date();
+            return formatDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
+        }
+
+        function escapeICS(value) {
+            return String(value ?? '')
+                .replace(/\\/g, '\\\\')
+                .replace(/\n/g, '\\n')
+                .replace(/,/g, '\\,')
+                .replace(/;/g, '\\;');
+        }
+
+        function formatICSDate(dateStr) {
+            const [year, month, day] = String(dateStr || '').split('-').map(Number);
+            if (!year || !month || !day) return '';
+            return `${year}${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}`;
+        }
+
+        function syncPlannerTasksToTeachingTodos() {
+            const planner = getData();
+            let teaching;
+            try {
+                teaching = JSON.parse(localStorage.getItem('teachingData')) || { classes: [], lessons: [], todos: [] };
+            } catch {
+                teaching = { classes: [], lessons: [], todos: [] };
+            }
+            teaching.classes = Array.isArray(teaching.classes) ? teaching.classes : [];
+            teaching.lessons = Array.isArray(teaching.lessons) ? teaching.lessons : [];
+            teaching.todos = Array.isArray(teaching.todos) ? teaching.todos : [];
+
+            const originalPlannerTasks = planner.tasks.filter(t => !t.linkedTeachingTodoId);
+            const plannerIds = new Set(originalPlannerTasks.map(t => t.id));
+            teaching.todos = teaching.todos.filter(t => !t.linkedPlannerTaskId || plannerIds.has(t.linkedPlannerTaskId));
+
+            originalPlannerTasks.forEach(task => {
+                const existing = teaching.todos.find(t => t.linkedPlannerTaskId === task.id);
+                const mapped = {
+                    id: existing?.id || `planner_${task.id}`,
+                    linkedPlannerTaskId: task.id,
+                    title: task.title,
+                    classId: null,
+                    classLabel: task.category || 'Planner',
+                    date: task.startDate || task.date || null,
+                    done: task.status === 'done' || task.status === 'cancel'
+                };
+                if (existing) Object.assign(existing, mapped);
+                else teaching.todos.push(mapped);
+            });
+
+            localStorage.setItem('teachingData', JSON.stringify(teaching));
+        }
+
+        function parseCSV(text) {
+            const firstLine = String(text || '').split(/\r?\n/)[0] || '';
+            if (firstLine.includes('\t')) {
+                return String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim()).map(line => line.split('\t').map(cell => cell.trim()));
+            }
+            const rows = [];
+            let row = [];
+            let cell = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const next = text[i + 1];
+                if (char === '"' && inQuotes && next === '"') {
+                    cell += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    row.push(cell);
+                    cell = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell);
+                    if (row.some(value => value.trim())) rows.push(row);
+                    row = [];
+                    cell = '';
+                } else {
+                    cell += char;
+                }
+            }
+
+            row.push(cell);
+            if (row.some(value => value.trim())) rows.push(row);
+            return rows;
+        }
+
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedDate = null;
+        let heatmapRange = 'week';
+        let dayTasksOpen = true;
+        let currentView = 'table';
+        let editingTaskId = null;
+        let focusScope = localStorage.getItem('plannerFocusScope') || 'day';
+        let mostImportantMode = localStorage.getItem('plannerMostImportantMode') || 'still';
+
+        const STATUS_ORDER = ['todo', 'doing', 'done', 'cancel'];
+        const STATUS_META = {
+            todo: '⏳ To-do',
+            doing: '🔄 Doing',
+            done: '✅ Done',
+            cancel: '❌ Cancel'
+        };
+
+        function statusRank(status) {
+            const rank = STATUS_ORDER.indexOf(status);
+            return rank === -1 ? STATUS_ORDER.length : rank;
+        }
+
+        function sortTasks(tasks) {
+            return [...tasks].sort((a, b) => {
+                if (!!b.starred !== !!a.starred) return b.starred ? 1 : -1;
+                const statusDiff = statusRank(a.status) - statusRank(b.status);
+                if (statusDiff) return statusDiff;
+                const priorityDiff = priorityRank(b.priority) - priorityRank(a.priority);
+                if (priorityDiff) return priorityDiff;
+                const dateDiff = String(a.startDate || a.date || '').localeCompare(String(b.startDate || b.date || ''));
+                if (dateDiff) return dateDiff;
+                return String(a.title || '').localeCompare(String(b.title || ''));
+            });
+        }
+
+        function priorityRank(priority) {
+            return { low: 1, medium: 2, high: 3 }[priority] || 2;
+        }
+
+        function priorityBadge(priority) {
+            return '';
+        }
+
+        function parseLocalDate(dateStr) {
+            const [year, month, day] = String(dateStr || '').split('-').map(Number);
+            if (!year || !month || !day) return null;
+            return new Date(year, month - 1, day);
+        }
+
+        function addDays(date, days) {
+            const next = new Date(date);
+            next.setDate(next.getDate() + days);
+            return next;
+        }
+
+        function scopeRange(scope, baseDateStr = selectedDate || todayDate()) {
+            const base = parseLocalDate(baseDateStr) || new Date();
+            let start = new Date(base);
+            let end = new Date(base);
+            if (scope === 'week') {
+                start = addDays(base, -base.getDay());
+                end = addDays(start, 6);
+            } else if (scope === 'month') {
+                start = new Date(base.getFullYear(), base.getMonth(), 1);
+                end = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+            } else if (scope === 'quarter') {
+                const quarterStart = Math.floor(base.getMonth() / 3) * 3;
+                start = new Date(base.getFullYear(), quarterStart, 1);
+                end = new Date(base.getFullYear(), quarterStart + 3, 0);
+            } else if (scope === 'year') {
+                start = new Date(base.getFullYear(), 0, 1);
+                end = new Date(base.getFullYear(), 11, 31);
+            }
+            return {
+                start: formatDate(start.getFullYear(), start.getMonth() + 1, start.getDate()),
+                end: formatDate(end.getFullYear(), end.getMonth() + 1, end.getDate())
+            };
+        }
+
+        function taskDateRange(task) {
+            const start = task.startDate || task.date || task.deadline || '';
+            const end = task.endDate || start;
+            return { start, end: end < start ? start : end };
+        }
+
+        function rangeOverlaps(itemStart, itemEnd, rangeStart, rangeEnd) {
+            if (!itemStart && !itemEnd) return false;
+            const start = itemStart || itemEnd;
+            const end = itemEnd || itemStart;
+            return start <= rangeEnd && end >= rangeStart;
+        }
+
+        function taskOverlapsRange(task, rangeStart, rangeEnd) {
+            const range = taskDateRange(task);
+            return rangeOverlaps(range.start, range.end, rangeStart, rangeEnd);
+        }
+
+        function dateLabel(task) {
+            const range = taskDateRange(task);
+            if (!range.start) return '';
+            if (!range.end || range.end === range.start) return displayDate(range.start);
+            return `${displayDate(range.start)} - ${displayDate(range.end)}`;
+        }
+
+        function subtaskDateLabel(item) {
+            const start = item.startDate || '';
+            const end = item.endDate || start;
+            if (!start) return '';
+            return end && end !== start ? `${displayDate(start)} - ${displayDate(end)}` : displayDate(start);
+        }
+
+        function tasksInScope(tasks, scope) {
+            if (scope === 'all') return tasks;
+            const range = scopeRange(scope);
+            return tasks.filter(task => taskOverlapsRange(task, range.start, range.end));
+        }
+
+        function taskProgress(task) {
+            const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+            if (subtasks.length) {
+                return subtasks.filter(item => item.done).length / subtasks.length;
+            }
+            return task.status === 'done' || task.status === 'cancel' ? 1 : 0;
+        }
+
+        function completionPercent(tasks) {
+            if (!tasks.length) return 0;
+            const total = tasks.reduce((sum, task) => sum + taskProgress(task), 0);
+            return Math.round((total / tasks.length) * 100);
+        }
+
+        function statusBadge(status) {
+            const key = STATUS_ORDER.includes(status) ? status : 'todo';
+            return `<span class="status-badge ${key}">${STATUS_META[key]}</span>`;
+        }
+
+        function categoryBadge(category) {
+            return category ? `<span class="category-badge">${escapeHTML(category)}</span>` : '';
+        }
+
+        function subtaskSummary(task) {
+            const subtasks = task.subtasks || [];
+            if (!subtasks.length) return '';
+            const done = subtasks.filter(item => item.done).length;
+            return `${done}/${subtasks.length}`;
+        }
+
+        function renderSubtasks(task) {
+            const subtasks = task.subtasks || [];
+            if (!subtasks.length) return '';
+            return `<details class="subtask-toggle">
+                <summary>Subtasks ${subtaskSummary(task)}</summary>
+                <div class="subtask-list">
+                    ${subtasks.map(item => `
+                        <label class="subtask-item ${item.done ? 'done' : ''}">
+                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleSubtask('${task.id}', '${item.id}')" />
+                            <span class="subtask-text">${escapeHTML(item.title)}${subtaskDateLabel(item) ? `<span class="subtask-date">${subtaskDateLabel(item)}</span>` : ''}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </details>`;
+        }
+
+        function setViewMode(view) {
+            currentView = ['table', 'calendar', 'dashboard', 'board'].includes(view) ? view : 'table';
+            document.getElementById('viewMode').value = currentView;
+            renderTasks();
+        }
+
+        function setFocusScope(scope) {
+            focusScope = ['day', 'week', 'month', 'quarter', 'year'].includes(scope) ? scope : 'day';
+            localStorage.setItem('plannerFocusScope', focusScope);
+            document.getElementById('filterTime').value = focusScope;
+            renderTasks();
+        }
+
+        function toggleCompactMode(enabled) {
+            document.body.classList.toggle('compact-mode', enabled);
+            localStorage.setItem('plannerCompactMode', enabled ? 'true' : 'false');
+        }
+
+        function setMostImportantMode(mode) {
+            mostImportantMode = mode === 'scroll' ? 'scroll' : 'still';
+            localStorage.setItem('plannerMostImportantMode', mostImportantMode);
+            renderTasks();
+        }
+
+        function updateDateFilterVisibility() {
+            const mode = document.getElementById('filterTime')?.value || 'day';
+            document.querySelectorAll('.date-filter-day').forEach(el => el.classList.toggle('show', mode === 'day'));
+            document.querySelectorAll('.date-filter-range').forEach(el => el.classList.toggle('show', mode === 'custom'));
+        }
+
+        function renderFocusPanel(tasks) {
+            const scoped = sortTasks(tasksInScope(tasks, focusScope));
+            const active = scoped.filter(task => task.status !== 'cancel');
+            const done = active.filter(task => task.status === 'done').length;
+            const doing = active.filter(task => task.status === 'doing').length;
+            const percent = completionPercent(active);
+            const labels = { day: 'Today', week: 'This Week', month: 'This Month', quarter: 'This Quarter', year: 'This Year' };
+            const range = scopeRange(focusScope);
+
+            document.getElementById('focusScope').value = focusScope;
+            document.getElementById('focusTitle').textContent = labels[focusScope] || 'Focus';
+            document.getElementById('focusRangeLabel').textContent = `${displayDate(range.start)} - ${displayDate(range.end)}`;
+            document.getElementById('focusTotal').textContent = active.length;
+            document.getElementById('focusDone').textContent = done;
+            document.getElementById('focusDoing').textContent = doing;
+            document.getElementById('focusPercent').textContent = `${percent}%`;
+            document.getElementById('focusProgress').style.width = `${percent}%`;
+            renderMostImportant(tasks);
+
+            const visible = active.filter(task => task.status !== 'done').slice(0, 6);
+            document.getElementById('focusList').innerHTML = visible.length ? visible.map(task => `
+                <div class="focus-item">
+                    <input type="checkbox" ${task.status === 'done' ? 'checked' : ''} onchange="toggleTaskStatus('${task.id}')" />
+                    <span>${starButton(task)} ${escapeHTML(task.title)}</span>
+                    ${priorityBadge(task.priority)}
+                </div>
+            `).join('') : `<div class="view-empty" style="padding:12px;">Nothing active in this range.</div>`;
+        }
+
+        function renderMostImportant(tasks) {
+            const box = document.getElementById('mostImportantBox');
+            if (!box) return;
+            const starred = tasks.find(task => task.starred && task.status !== 'cancel');
+            const modeSelect = `<select onchange="setMostImportantMode(this.value)" title="Display mode">
+                    <option value="still" ${mostImportantMode === 'still' ? 'selected' : ''}>Still</option>
+                    <option value="scroll" ${mostImportantMode === 'scroll' ? 'selected' : ''}>Scroll</option>
+                </select>`;
+
+            if (!starred) {
+                box.innerHTML = `<div class="most-important-top">
+                        <span class="most-important-label">Most Important</span>
+                        <span class="most-important-controls">${modeSelect}</span>
+                    </div>
+                    <div class="most-important-empty" onclick="document.getElementById('taskTitle').focus()">np ơi, việc gì quan trọng nào?</div>`;
+                return;
+            }
+
+            box.innerHTML = `<div class="most-important-top">
+                    <span class="most-important-label">Most Important</span>
+                    <span class="most-important-controls">
+                        ${modeSelect}
+                        <button class="mini-action" onclick="editTask('${starred.id}')" title="Edit">Edit</button>
+                        <button class="mini-action" onclick="clearMostImportant()" title="Unstar">✕</button>
+                    </span>
+                </div>
+                <div class="most-important-title ${mostImportantMode === 'scroll' ? 'marquee' : ''}">
+                    <span>${escapeHTML(starred.title)}</span>
+                </div>`;
+        }
+
+        // ============================================================
+        // TASKS
+        // ============================================================
+        function saveTask() {
+            const title = cleanTaskLine(document.getElementById('taskTitle').value.trim());
+            const category = document.getElementById('taskCategory').value;
+            const status = document.getElementById('taskStatus').value;
+            const desc = document.getElementById('taskDesc').value.trim();
+            const priority = '';
+            const startDate = document.getElementById('taskStartDate').value || selectedDate || todayDate();
+            const rawEndDate = document.getElementById('taskEndDate').value || startDate;
+            const endDate = rawEndDate < startDate ? startDate : rawEndDate;
+            const rawSubtasks = document.getElementById('taskSubtasks').value;
+            const subtasks = normalizeSubtasks(rawSubtasks);
+
+            if (!selectedDate) goToToday();
+
+            const data = getData();
+            if (!title && subtasks.length) {
+                const [mainTask, ...childTasks] = subtasks;
+                data.tasks.push({
+                    id: Date.now() + '_task_' + Math.random().toString(16).slice(2),
+                    title: mainTask.title,
+                    category,
+                    status,
+                    date: startDate,
+                    startDate,
+                    endDate,
+                    desc,
+                    priority,
+                    starred: false,
+                    subtasks: childTasks.map(item => ({
+                        ...item,
+                        done: false
+                    }))
+                });
+                saveData(data);
+                syncPlannerTasksToTeachingTodos();
+                resetTaskForm();
+                renderAll();
+                document.getElementById('taskTitle').focus();
+                return;
+            }
+
+            if (!title) return alert('Please enter task title');
+            if (editingTaskId) {
+                const task = data.tasks.find(t => t.id === editingTaskId);
+                if (!task) {
+                    resetTaskForm();
+                    alert('This task no longer exists.');
+                    return;
+                }
+                const existingSubtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+                const mergedSubtasks = subtasks.map(item => {
+                    const old = existingSubtasks.find(sub => sub.title === item.title);
+                    return old ? { ...item, id: old.id, done: old.done } : item;
+                });
+                Object.assign(task, { title, category, status, date: startDate, startDate, endDate, desc, priority, subtasks: mergedSubtasks });
+            } else {
+                data.tasks.push({
+                    id: Date.now() + '_task',
+                    title,
+                    category,
+                    status,
+                    date: startDate,
+                    startDate,
+                    endDate,
+                    desc,
+                    priority,
+                    starred: false,
+                    subtasks
+                });
+            }
+            saveData(data);
+            syncPlannerTasksToTeachingTodos();
+            resetTaskForm();
+            renderAll();
+            document.getElementById('taskTitle').focus();
+        }
+
+        function addTask() {
+            saveTask();
+        }
+
+        function resetTaskForm() {
+            editingTaskId = null;
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDesc').value = '';
+            document.getElementById('taskStartDate').value = selectedDate || todayDate();
+            document.getElementById('taskEndDate').value = selectedDate || todayDate();
+            document.getElementById('taskSubtasks').value = '';
+            document.getElementById('taskSubmitBtn').textContent = '➕ Add';
+            document.getElementById('taskCancelEditBtn').classList.remove('show');
+        }
+
+        function cancelTaskEdit() {
+            resetTaskForm();
+        }
+
+        function editTask(id) {
+            const data = getData();
+            const task = data.tasks.find(t => t.id === id);
+            if (!task) return alert('This task no longer exists.');
+
+            editingTaskId = id;
+            selectedDate = task.startDate || task.date || selectedDate || todayDate();
+            renderCalendar();
+            updateDayTasks(selectedDate);
+
+            document.getElementById('taskTitle').value = task.title || '';
+            document.getElementById('taskCategory').value = task.category || 'Other';
+            document.getElementById('taskStatus').value = STATUS_ORDER.includes(task.status) ? task.status : 'todo';
+            document.getElementById('taskDesc').value = task.desc || '';
+            document.getElementById('taskStartDate').value = task.startDate || task.date || selectedDate;
+            document.getElementById('taskEndDate').value = task.endDate || task.startDate || task.date || selectedDate;
+            document.getElementById('taskSubtasks').value = (task.subtasks || []).map(item => {
+                const dates = [item.startDate, item.endDate].filter(Boolean);
+                return dates.length ? `${item.title} | ${dates.join(' | ')}` : item.title;
+            }).join('\n');
+            document.getElementById('filterDate').value = selectedDate;
+            document.getElementById('taskSubmitBtn').textContent = '💾 Save';
+            document.getElementById('taskCancelEditBtn').classList.add('show');
+            document.getElementById('taskTitle').focus();
+        }
+
+        function taskActions(id) {
+            return `<span class="item-actions">
+                    <button type="button" class="item-change" onclick="editTask('${id}')">Change</button>
+                    <span class="item-del" onclick="deleteTask('${id}')" title="Delete">✕</span>
+                </span>`;
+        }
+
+        function starButton(task) {
+            return `<button type="button" class="star-btn ${task.starred ? 'active' : ''}" onclick="toggleStarTask('${task.id}')" title="${task.starred ? 'Remove from Most Important' : 'Mark as Most Important'}">${task.starred ? '★' : '☆'}</button>`;
+        }
+
+        function toggleStarTask(id) {
+            const data = getData();
+            const target = data.tasks.find(t => t.id === id);
+            if (!target) return;
+            const willStar = !target.starred;
+            data.tasks.forEach(task => {
+                task.starred = willStar && task.id === id;
+            });
+            saveData(data);
+            syncPlannerTasksToTeachingTodos();
+            renderAll();
+        }
+
+        function clearMostImportant() {
+            const data = getData();
+            data.tasks.forEach(task => task.starred = false);
+            saveData(data);
+            syncPlannerTasksToTeachingTodos();
+            renderAll();
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active && ['taskTitle', 'taskCategory', 'taskStatus', 'taskDesc', 'taskStartDate', 'taskEndDate', 'taskSubtasks'].includes(active.id)) {
+                    e.preventDefault();
+                    saveTask();
+                }
+            }
+        });
+
+        function deleteTask(id) {
+            if (!confirm('Delete this task?')) return;
+            const data = getData();
+            data.tasks = data.tasks.filter(t => t.id !== id);
+            saveData(data);
+            if (editingTaskId === id) resetTaskForm();
+            syncPlannerTasksToTeachingTodos();
+            renderAll();
+        }
+
+        function toggleTaskStatus(id) {
+            const data = getData();
+            const task = data.tasks.find(t => t.id === id);
+            if (task) {
+                if (task.status === 'done' || task.status === 'cancel') {
+                    task.status = 'todo';
+                } else {
+                    task.status = 'done';
+                }
+                saveData(data);
+                syncPlannerTasksToTeachingTodos();
+                renderAll();
+            }
+        }
+
+        function updateTaskStatus(id, newStatus) {
+            const data = getData();
+            const task = data.tasks.find(t => t.id === id);
+            if (task) {
+                task.status = newStatus;
+                saveData(data);
+                syncPlannerTasksToTeachingTodos();
+                renderAll();
+            }
+        }
+
+        function toggleSubtask(taskId, subtaskId) {
+            const data = getData();
+            const task = data.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            const subtask = (task.subtasks || []).find(item => item.id === subtaskId);
+            if (!subtask) return;
+            subtask.done = !subtask.done;
+            const subtasks = task.subtasks || [];
+            if (subtasks.length && subtasks.every(item => item.done)) task.status = 'done';
+            if (subtasks.length && subtasks.some(item => !item.done) && task.status === 'done') task.status = 'doing';
+            saveData(data);
+            syncPlannerTasksToTeachingTodos();
+            renderAll();
+        }
+
+        function renderTasks() {
+            const data = getData();
+            const statusFilter = document.getElementById('filterStatus').value;
+            const categoryFilter = document.getElementById('filterCategory').value;
+            const timeFilter = document.getElementById('filterTime').value;
+            updateDateFilterVisibility();
+            const dateFilter = document.getElementById('filterDate').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+            if (['day', 'week', 'month', 'quarter', 'year'].includes(timeFilter)) {
+                focusScope = timeFilter;
+                localStorage.setItem('plannerFocusScope', focusScope);
+            }
+
+            let list = sortTasks(data.tasks);
+            if (statusFilter !== 'all') list = list.filter(t => t.status === statusFilter);
+            if (categoryFilter !== 'all') list = list.filter(t => t.category === categoryFilter);
+            if (timeFilter === 'day' && dateFilter) list = list.filter(t => taskOverlapsRange(t, dateFilter, dateFilter));
+            if (['week', 'month', 'quarter', 'year'].includes(timeFilter)) list = tasksInScope(list, timeFilter);
+            if (timeFilter === 'custom') {
+                const start = fromDate || '0000-01-01';
+                const end = toDate || '9999-12-31';
+                list = list.filter(t => taskOverlapsRange(t, start, end));
+            }
+
+            const settings = getSharedSettings();
+            const categories = new Set([...(settings.categories || []), ...data.tasks.map(t => t.category).filter(c => c)]);
+            const taskCategory = document.getElementById('taskCategory');
+            const currentTaskCategory = taskCategory.value;
+            taskCategory.innerHTML = Array.from(categories).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+            taskCategory.value = Array.from(taskCategory.options).some(option => option.value === currentTaskCategory)
+                ? currentTaskCategory
+                : (settings.categories?.[0] || 'Other');
+            const catFilter = document.getElementById('filterCategory');
+            const currentVal = catFilter.value;
+            catFilter.innerHTML = `<option value="all">All categories</option>` +
+                Array.from(categories).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+            catFilter.value = Array.from(catFilter.options).some(option => option.value === currentVal) ? currentVal : 'all';
+
+            renderFocusPanel(data.tasks);
+            renderTaskView(list);
+        }
+
+        function getSharedSettings() {
+            try {
+                return JSON.parse(localStorage.getItem('settingsData')) || { categories: ['Work', 'Study', 'Personal', 'Health', 'Other'] };
+            } catch {
+                return { categories: ['Work', 'Study', 'Personal', 'Health', 'Other'] };
+            }
+        }
+
+        function saveSharedSettings(settings) {
+            localStorage.setItem('settingsData', JSON.stringify({
+                categories: settings.categories || ['Work', 'Study', 'Personal', 'Health', 'Other'],
+                categoryColors: settings.categoryColors || {},
+                financeTypes: settings.financeTypes || ['Income', 'Expense']
+            }));
+        }
+
+        function addSharedCategory() {
+            const input = document.getElementById('newCategoryInput');
+            const name = input.value.trim();
+            if (!name) return alert('Enter a category name.');
+            const settings = getSharedSettings();
+            settings.categories = Array.isArray(settings.categories) ? settings.categories : [];
+            if (!settings.categories.includes(name)) settings.categories.push(name);
+            saveSharedSettings(settings);
+            input.value = '';
+            document.getElementById('taskCategory').value = name;
+            renderTasks();
+        }
+
+        function deleteSharedCategory() {
+            const name = document.getElementById('taskCategory').value;
+            if (!name || !confirm(`Delete category "${name}" from the shared list? Existing tasks keep their label.`)) return;
+            const settings = getSharedSettings();
+            settings.categories = (settings.categories || []).filter(c => c !== name);
+            if (settings.categoryColors) delete settings.categoryColors[name];
+            saveSharedSettings(settings);
+            renderTasks();
+        }
+
+        function renderTaskView(tasks) {
+            if (currentView === 'calendar') {
+                renderCalendarTaskView(tasks);
+            } else if (currentView === 'dashboard') {
+                renderDashboard(tasks);
+            } else if (currentView === 'board') {
+                renderKanban(tasks);
+            } else {
+                renderTable(tasks);
+            }
+        }
+
+        function renderTable(tasks) {
+            const view = document.getElementById('taskView');
+            if (!tasks.length) {
+                view.innerHTML = `<div class="view-empty">No tasks match these filters</div>`;
+                document.getElementById('selectAllTasks').checked = false;
+                return;
+            }
+
+            view.innerHTML = `<div class="table-wrap">
+                    <table class="task-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllTasksHead" onchange="toggleAllTasks(this)" /></th>
+                                <th>Task</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tasks.map(t => {
+                                const isDone = t.status === 'done' || t.status === 'cancel';
+                                return `<tr>
+                                    <td><input type="checkbox" class="task-select" value="${t.id}" /></td>
+                                    <td class="table-task-title ${isDone ? 'done' : ''}">
+                                        <div class="task-title-line">${starButton(t)} <span>${escapeHTML(t.title)} ${priorityBadge(t.priority)}</span></div>
+                                        ${renderSubtasks(t)}
+                                    </td>
+                                    <td>${categoryBadge(t.category)}</td>
+                                    <td>${statusBadge(t.status)}</td>
+                                    <td>${dateLabel(t)}</td>
+                                    <td class="table-description">${escapeHTML(t.desc || '')}</td>
+                                    <td>${taskActions(t.id)}</td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+            document.getElementById('selectAllTasks').checked = false;
+        }
+
+        function renderCalendarTaskView(tasks) {
+            const view = document.getElementById('taskView');
+            if (!tasks.length) {
+                view.innerHTML = `<div class="view-empty">No dated tasks match these filters</div>`;
+                document.getElementById('selectAllTasks').checked = false;
+                return;
+            }
+
+            const groups = {};
+            tasks.forEach(task => {
+                const date = task.startDate || task.date || 'No date';
+                groups[date] = groups[date] || [];
+                groups[date].push(task);
+            });
+
+            view.innerHTML = `<div class="calendar-task-view">
+                    ${Object.keys(groups).sort().map(date => `
+                        <div class="calendar-day-group">
+                            <h4>📅 ${date === 'No date' ? 'No date' : displayDate(date)}</h4>
+                            ${groups[date].map(t => `
+                                <div class="calendar-task-row">
+                                    <input type="checkbox" class="task-select" value="${t.id}" />
+                                    <span>${starButton(t)} ${escapeHTML(t.title)} ${priorityBadge(t.priority)} ${subtaskSummary(t) ? ` · ${subtaskSummary(t)}` : ''}</span>
+                                    ${categoryBadge(t.category)}
+                                    ${statusBadge(t.status)}
+                                    ${taskActions(t.id)}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `).join('')}
+                </div>`;
+            document.getElementById('selectAllTasks').checked = false;
+        }
+
+        function renderDashboard(tasks) {
+            const view = document.getElementById('taskView');
+            const counts = Object.fromEntries(STATUS_ORDER.map(status => [status, 0]));
+            tasks.forEach(task => {
+                counts[task.status] = (counts[task.status] || 0) + 1;
+            });
+
+            view.innerHTML = `<div class="dashboard-grid">
+                    ${STATUS_ORDER.map(status => {
+                        const items = tasks.filter(t => t.status === status).slice(0, 4);
+                        return `<div class="dashboard-card">
+                            <h4>${STATUS_META[status]}</h4>
+                            <div class="big-number">${counts[status] || 0}</div>
+                            ${items.length ? items.map(t => `
+                                <div class="dashboard-task-row">
+                                    <input type="checkbox" class="task-select" value="${t.id}" />
+                                    <span>${starButton(t)} ${escapeHTML(t.title)} ${priorityBadge(t.priority)} ${subtaskSummary(t) ? ` · ${subtaskSummary(t)}` : ''}</span>
+                                    ${taskActions(t.id)}
+                                </div>
+                            `).join('') : `<div class="kanban-empty">Empty</div>`}
+                        </div>`;
+                    }).join('')}
+                </div>`;
+            document.getElementById('selectAllTasks').checked = false;
+        }
+
+        // ============================================================
+        // KANBAN BOARD
+        // ============================================================
+        function renderKanban(tasks) {
+            const statuses = STATUS_ORDER.map(key => ({ key, label: STATUS_META[key] }));
+
+            const board = document.getElementById('taskView');
+            let html = '<div class="kanban-board">';
+
+            statuses.forEach(col => {
+                const items = tasks.filter(t => t.status === col.key);
+                html += `<div class="kanban-column">
+                        <div class="col-title">
+                            <span>${col.label}</span>
+                            <span class="count">${items.length}</span>
+                            <span class="status-dot ${col.key}"></span>
+                        </div>`;
+
+                if (items.length === 0) {
+                    html += `<div class="kanban-empty">Empty</div>`;
+                } else {
+                    items.forEach(t => {
+                        const isDone = t.status === 'done' || t.status === 'cancel';
+                        html += `<div class="kanban-item">
+                                <input type="checkbox" class="task-select" value="${t.id}" aria-label="Select task" />
+                                <input type="checkbox" class="task-done" ${isDone ? 'checked' : ''} onchange="toggleTaskStatus('${t.id}')" aria-label="Mark task done" />
+                                <span class="item-title ${isDone ? 'done' : ''}" title="${escapeHTML(t.desc || '')}">${starButton(t)} ${escapeHTML(t.title)} ${subtaskSummary(t) ? `(${subtaskSummary(t)})` : ''}</span>
+                                ${categoryBadge(t.category)}
+                                ${priorityBadge(t.priority)}
+                                ${taskDateRange(t).start ? `<span class="item-deadline">📅 ${dateLabel(t)}</span>` : ''}
+                                ${taskActions(t.id)}
+                            </div>`;
+                    });
+                }
+
+                html += `</div>`;
+            });
+
+            html += '</div>';
+            board.innerHTML = html;
+            document.getElementById('selectAllTasks').checked = false;
+        }
+
+        // ============================================================
+        // BULK TASK ACTIONS
+        // ============================================================
+        function toggleAllTasks(source) {
+            const checked = source ? source.checked : document.getElementById('selectAllTasks').checked;
+            document.querySelectorAll('.task-select').forEach(cb => cb.checked = checked);
+            document.getElementById('selectAllTasks').checked = checked;
+            const tableHead = document.getElementById('selectAllTasksHead');
+            if (tableHead) tableHead.checked = checked;
+        }
+
+        function getSelectedTaskIds() {
+            return Array.from(document.querySelectorAll('.task-select:checked')).map(cb => cb.value);
+        }
+
+        function getSelectedTasks() {
+            const data = getData();
+            const ids = getSelectedTaskIds();
+            return data.tasks.filter(t => ids.includes(t.id));
+        }
+
+        function bulkDeleteTasks() {
+            const ids = getSelectedTaskIds();
+            if (!ids.length) return alert('Select at least one task');
+            if (!confirm(`Delete ${ids.length} task(s)?`)) return;
+            const data = getData();
+            data.tasks = data.tasks.filter(t => !ids.includes(t.id));
+            saveData(data);
+            syncPlannerTasksToTeachingTodos();
+            renderAll();
+        }
+
+        function bulkExportTasks() {
+            const list = getSelectedTasks();
+            if (!list.length) return alert('Select at least one task');
+            const headers = ['id', 'title', 'category', 'status', 'date', 'startDate', 'endDate', 'desc', 'priority', 'starred', 'subtasks'];
+            const rows = list.map(t => headers.map(h => `"${exportTaskField(t, h).replace(/"/g, '""')}"`).join(','));
+            downloadCSV(headers.join(',') + '\n' + rows.join('\n'), 'planner');
+        }
+
+        function bulkExportTasksICS() {
+            const list = getSelectedTasks();
+            if (!list.length) return alert('Select at least one task');
+            exportICSData(list, 'planner_selected');
+        }
+
+        // ============================================================
+        // CALENDAR
+        // ============================================================
+        function changeMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth > 11) { currentMonth = 0;
+                currentYear++; }
+            if (currentMonth < 0) { currentMonth = 11;
+                currentYear--; }
+            renderCalendar();
+        }
+
+        function goToToday() {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            const todayStr = todayDate();
+            selectedDate = todayStr;
+            document.getElementById('filterDate').value = todayStr;
+            if (!editingTaskId) {
+                document.getElementById('taskStartDate').value = todayStr;
+                document.getElementById('taskEndDate').value = todayStr;
+            }
+            renderCalendar();
+            updateDayTasks(todayStr);
+            renderTasks();
+        }
+
+        function renderCalendar() {
+            const data = getData();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('monthLabel').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            const grid = document.getElementById('calendarGrid');
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            let html = dayNames.map(d => `<div class="day-name">${d}</div>`).join('');
+
+            const today = todayDate();
+            const startOffset = firstDay;
+
+            // Ngày của tháng trước
+            const prevMonthIndex = currentMonth === 0 ? 11 : currentMonth - 1;
+            const prevMonth = prevMonthIndex + 1;
+            const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+            for (let i = startOffset - 1; i >= 0; i--) {
+                const d = daysInPrevMonth - i;
+                const dateStr = formatDate(prevYear, prevMonth, d);
+                html += `<div class="day-cell other-month" data-date="${dateStr}" onclick="selectDate('${dateStr}', ${prevMonthIndex}, ${prevYear})">${d}</div>`;
+            }
+
+            // Ngày của tháng hiện tại
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = formatDate(currentYear, currentMonth + 1, d);
+                const isToday = dateStr === today ? 'today' : '';
+                const isSelected = dateStr === selectedDate ? 'selected' : '';
+
+                const count = data.tasks.filter(t => taskOverlapsRange(t, dateStr, dateStr) && t.status !== 'cancel').length;
+                const dotHtml = count > 0 ? `<span class="day-dot"></span>` : '';
+
+                html += `<div class="day-cell ${isToday} ${isSelected}" data-date="${dateStr}" onclick="selectDate('${dateStr}')">
+                        ${d}
+                        ${dotHtml}
+                    </div>`;
+            }
+
+            // Ngày của tháng sau
+            const remaining = (7 - ((startOffset + daysInMonth) % 7)) % 7;
+            const nextMonthIndex = currentMonth === 11 ? 0 : currentMonth + 1;
+            const nextMonth = nextMonthIndex + 1;
+            const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+            for (let d = 1; d <= remaining; d++) {
+                const dateStr = formatDate(nextYear, nextMonth, d);
+                html += `<div class="day-cell other-month" data-date="${dateStr}" onclick="selectDate('${dateStr}', ${nextMonthIndex}, ${nextYear})">${d}</div>`;
+            }
+
+            grid.innerHTML = html;
+
+            if (selectedDate) {
+                updateDayTasks(selectedDate);
+            }
+        }
+
+        function selectDate(dateStr, monthIndex = currentMonth, year = currentYear) {
+            selectedDate = dateStr;
+            currentMonth = monthIndex;
+            currentYear = year;
+            document.getElementById('filterDate').value = dateStr;
+            if (!editingTaskId) {
+                document.getElementById('taskStartDate').value = dateStr;
+                document.getElementById('taskEndDate').value = dateStr;
+            }
+            renderCalendar();
+            updateDayTasks(dateStr);
+            renderTasks();
+        }
+
+        // ============================================================
+        // DAY TASKS (dropdown)
+        // ============================================================
+        function toggleDayTasks() {
+            dayTasksOpen = !dayTasksOpen;
+            document.getElementById('dayTasksBody').classList.toggle('open');
+            document.getElementById('dayTasksArrow').classList.toggle('open');
+        }
+
+        function updateDayTasks(dateStr) {
+            const data = getData();
+            const container = document.getElementById('dayTasksInner');
+
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+            document.getElementById('dayTasksTitle').textContent = `📅 ${dayNames[dateObj.getDay()]}, ${displayDate(dateStr)}`;
+
+            const tasks = data.tasks.filter(t => taskOverlapsRange(t, dateStr, dateStr));
+
+            let html = '';
+
+            if (tasks.length === 0) {
+                html = `<div class="no-tasks">No tasks on this day</div>`;
+            } else {
+                tasks.forEach(t => {
+                    const isDone = t.status === 'done' || t.status === 'cancel';
+                    const statusMap = {
+                        'todo': '⏳ To-do',
+                        'doing': '🔄 Doing',
+                        'done': '✅ Done',
+                        'cancel': '❌ Cancel'
+                    };
+                    html += `<div class="day-task-item">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskStatus('${t.id}')" />
+                            <div class="day-task-main">
+                        <span class="task-title ${isDone ? 'done' : ''}" title="${escapeHTML(t.desc || '')}">${starButton(t)} ${escapeHTML(t.title)} ${subtaskSummary(t) ? `(${subtaskSummary(t)})` : ''}</span>
+                                ${t.category ? `<span class="task-category">${escapeHTML(t.category)}</span>` : ''}
+                                ${priorityBadge(t.priority)}
+                                ${taskDateRange(t).end && taskDateRange(t).end !== taskDateRange(t).start ? `<span class="task-category">${dateLabel(t)}</span>` : ''}
+                                <span class="task-status ${t.status}">${statusMap[t.status] || t.status}</span>
+                            </div>
+                            ${taskActions(t.id)}
+                        </div>`;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        // HEATMAP
+        // ============================================================
+        function setHeatmapRange(range) {
+            heatmapRange = range;
+            document.querySelectorAll('.heatmap-controls button').forEach(b => b.classList.remove('active'));
+            const map = {
+                'week': 'hmWeek',
+                'month': 'hmMonth',
+                'quarter': 'hmQuarter',
+                'year': 'hmYear'
+            };
+            document.getElementById(map[range]).classList.add('active');
+            renderHeatmap();
+        }
+
+        function renderHeatmap() {
+            const data = getData();
+            const now = new Date();
+            let start = new Date(now);
+            let days = 7;
+
+            if (heatmapRange === 'week') {
+                start.setDate(now.getDate() - 6);
+                days = 7;
+            } else if (heatmapRange === 'month') {
+                start.setDate(now.getDate() - 29);
+                days = 30;
+            } else if (heatmapRange === 'quarter') {
+                start.setDate(now.getDate() - 89);
+                days = 90;
+            } else {
+                start.setDate(now.getDate() - 364);
+                days = 365;
+            }
+
+            const grid = document.getElementById('heatmapGrid');
+            let html = '';
+
+            const taskCounts = {};
+            data.tasks.forEach(t => {
+                if (t.date && t.status !== 'cancel') {
+                    taskCounts[t.date] = (taskCounts[t.date] || 0) + 1;
+                }
+            });
+
+            for (let i = 0; i < days; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                const dateStr = formatDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+                const count = taskCounts[dateStr] || 0;
+
+                let level = 0;
+                if (count >= 4) level = 4;
+                else if (count >= 3) level = 3;
+                else if (count >= 2) level = 2;
+                else if (count >= 1) level = 1;
+
+                const isToday = dateStr === todayDate();
+                html += `<div class="heatmap-cell level-${level}" style="${isToday ? 'border:2px solid var(--accent);' : ''}" 
+                            onclick="selectDate('${dateStr}')" title="${dateStr}: ${count} tasks"></div>`;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // ============================================================
+        // MENSTRUAL CYCLE
+        // ============================================================
+        function parseDateInput(value) {
+            if (!value) return null;
+            const parts = value.split('-').map(Number);
+            if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+            return new Date(parts[0], parts[1] - 1, parts[2]);
+        }
+
+        function daysBetween(start, end) {
+            const dayMs = 24 * 60 * 60 * 1000;
+            return Math.floor((end.setHours(0, 0, 0, 0) - start.setHours(0, 0, 0, 0)) / dayMs);
+        }
+
+        function updateCycle() {
+            const startStr = document.getElementById('cycleStart').value;
+            const endStr = document.getElementById('cycleEnd').value;
+            const length = parseInt(document.getElementById('cycleLength').value) || 28;
+            const summary = document.getElementById('cycleSummary');
+
+            localStorage.setItem('plannerCycle_v1', JSON.stringify({
+                start: startStr,
+                end: endStr,
+                length
+            }));
+
+            if (!startStr) {
+                summary.textContent = 'Set a start date.';
+                return;
+            }
+
+            const start = parseDateInput(startStr);
+            const end = parseDateInput(endStr);
+            const today = new Date();
+            const elapsed = daysBetween(new Date(start), today);
+            const cycleDay = ((elapsed % length) + length) % length + 1;
+
+            if (end) {
+                const periodLength = daysBetween(new Date(start), new Date(end)) + 1;
+                if (periodLength < 1) {
+                    summary.textContent = 'End date is before start date.';
+                    return;
+                }
+                summary.textContent = `Period: ${periodLength} day(s) · Cycle day ${cycleDay}`;
+            } else {
+                summary.textContent = `No end date yet · Cycle day ${cycleDay}`;
+            }
+        }
+
+        document.getElementById('cycleStart').addEventListener('change', updateCycle);
+        document.getElementById('cycleEnd').addEventListener('change', updateCycle);
+        document.getElementById('cycleLength').addEventListener('change', updateCycle);
+
+        // ============================================================
+        // CSV IMPORT / EXPORT
+        // ============================================================
+        function exportCSV() {
+            const data = getData();
+            if (!data.tasks.length) return alert('No tasks to export');
+            const headers = ['id', 'title', 'category', 'status', 'date', 'startDate', 'endDate', 'desc', 'priority', 'starred', 'subtasks'];
+            const rows = data.tasks.map(t => headers.map(h => `"${exportTaskField(t, h).replace(/"/g, '""')}"`).join(','));
+            downloadCSV(headers.join(',') + '\n' + rows.join('\n'), 'planner');
+        }
+
+        function exportTaskField(task, key) {
+            if (key === 'subtasks') {
+                return (task.subtasks || []).map(item => {
+                    const dateParts = [item.startDate, item.endDate].filter(Boolean);
+                    return `${item.done ? '[x]' : '[ ]'} ${item.title}${dateParts.length ? ` | ${dateParts.join(' | ')}` : ''}`;
+                }).join('\n');
+            }
+            if (key === 'priority') return '';
+            if (key === 'starred') return task.starred ? 'true' : 'false';
+            return String(task[key] || '');
+        }
+
+        function exportICS() {
+            const data = getData();
+            const tasks = data.tasks.filter(t => taskDateRange(t).start);
+            if (!tasks.length) return alert('No dated tasks to export');
+            exportICSData(tasks, 'planner');
+        }
+
+        function exportICSData(tasks, name) {
+            const datedTasks = tasks.filter(t => formatICSDate(taskDateRange(t).start));
+            if (!datedTasks.length) return alert('No dated tasks to export');
+
+            const nowStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Productivity Planner//EN\nCALSCALE:GREGORIAN\n';
+
+            datedTasks.forEach(task => {
+                const range = taskDateRange(task);
+                const start = formatICSDate(range.start);
+                const endDate = new Date(`${range.end || range.start}T00:00:00`);
+                endDate.setDate(endDate.getDate() + 1);
+                const end = formatDate(endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate()).replace(/-/g, '');
+                const statusLabel = STATUS_META[task.status] || task.status || 'Task';
+                const description = `Category: ${task.category || ''}\nStatus: ${statusLabel}\nDescription: ${task.desc || ''}`;
+
+                ics += 'BEGIN:VEVENT\n';
+                ics += `UID:${escapeICS(task.id || `${task.title}-${range.start}`)}@planner\n`;
+                ics += `DTSTAMP:${nowStamp}\n`;
+                ics += `DTSTART;VALUE=DATE:${start}\n`;
+                ics += `DTEND;VALUE=DATE:${end}\n`;
+                ics += `SUMMARY:${escapeICS(task.title)}\n`;
+                ics += `DESCRIPTION:${escapeICS(description)}\n`;
+                ics += `CATEGORIES:${escapeICS(task.category || 'Planner')}\n`;
+                ics += 'END:VEVENT\n';
+            });
+
+            ics += 'END:VCALENDAR';
+            downloadICS(ics, name);
+        }
+
+        function downloadICS(ics, name) {
+            const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${name}_${new Date().toISOString().slice(0,10)}.ics`;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+                URL.revokeObjectURL(link.href);
+                link.remove();
+            }, 0);
+        }
+
+        function downloadCSV(csv, name) {
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${name}_${new Date().toISOString().slice(0,10)}.csv`;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+                URL.revokeObjectURL(link.href);
+                link.remove();
+            }, 0);
+        }
+
+        function importCSV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const text = ev.target.result;
+                    const rows = parseCSV(text);
+                    if (!rows.length) {
+                        alert('CSV file is empty.');
+                        return;
+                    }
+                    const headers = rows[0].map(h => h.trim());
+                    const data = getData();
+                    let imported = 0;
+                    for (let i = 1; i < rows.length; i++) {
+                        const vals = rows[i].map(v => v.trim());
+                        const task = {};
+                        headers.forEach((h, idx) => task[h] = vals[idx] || '');
+                        task.startDate = task.startDate || task.date || task.deadline || todayDate();
+                        task.endDate = task.endDate || task.startDate;
+                        task.date = task.startDate;
+                        task.category = task.category || 'Other';
+                        task.status = ['todo', 'doing', 'done', 'cancel'].includes(task.status) ? task.status : 'todo';
+                        task.starred = ['true', 'yes', '1', 'starred'].includes(String(task.starred || '').toLowerCase());
+                        if (task.starred) {
+                            data.tasks.forEach(existing => existing.starred = false);
+                        }
+                        if (task.id && task.title) {
+                            if (!data.tasks.some(t => t.id === task.id)) {
+                                data.tasks.push(task);
+                                imported++;
+                            }
+                        }
+                    }
+                    saveData(data);
+                    renderAll();
+                    alert(`Imported ${imported} task(s) successfully!`);
+                } catch (err) {
+                    alert('Import error: ' + err.message);
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            e.target.value = '';
+        }
+
+        // ============================================================
+        // RENDER ALL
+        // ============================================================
+        function renderAll() {
+            renderTasks();
+            renderCalendar();
+            renderHeatmap();
+            updateCycle();
+
+            if (!selectedDate) {
+                const today = todayDate();
+                selectedDate = today;
+                document.getElementById('filterDate').value = today;
+                document.getElementById('taskStartDate').value = today;
+                document.getElementById('taskEndDate').value = today;
+                renderCalendar();
+                updateDayTasks(today);
+            }
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            const todayStr = todayDate();
+            selectedDate = todayStr;
+            document.getElementById('filterDate').value = todayStr;
+            document.getElementById('taskStartDate').value = todayStr;
+            document.getElementById('taskEndDate').value = todayStr;
+            document.getElementById('filterTime').value = focusScope;
+            document.getElementById('focusScope').value = focusScope;
+            document.getElementById('compactModeToggle').checked = localStorage.getItem('plannerCompactMode') === 'true';
+            toggleCompactMode(document.getElementById('compactModeToggle').checked);
+            const savedCycle = JSON.parse(localStorage.getItem('plannerCycle_v1') || '{}');
+            document.getElementById('cycleStart').value = savedCycle.start || todayStr;
+            document.getElementById('cycleEnd').value = savedCycle.end || '';
+            document.getElementById('cycleLength').value = savedCycle.length || 28;
+            updateCycle();
+            renderAll();
+            updateDayTasks(todayStr);
+
+            document.getElementById('dayTasksBody').classList.add('open');
+            document.getElementById('dayTasksArrow').classList.add('open');
+            document.getElementById('taskTitle').focus();
+        });
+    </script>
+</body>
+</html>
