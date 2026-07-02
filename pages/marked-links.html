@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marked Links - Productivity App</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.2);
+            --font: 'American Typewriter', 'Courier New', monospace;
+            --radius: 8px;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --shadow: 0 4px 18px rgba(0,0,0,0.35);
+        }
+        body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 18px; }
+        button, input, select, textarea { font-family: inherit; }
+        .container { max-width: 1160px; margin: 0 auto; }
+        header, .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+        header { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; margin-bottom: 16px; }
+        h1 { font-size: 28px; }
+        .hint { color: color-mix(in srgb, var(--text), transparent 30%); font-size: 13px; line-height: 1.5; margin-top: 6px; }
+        .nav, .row, .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .nav a, button { background: var(--accent2); border: 1px solid var(--accent); border-radius: var(--radius); color: var(--text); cursor: pointer; padding: 8px 13px; text-decoration: none; }
+        button.primary { background: var(--accent); color: white; font-weight: 800; }
+        .grid { display: grid; gap: 16px; grid-template-columns: 360px minmax(0, 1fr); align-items: start; }
+        input, select, textarea { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 10px 12px; width: 100%; }
+        textarea { min-height: 110px; resize: vertical; }
+        label { display: grid; gap: 6px; font-weight: 700; margin-bottom: 10px; }
+        .link-list { display: grid; gap: 10px; }
+        .link-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+        .link-card h3 { font-size: 18px; margin-bottom: 5px; word-break: break-word; }
+        .link-card a { color: #bd4f60; word-break: break-all; }
+        .link-card details { margin: 6px 0; }
+        .link-card summary {
+            color: #bd4f60;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: 800;
+            list-style: none;
+        }
+        .link-card summary::-webkit-details-marker { display: none; }
+        .link-main { min-width: 0; }
+        .link-actions {
+            align-items: flex-end;
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .link-actions button {
+            padding: 5px 9px;
+        }
+        .link-list.view-compact { gap: 6px; }
+        .link-list.view-compact .link-card {
+            align-items: center;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: minmax(0, 1fr) auto;
+            padding: 8px 10px;
+        }
+        .link-list.view-compact .link-card h3 {
+            font-size: 15px;
+            margin: 0;
+        }
+        .link-list.view-compact .link-card details,
+        .link-list.view-compact .link-card .hint {
+            display: none;
+        }
+        .link-list.view-compact .meta {
+            margin-top: 3px;
+        }
+        .link-list.view-compact .link-actions {
+            margin-top: 0;
+        }
+        .link-list.view-large {
+            gap: 14px;
+        }
+        .link-list.view-large .link-card {
+            padding: 18px;
+        }
+        .link-list.view-large .link-card h3 {
+            font-size: 22px;
+        }
+        .range-row.hidden { display: none; }
+        .secondary { background: var(--bg); }
+        .meta { color: color-mix(in srgb, var(--text), transparent 35%); font-size: 12px; margin-top: 8px; }
+        .empty { color: color-mix(in srgb, var(--text), transparent 30%); padding: 22px; text-align: center; }
+        @media (max-width: 860px) {
+            .grid { grid-template-columns: 1fr; }
+            .link-list.view-compact .link-card { grid-template-columns: 1fr; }
+            .link-list.view-compact .link-actions { justify-content: flex-start; }
+        }
+    </style>
+    <link rel="stylesheet" href="./ui-cleanup.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🔖 Marked Links</h1>
+                <p class="hint">Save useful teaching, writing, language, and research links for later.</p>
+            </div>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="./planner.html">Planner</a>
+                <a href="../zhongguo-wenhua-yaolue/index.html">Chinese Culture</a>
+                <a href="./knowledge.html">Knowledge</a>
+                <a href="./daily-log.html">Daily Log</a>
+                <a href="./finance.html">Finance</a>
+                <button id="themeBtn">Theme</button>
+            </nav>
+        </header>
+
+        <main class="grid">
+            <section class="card">
+                <h2>Add Link</h2>
+                <label>Title <input id="titleInput" placeholder="Article, video, class resource..." /></label>
+                <label>URL <input id="urlInput" placeholder="https://..." /></label>
+                <label>Category
+                    <select id="categoryInput"></select>
+                </label>
+                <div class="row" style="margin-bottom:10px;">
+                    <input id="newCategoryInput" placeholder="New category" />
+                    <button id="addCategoryBtn" type="button">Add Category</button>
+                    <button id="deleteCategoryBtn" type="button">Delete Category</button>
+                </div>
+                <label>Note <textarea id="noteInput" placeholder="Why is this worth keeping?"></textarea></label>
+                <div class="actions">
+                    <button class="primary" id="addBtn">Save Link</button>
+                    <button class="secondary" id="cancelEditBtn" type="button" style="display:none;">Cancel</button>
+                </div>
+                <p class="hint">Tip: paste a copied URL, then add a short title.</p>
+            </section>
+
+            <section class="card">
+                <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+                    <h2>Library</h2>
+                    <div class="actions">
+                        <select id="filterInput" style="width:auto;">
+                            <option value="All">All</option>
+                        </select>
+                        <select id="timeRangeInput" style="width:auto;">
+                            <option value="all">All time</option>
+                            <option value="custom">Custom range</option>
+                        </select>
+                        <select id="viewModeInput" style="width:auto;">
+                            <option value="comfortable">Comfortable</option>
+                            <option value="compact">Compact</option>
+                            <option value="large">Large</option>
+                        </select>
+                        <button id="exportBtn">Export CSV</button>
+                        <button onclick="document.getElementById('importCSV').click()">Import CSV/TSV</button>
+                        <input type="file" id="importCSV" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" />
+                    </div>
+                </div>
+                <div class="row range-row hidden" id="dateRangeRow" style="margin-bottom:12px;">
+                    <input id="fromDateInput" type="date" title="From date" />
+                    <input id="toDateInput" type="date" title="To date" />
+                </div>
+                <input id="searchInput" placeholder="Search title, link, note..." style="margin-bottom:12px;" />
+                <div id="linkList" class="link-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const storeKey = 'markedLinks_v1';
+        const viewModeKey = 'markedLinksViewMode_v1';
+        let links = JSON.parse(localStorage.getItem(storeKey) || '[]');
+        let editingLinkId = null;
+        const $ = id => document.getElementById(id);
+        document.body.classList.toggle('dark', localStorage.getItem('appTheme') === 'dark');
+        $('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('appTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        };
+        function save() { localStorage.setItem(storeKey, JSON.stringify(links)); render(); }
+        function getSettings() {
+            try {
+                const data = JSON.parse(localStorage.getItem('settingsData')) || {};
+                return {
+                    categories: Array.isArray(data.categories) && data.categories.length ? data.categories : ['Teaching', 'Writing', 'Chinese Culture', 'Finance', 'Personal'],
+                    categoryColors: data.categoryColors || {},
+                    financeTypes: data.financeTypes || ['Income', 'Expense']
+                };
+            } catch {
+                return { categories: ['Teaching', 'Writing', 'Chinese Culture', 'Finance', 'Personal'], categoryColors: {}, financeTypes: ['Income', 'Expense'] };
+            }
+        }
+        function saveSettings(data) { localStorage.setItem('settingsData', JSON.stringify(data)); }
+        function renderCategoryControls() {
+            const settings = getSettings();
+            const used = links.map(link => link.category).filter(Boolean);
+            const categories = [...new Set([...settings.categories, ...used])];
+            const currentAdd = $('categoryInput').value;
+            const currentFilter = $('filterInput').value;
+            $('categoryInput').innerHTML = categories.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+            $('filterInput').innerHTML = '<option value="All">All</option>' + categories.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+            $('categoryInput').value = categories.includes(currentAdd) ? currentAdd : categories[0];
+            $('filterInput').value = ['All', ...categories].includes(currentFilter) ? currentFilter : 'All';
+        }
+        function addSharedCategory() {
+            const name = $('newCategoryInput').value.trim();
+            if (!name) return alert('Enter a category name.');
+            const settings = getSettings();
+            if (!settings.categories.includes(name)) settings.categories.push(name);
+            saveSettings(settings);
+            $('newCategoryInput').value = '';
+            renderCategoryControls();
+            render();
+        }
+        function deleteSharedCategory() {
+            const name = $('categoryInput').value;
+            if (!name || !confirm(`Delete category "${name}" from the shared category list? Existing links keep their label.`)) return;
+            const settings = getSettings();
+            settings.categories = settings.categories.filter(c => c !== name);
+            delete settings.categoryColors[name];
+            saveSettings(settings);
+            renderCategoryControls();
+            render();
+        }
+        function escapeHTML(value) {
+            return String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        }
+        function resetLinkForm() {
+            editingLinkId = null;
+            ['titleInput', 'urlInput', 'noteInput'].forEach(id => $(id).value = '');
+            $('addBtn').textContent = 'Save Link';
+            $('cancelEditBtn').style.display = 'none';
+        }
+        function saveLink() {
+            const title = $('titleInput').value.trim();
+            const url = $('urlInput').value.trim();
+            if (!title || !url) return alert('Add a title and URL.');
+            const payload = { title, url, category: $('categoryInput').value, note: $('noteInput').value.trim() };
+            const existing = links.find(link => String(link.id) === String(editingLinkId));
+            if (existing) Object.assign(existing, payload, { updatedAt: new Date().toLocaleString('en-US') });
+            else links.unshift({ id: Date.now(), ...payload, time: new Date().toLocaleString('en-US') });
+            resetLinkForm();
+            save();
+        }
+        function editLink(id) {
+            const link = links.find(item => String(item.id) === String(id));
+            if (!link) return;
+            editingLinkId = id;
+            renderCategoryControls();
+            $('titleInput').value = link.title || '';
+            $('urlInput').value = link.url || '';
+            $('categoryInput').value = link.category || $('categoryInput').value;
+            $('noteInput').value = link.note || '';
+            $('addBtn').textContent = 'Save Changes';
+            $('cancelEditBtn').style.display = 'inline-block';
+            $('titleInput').focus();
+        }
+        function linkDateKey(link) {
+            const raw = link.updatedAt || link.createdAt || link.time || '';
+            if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+            const parsed = new Date(raw);
+            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10);
+        }
+        function matchesTimeFilter(link) {
+            if ($('timeRangeInput').value !== 'custom') return true;
+            const date = linkDateKey(link);
+            return (!$('fromDateInput').value || date >= $('fromDateInput').value) && (!$('toDateInput').value || date <= $('toDateInput').value);
+        }
+        function getViewMode() {
+            return localStorage.getItem(viewModeKey) || 'comfortable';
+        }
+        function render() {
+            renderCategoryControls();
+            const search = $('searchInput').value.toLowerCase();
+            const category = $('filterInput').value;
+            const viewMode = getViewMode();
+            $('viewModeInput').value = viewMode;
+            const filtered = links.filter(link => matchesTimeFilter(link) && (category === 'All' || link.category === category) && [link.title, link.url, link.note, link.category].join(' ').toLowerCase().includes(search));
+            $('linkList').className = `link-list view-${viewMode}`;
+            $('linkList').innerHTML = filtered.length ? filtered.map(link => `
+                <article class="link-card">
+                    <div class="link-main">
+                        <h3>${escapeHTML(link.title)}</h3>
+                        <details><summary>Link</summary><a href="${escapeHTML(link.url)}" target="_blank" rel="noopener">${escapeHTML(link.url)}</a></details>
+                        <p class="hint">${escapeHTML(link.note || 'No note')}</p>
+                        <div class="meta">${escapeHTML(link.category)} · ${escapeHTML(link.time)}</div>
+                    </div>
+                    <div class="link-actions">
+                        <button onclick="copyLink(${link.id})">Copy</button>
+                        <button onclick="removeLink(${link.id})">Delete</button>
+                        <button onclick="editLink(${link.id})">Edit</button>
+                    </div>
+                </article>`).join('') : '<p class="empty">No saved links yet.</p>';
+        }
+        window.removeLink = id => { links = links.filter(link => link.id !== id); save(); };
+        window.copyLink = async id => {
+            const link = links.find(item => String(item.id) === String(id));
+            if (!link?.url) return alert('No link to copy.');
+            try {
+                if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(link.url);
+                } else {
+                    const input = document.createElement('textarea');
+                    input.value = link.url;
+                    input.style.position = 'fixed';
+                    input.style.opacity = '0';
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    input.remove();
+                }
+                alert('Link copied.');
+            } catch {
+                prompt('Copy this link:', link.url);
+            }
+        };
+        function csvCell(value) { return `"${String(value || '').replace(/"/g, '""')}"`; }
+        function parseCSV(text) {
+            const firstLine = String(text || '').split(/\r?\n/)[0] || '';
+            if (firstLine.includes('\t')) {
+                return String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim()).map(line => line.split('\t').map(cell => cell.trim()));
+            }
+            const output = [];
+            let row = [], cell = '', quote = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], next = text[i + 1];
+                if (char === '"' && quote && next === '"') { cell += '"'; i++; }
+                else if (char === '"') quote = !quote;
+                else if (char === ',' && !quote) { row.push(cell); cell = ''; }
+                else if ((char === '\n' || char === '\r') && !quote) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell);
+                    if (row.some(v => v.trim())) output.push(row);
+                    row = []; cell = '';
+                } else cell += char;
+            }
+            row.push(cell);
+            if (row.some(v => v.trim())) output.push(row);
+            return output;
+        }
+        function importCSV(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                const table = parseCSV(event.target.result);
+                if (table.length < 2) return alert('CSV has no rows.');
+                const headers = table[0].map(h => h.trim().toLowerCase());
+                table.slice(1).forEach(row => {
+                    const item = {};
+                    headers.forEach((h, i) => item[h] = row[i] || '');
+                    if (!item.title && !item.url) return;
+                    links.unshift({ id: Date.now() + Math.random(), title: item.title || item.url, url: item.url || '', category: item.category || 'Other', note: item.note || '', time: item.time || new Date().toLocaleString('en-US') });
+                });
+                save();
+                alert('Links imported and synced.');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+        function updateDateRangeVisibility() {
+            $('dateRangeRow').classList.toggle('hidden', $('timeRangeInput').value !== 'custom');
+        }
+        $('addBtn').onclick = saveLink;
+        $('cancelEditBtn').onclick = () => { resetLinkForm(); renderCategoryControls(); };
+        $('addCategoryBtn').onclick = addSharedCategory;
+        $('deleteCategoryBtn').onclick = deleteSharedCategory;
+        $('searchInput').oninput = render;
+        $('filterInput').onchange = render;
+        $('viewModeInput').onchange = () => {
+            localStorage.setItem(viewModeKey, $('viewModeInput').value);
+            render();
+        };
+        $('timeRangeInput').onchange = () => { updateDateRangeVisibility(); render(); };
+        $('fromDateInput').onchange = render;
+        $('toDateInput').onchange = render;
+        $('importCSV').onchange = event => importCSV(event.target.files[0]);
+        $('exportBtn').onclick = () => {
+            const csv = ['title,url,category,note,time'].concat(links.map(link => [link.title, link.url, link.category, link.note, link.time].map(csvCell).join(','))).join('\n');
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+            a.download = 'marked_links.csv';
+            a.click();
+        };
+        updateDateRangeVisibility();
+        render();
+    </script>
+</body>
+</html>
