@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Formatter</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.18);
+            --font: 'American Typewriter', 'Courier New', monospace;
+            --radius: 8px;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --shadow: 0 4px 18px rgba(0,0,0,0.35);
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        button, input, select, textarea { font-family: inherit; }
+        header {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        h1 { font-size: 24px; }
+        .nav a, button {
+            background: var(--accent2);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px 13px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        button.primary { background: var(--accent); color: white; font-weight: 800; }
+        .layout {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: 1fr 1fr;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+        h2 { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
+        textarea {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-family: inherit;
+            padding: 9px 11px;
+            width: 100%;
+            min-height: 300px;
+            resize: vertical;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 12px 0;
+        }
+        label {
+            display: grid;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        input, select {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 6px 8px;
+            font-family: inherit;
+        }
+        input[type="range"] { border: none; padding: 0; }
+        input[type="text"] { padding: 6px 8px; border: 2px solid var(--border); }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .preview-area {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            min-height: 300px;
+            max-height: 600px;
+            overflow: auto;
+        }
+        .preview {
+            background: white;
+            color: #2d2125;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 800px;
+        }
+        .q-card {
+            background: #fff9fb;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .q-title {
+            font-weight: 800;
+            margin-bottom: 8px;
+            font-size: inherit;
+        }
+        .q-opts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .q-opt {
+            background: white;
+            border: 1px solid #f0c8d8;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: inherit;
+        }
+        .q-ans {
+            background: #dcfce7;
+            border: 1px solid #8fd1a7;
+            border-radius: 999px;
+            color: #166534;
+            display: inline-block;
+            font-size: 0.75em;
+            font-weight: 800;
+            padding: 3px 8px;
+        }
+        .msg { color: #999; text-align: center; padding: 20px; }
+        .val { font-size: 10px; color: var(--accent); font-weight: 800; }
+        @media (max-width: 1024px) {
+            .layout { grid-template-columns: 1fr; }
+            .controls { grid-template-columns: 1fr; }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ Smart Formatter</h1>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <button id="themeBtn">Theme</button>
+            </nav>
+        </header>
+
+        <div class="layout">
+            <div class="card">
+                <h2>Paste CSV</h2>
+                <textarea id="input" placeholder="Paste CSV: Number, Question, A, B, C, D, Answer&#10;1, Question here?, Option A, Option B, Option C, Option D, A"></textarea>
+
+                <div class="controls">
+                    <label>Font size
+                        <input id="size" type="range" min="12" max="24" value="14" />
+                        <span class="val" id="sizeVal">14px</span>
+                    </label>
+                    <label>Line height
+                        <select id="height">
+                            <option value="1.5">Compact</option>
+                            <option value="1.8" selected>Normal</option>
+                            <option value="2.2">Spacious</option>
+                        </select>
+                    </label>
+                    <label>View
+                        <select id="view">
+                            <option value="cards">Student</option>
+                            <option value="teacher">Teacher</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="controls">
+                    <label>File name
+                        <input id="fname" type="text" value="quiz" />
+                    </label>
+                    <label>Limit
+                        <input id="limit" type="number" value="20" min="1" />
+                    </label>
+                    <label style="align-self: end;">
+                        <input type="checkbox" id="shuffle" checked />
+                        Shuffle
+                    </label>
+                </div>
+
+                <div class="actions">
+                    <button class="primary" id="fmt">Format</button>
+                    <button id="clr">Clear</button>
+                    <button onclick="document.getElementById('imp').click()">Import CSV</button>
+                    <input type="file" id="imp" accept=".csv,.tsv" style="display:none" />
+                </div>
+
+                <div class="actions">
+                    <button id="cop">Copy TSV</button>
+                    <button id="exp">Export CSV</button>
+                    <button id="pdf">Download PDF</button>
+                    <button id="htm">Download HTML</button>
+                </div>
+
+                <p class="msg" id="info">Ready</p>
+            </div>
+
+            <div class="card">
+                <h2>Preview</h2>
+                <div class="preview-area" id="out"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = s => document.getElementById(s);
+        let data = [];
+
+        // Theme
+        document.body.classList.toggle('dark', localStorage.getItem('theme') === 'dark');
+        $('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        // Font size display
+        $('size').oninput = () => {
+            $('sizeVal').textContent = $('size').value + 'px';
+            render();
+        };
+
+        // Parse CSV
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const rows = [];
+            lines.forEach(line => {
+                const cells = [];
+                let cell = '', quote = false;
+                for (let i = 0; i < line.length; i++) {
+                    const c = line[i], n = line[i + 1];
+                    if (c === '"' && quote && n === '"') { cell += '"'; i++; }
+                    else if (c === '"') quote = !quote;
+                    else if ((c === ',' || c === '\t') && !quote) { cells.push(cell.trim()); cell = ''; }
+                    else cell += c;
+                }
+                cells.push(cell.trim());
+                if (cells.some(x => x)) rows.push(cells);
+            });
+            return rows;
+        }
+
+        // Load data
+        function load(text) {
+            const rows = parseCSV(text);
+            console.log('Parsed rows:', rows.length, rows.slice(0, 3));
+            if (!rows.length) { data = []; return; }
+
+            // Assume no header for headerless CSV (standard format)
+            // Just use positional: col 0=no, col 1=q, cols 2-5=options, col 6=answer
+            data = rows
+                .filter(row => row.length >= 2 && row[1]?.trim())
+                .slice(0, Number($('limit').value) || 20)
+                .map((row, i) => ({
+                    no: row[0] || (i + 1),
+                    q: row[1]?.trim() || '',
+                    a: row[2]?.trim() || '',
+                    b: row[3]?.trim() || '',
+                    c: row[4]?.trim() || '',
+                    d: row[5]?.trim() || '',
+                    ans: (row[6]?.trim() || 'A')[0].toUpperCase()
+                }));
+
+            console.log('Loaded data:', data.length, data.slice(0, 2));
+
+            if ($('shuffle').checked) {
+                data = data.map(row => {
+                    const opts = ['a', 'b', 'c', 'd'].map(k => ({ k, v: row[k] })).filter(x => x.v);
+                    if (!opts.length) return row;
+                    const correct = opts.find(x => x.k === row.ans.toLowerCase())?.v;
+                    const shuffled = opts.sort(() => Math.random() - 0.5);
+                    const newRow = { ...row, a: '', b: '', c: '', d: '' };
+                    shuffled.forEach((o, i) => newRow['abcd'[i]] = o.v);
+                    newRow.ans = 'ABCD'[shuffled.findIndex(o => o.v === correct)] || 'A';
+                    return newRow;
+                });
+            }
+        }
+
+        // Render preview
+        function render() {
+            if (!data.length) {
+                $('out').innerHTML = '<p class="msg">Paste CSV and click Format</p>';
+                return;
+            }
+
+            const size = $('size').value;
+            const height = $('height').value;
+            const view = $('view').value;
+
+            const html = data.map(row => `<div class="q-card">
+                <div class="q-title">${row.no}. ${row.q}</div>
+                <div class="q-opts">
+                    ${['a','b','c','d'].filter(k => row[k]).map(k => `<div class="q-opt"><strong>${k.toUpperCase()}.</strong> ${row[k]}</div>`).join('')}
+                </div>
+                ${view === 'teacher' ? `<div class="q-ans">Answer: ${row.ans}</div>` : ''}
+            </div>`).join('');
+
+            const out = $('out');
+            out.innerHTML = `<div class="preview" style="font-size:${size}px; line-height:${height};">${html}</div>`;
+            $('info').textContent = `${data.length} question(s)`;
+        }
+
+        // Format
+        function format() {
+            load($('input').value);
+            render();
+        }
+
+        // Export
+        function toRows() {
+            return [
+                ['No', 'Question', 'A', 'B', 'C', 'D', 'Answer'],
+                ...data.map(r => [r.no, r.q, r.a, r.b, r.c, r.d, r.ans])
+            ];
+        }
+
+        function csv(cell) {
+            return `"${String(cell || '').replace(/"/g, '""')}"`;
+        }
+
+        $('fmt').onclick = format;
+        $('clr').onclick = () => { $('input').value = ''; data = []; render(); };
+        $('cop').onclick = () => {
+            if (!data.length) { format(); if (!data.length) return alert('Format first'); }
+            const tsv = toRows().map(r => r.join('\t')).join('\n');
+            navigator.clipboard?.writeText(tsv).then(() => $('info').textContent = '✓ Copied');
+        };
+        $('exp').onclick = () => {
+            if (!data.length) { format(); if (!data.length) return alert('Format first'); }
+            const csv_text = toRows().map(r => r.map(csv).join(',')).join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob(['﻿' + csv_text], { type: 'text/csv' }));
+            link.download = $('fname').value + '.csv';
+            link.click();
+        };
+        $('pdf').onclick = () => {
+            if (!data.length) { format(); if (!data.length) return alert('Format first'); }
+            const opt = {
+                margin: 10,
+                filename: $('fname').value + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+            html2pdf().set(opt).from($('out')).save();
+        };
+        $('htm').onclick = () => {
+            if (!data.length) { format(); if (!data.length) return alert('Format first'); }
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:'American Typewriter';font-size:${$('size').value}px;line-height:${$('height').value};}</style></head><body>${$('out').innerHTML}</body></html>`;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+            link.download = $('fname').value + '.html';
+            link.click();
+        };
+        $('imp').onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                $('input').value = evt.target.result;
+                format();
+            };
+            reader.readAsText(file);
+        };
+
+        // Event listeners
+        $('input').addEventListener('input', format);
+        $('input').addEventListener('paste', () => setTimeout(format, 50));
+        $('size').addEventListener('input', render);
+        $('height').addEventListener('change', render);
+        $('view').addEventListener('change', render);
+        $('limit').addEventListener('change', format);
+        $('shuffle').addEventListener('change', format);
+    </script>
+</body>
+</html>
