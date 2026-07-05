@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music</title>
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+        .song-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .song-item {
+            background: var(--light);
+            padding: 12px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .song-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 6px;
+        }
+
+        .song-title {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .song-info {
+            font-size: 11px;
+            opacity: 0.7;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .song-actions button {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .song-actions button:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Music</h1>
+            <div class="nav">
+                <a href="../index.html">← Home</a>
+                <button onclick="toggleTheme()">🌓</button>
+                <a href="../settings.html">⚙️</a>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-number" id="total-songs">0</span>
+                <span>Songs</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="total-artists">0</span>
+                <span>Artists</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="total-playlists">0</span>
+                <span>Playlists</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Add Song</h2>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="song-title" placeholder="Song name">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Artist</label>
+                    <input type="text" id="song-artist" placeholder="Artist name">
+                </div>
+                <div class="form-group">
+                    <label>Playlist</label>
+                    <input type="text" id="song-playlist" placeholder="e.g., Favorites">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Genre</label>
+                    <input type="text" id="song-genre" placeholder="e.g., Pop">
+                </div>
+                <div class="form-group">
+                    <label>Rating</label>
+                    <select id="song-rating">
+                        <option value="">★ Not rated</option>
+                        <option value="1">★ Poor</option>
+                        <option value="2">★★ Fair</option>
+                        <option value="3">★★★ Good</option>
+                        <option value="4">★★★★ Very Good</option>
+                        <option value="5">★★★★★ Excellent</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="addSong()" class="primary">Add Song</button>
+        </div>
+
+        <div class="card">
+            <h2>Songs</h2>
+            <div id="song-list" class="song-list">
+                <div style="padding: 16px; text-align: center; opacity: 0.6; font-size: 12px;">
+                    No songs yet
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared-layout.js"></script>
+    <script>
+        const STORAGE_KEY = 'music-songs';
+
+        function getSongs() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        }
+
+        function addSong() {
+            const title = document.getElementById('song-title').value.trim();
+            const artist = document.getElementById('song-artist').value.trim();
+            const playlist = document.getElementById('song-playlist').value.trim();
+            const genre = document.getElementById('song-genre').value.trim();
+            const rating = document.getElementById('song-rating').value;
+
+            if (!title || !artist) {
+                alert('Please enter title and artist');
+                return;
+            }
+
+            const songs = getSongs();
+            songs.push({
+                id: Date.now(),
+                title,
+                artist,
+                playlist: playlist || 'Unsorted',
+                genre: genre || 'Unknown',
+                rating: rating || 0,
+                created: new Date().toISOString()
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+            document.getElementById('song-title').value = '';
+            document.getElementById('song-artist').value = '';
+            document.getElementById('song-playlist').value = '';
+            document.getElementById('song-genre').value = '';
+            document.getElementById('song-rating').value = '';
+            render();
+        }
+
+        function deleteSong(id) {
+            if (confirm('Remove this song?')) {
+                const songs = getSongs().filter(s => s.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+                render();
+            }
+        }
+
+        function render() {
+            const songs = getSongs();
+            const container = document.getElementById('song-list');
+
+            // Calculate stats
+            const uniqueArtists = new Set(songs.map(s => s.artist)).size;
+            const uniquePlaylists = new Set(songs.map(s => s.playlist)).size;
+
+            document.getElementById('total-songs').textContent = songs.length;
+            document.getElementById('total-artists').textContent = uniqueArtists;
+            document.getElementById('total-playlists').textContent = uniquePlaylists;
+
+            if (songs.length === 0) {
+                container.innerHTML = '<div style="padding: 16px; text-align: center; opacity: 0.6; font-size: 12px;">No songs yet</div>';
+                return;
+            }
+
+            // Sort by artist then title
+            songs.sort((a, b) => a.artist.localeCompare(b.artist) || a.title.localeCompare(b.title));
+
+            container.innerHTML = songs.map(s => `
+                <div class="song-item">
+                    <div class="song-header">
+                        <div>
+                            <div class="song-title">${escapeHtml(s.title)}</div>
+                            <div class="song-info">
+                                🎤 ${escapeHtml(s.artist)} · 📁 ${escapeHtml(s.playlist)}<br>
+                                ${s.rating ? '⭐ ' + s.rating + ' · ' : ''}🎼 ${escapeHtml(s.genre)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="song-actions">
+                        <button onclick="deleteSong(${s.id})">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', render);
+    </script>
+</body>
+</html>

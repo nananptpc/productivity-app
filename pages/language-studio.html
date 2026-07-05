@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Languages</title>
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+        .vocab-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .vocab-item {
+            background: var(--light);
+            padding: 10px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .vocab-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .word {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .translation {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .language {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        .vocab-delete {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+        }
+
+        .vocab-delete:hover {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 Languages</h1>
+            <div class="nav">
+                <a href="../index.html">← Home</a>
+                <button onclick="toggleTheme()">🌓</button>
+                <a href="../settings.html">⚙️</a>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-number" id="total-words">0</span>
+                <span>Words</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="total-languages">0</span>
+                <span>Languages</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="active" onclick="switchTab('add')">Add</button>
+            <button onclick="switchTab('practice')">Practice</button>
+        </div>
+
+        <div id="add" class="tab-content active">
+            <div class="card">
+                <h2>Add Word</h2>
+                <div class="form-group">
+                    <label>Language</label>
+                    <input type="text" id="word-language" placeholder="e.g., Spanish, Japanese">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Word</label>
+                        <input type="text" id="word-text" placeholder="The word">
+                    </div>
+                    <div class="form-group">
+                        <label>Translation</label>
+                        <input type="text" id="word-translation" placeholder="English meaning">
+                    </div>
+                </div>
+                <button onclick="addWord()" class="primary">Add Word</button>
+            </div>
+
+            <div class="card">
+                <h2>Vocabulary</h2>
+                <div id="vocab-list" class="vocab-list">
+                    <div style="padding: 16px; text-align: center; opacity: 0.6; font-size: 12px;">
+                        No words yet
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="practice" class="tab-content">
+            <div class="card">
+                <h2>Practice</h2>
+                <div id="practice-area" style="padding: 16px; text-align: center;">
+                    <p style="opacity: 0.6; font-size: 12px; margin-bottom: 16px;">Add words to start practicing</p>
+                    <div id="quiz-area" style="display: none;">
+                        <div id="quiz-card" style="background: var(--light); padding: 20px; margin-bottom: 16px; border-radius: 2px;">
+                            <div style="font-size: 12px; opacity: 0.7; margin-bottom: 8px;">Word:</div>
+                            <div id="quiz-word" style="font-size: 20px; font-weight: bold; margin-bottom: 16px;"></div>
+                            <input type="text" id="quiz-answer" placeholder="Translation" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                            <button onclick="checkAnswer()" class="primary" style="width: 100%; background: var(--accent); color: #fff; border: none;">Check</button>
+                        </div>
+                        <button onclick="nextWord()">Next Word →</button>
+                        <button onclick="stopQuiz()">Stop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared-layout.js"></script>
+    <script>
+        const STORAGE_KEY = 'language-vocabulary';
+        let quizIndex = 0;
+        let quizWords = [];
+
+        function getWords() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'practice') startPractice();
+        }
+
+        function addWord() {
+            const language = document.getElementById('word-language').value.trim();
+            const word = document.getElementById('word-text').value.trim();
+            const translation = document.getElementById('word-translation').value.trim();
+
+            if (!language || !word || !translation) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const words = getWords();
+            words.push({
+                id: Date.now(),
+                language,
+                word,
+                translation,
+                created: new Date().toISOString()
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+            document.getElementById('word-language').value = '';
+            document.getElementById('word-text').value = '';
+            document.getElementById('word-translation').value = '';
+            render();
+        }
+
+        function deleteWord(id) {
+            if (confirm('Delete this word?')) {
+                const words = getWords().filter(w => w.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+                render();
+            }
+        }
+
+        function render() {
+            const words = getWords();
+            const container = document.getElementById('vocab-list');
+
+            // Calculate stats
+            const languages = new Set(words.map(w => w.language)).size;
+            document.getElementById('total-words').textContent = words.length;
+            document.getElementById('total-languages').textContent = languages;
+
+            if (words.length === 0) {
+                container.innerHTML = '<div style="padding: 16px; text-align: center; opacity: 0.6; font-size: 12px;">No words yet</div>';
+                return;
+            }
+
+            // Sort by language and word
+            words.sort((a, b) => a.language.localeCompare(b.language) || a.word.localeCompare(b.word));
+
+            container.innerHTML = words.map(w => `
+                <div class="vocab-item">
+                    <div class="vocab-header">
+                        <div class="word">${escapeHtml(w.word)}</div>
+                        <div class="translation">${escapeHtml(w.translation)}</div>
+                        <button class="vocab-delete" onclick="deleteWord(${w.id})">✕</button>
+                    </div>
+                    <div class="language">${escapeHtml(w.language)}</div>
+                </div>
+            `).join('');
+        }
+
+        function startPractice() {
+            const words = getWords();
+            if (words.length === 0) {
+                document.getElementById('quiz-area').style.display = 'none';
+                return;
+            }
+
+            quizWords = [...words].sort(() => Math.random() - 0.5);
+            quizIndex = 0;
+            document.getElementById('quiz-area').style.display = 'block';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (quizIndex >= quizWords.length) {
+                alert('Quiz complete! Well done.');
+                stopQuiz();
+                return;
+            }
+
+            const word = quizWords[quizIndex];
+            document.getElementById('quiz-word').textContent = word.word;
+            document.getElementById('quiz-answer').value = '';
+            document.getElementById('quiz-answer').focus();
+        }
+
+        function checkAnswer() {
+            const word = quizWords[quizIndex];
+            const answer = document.getElementById('quiz-answer').value.trim().toLowerCase();
+            const correct = word.translation.toLowerCase();
+
+            if (answer === correct) {
+                alert('✓ Correct!');
+                nextWord();
+            } else {
+                alert('✗ Incorrect. The answer is: ' + word.translation);
+            }
+        }
+
+        function nextWord() {
+            quizIndex++;
+            showQuestion();
+        }
+
+        function stopQuiz() {
+            document.getElementById('quiz-area').style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', render);
+    </script>
+</body>
+</html>

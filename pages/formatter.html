@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formatter</title>
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 10px;
+            font-family: inherit;
+            border: 1px solid var(--border);
+            background: var(--light);
+            color: var(--text);
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--card);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .controls button {
+            padding: 10px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .controls button:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .copy-btn {
+            grid-column: 1 / -1;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+        }
+
+        .copy-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧾 Formatter</h1>
+            <div class="nav">
+                <a href="../index.html">← Home</a>
+                <button onclick="toggleTheme()">🌓</button>
+                <a href="../settings.html">⚙️</a>
+            </div>
+        </header>
+
+        <div class="layout">
+            <div class="card">
+                <h2>Input</h2>
+                <textarea id="input-text" placeholder="Paste text here..."></textarea>
+            </div>
+
+            <div class="card">
+                <h2>Output</h2>
+                <textarea id="output-text" readonly placeholder="Formatted text will appear here..."></textarea>
+                <button class="copy-btn" onclick="copyOutput()">Copy Output</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Formatting Options</h2>
+            <div class="controls">
+                <button onclick="format('uppercase')">UPPERCASE</button>
+                <button onclick="format('lowercase')">lowercase</button>
+                <button onclick="format('capitalize')">Capitalize Words</button>
+                <button onclick="format('reverse')">Reverse Text</button>
+                <button onclick="format('trim')">Trim Spaces</button>
+                <button onclick="format('remove-duplicates')">Remove Duplicates</button>
+                <button onclick="format('remove-newlines')">Remove Line Breaks</button>
+                <button onclick="format('add-newlines')">Split by Comma</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared-layout.js"></script>
+    <script>
+        const inputText = document.getElementById('input-text');
+        const outputText = document.getElementById('output-text');
+
+        inputText.addEventListener('input', () => {
+            updateOutput();
+        });
+
+        function updateOutput() {
+            outputText.value = inputText.value;
+        }
+
+        function format(type) {
+            let text = inputText.value;
+
+            switch (type) {
+                case 'uppercase':
+                    text = text.toUpperCase();
+                    break;
+                case 'lowercase':
+                    text = text.toLowerCase();
+                    break;
+                case 'capitalize':
+                    text = text.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                    break;
+                case 'reverse':
+                    text = text.split('').reverse().join('');
+                    break;
+                case 'trim':
+                    text = text.split('\n').map(l => l.trim()).join('\n').trim();
+                    break;
+                case 'remove-duplicates':
+                    text = [...new Set(text.split('\n'))].join('\n');
+                    break;
+                case 'remove-newlines':
+                    text = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                    break;
+                case 'add-newlines':
+                    text = text.split(',').map(s => s.trim()).join('\n');
+                    break;
+            }
+
+            outputText.value = text;
+        }
+
+        function copyOutput() {
+            outputText.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        }
+
+        // Initialize
+        updateOutput();
+    </script>
+</body>
+</html>

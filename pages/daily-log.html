@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Log</title>
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+        .date-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .date-picker input {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .date-picker button {
+            padding: 8px 12px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .date-picker button:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .entry-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .entry-item {
+            background: var(--light);
+            padding: 14px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .entry-date {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .entry-preview {
+            font-size: 12px;
+            line-height: 1.5;
+            opacity: 0.8;
+            max-height: 60px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .entry-actions button {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 11px;
+            margin-right: 12px;
+        }
+
+        .entry-actions button:hover {
+            text-decoration: underline;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 2px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Daily Log</h1>
+            <div class="nav">
+                <a href="../index.html">← Home</a>
+                <button onclick="toggleTheme()">🌓</button>
+                <a href="../settings.html">⚙️</a>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="active" onclick="switchTab('write')">Write</button>
+            <button onclick="switchTab('view')">Entries</button>
+        </div>
+
+        <div id="write" class="tab-content active">
+            <div class="card">
+                <h2>Today's Entry</h2>
+                <div class="date-picker">
+                    <label style="font-size: 12px;">Date:</label>
+                    <input type="date" id="entry-date">
+                    <button onclick="loadEntry()">Load</button>
+                    <button onclick="saveEntry()" class="primary" style="background: var(--accent); color: #fff; border: none;">Save</button>
+                </div>
+                <textarea id="entry-text" placeholder="Write your thoughts, reflections, or notes for today..."></textarea>
+            </div>
+        </div>
+
+        <div id="view" class="tab-content">
+            <div class="card">
+                <h2>All Entries</h2>
+                <div id="entry-list" class="entry-list">
+                    <div style="padding: 16px; text-align: center; opacity: 0.6; font-size: 12px;">
+                        No entries yet
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entry Viewer Modal -->
+    <div id="viewer-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeViewer()">✕</button>
+            <h2 id="viewer-date" style="margin-bottom: 12px;"></h2>
+            <div id="viewer-text" style="line-height: 1.6; white-space: pre-wrap;"></div>
+        </div>
+    </div>
+
+    <script src="../shared-layout.js"></script>
+    <script>
+        const STORAGE_KEY = 'dailylog-entries';
+
+        function getEntries() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'view') renderList();
+        }
+
+        function saveEntry() {
+            const date = document.getElementById('entry-date').value;
+            const text = document.getElementById('entry-text').value;
+
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            const entries = getEntries();
+            entries[date] = {
+                date,
+                text,
+                lastModified: new Date().toISOString()
+            };
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+            alert('Entry saved!');
+        }
+
+        function loadEntry() {
+            const date = document.getElementById('entry-date').value;
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            const entries = getEntries();
+            const entry = entries[date];
+            if (entry) {
+                document.getElementById('entry-text').value = entry.text;
+            } else {
+                document.getElementById('entry-text').value = '';
+            }
+        }
+
+        function deleteEntry(date) {
+            if (confirm('Delete this entry?')) {
+                const entries = getEntries();
+                delete entries[date];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+                renderList();
+            }
+        }
+
+        function viewEntry(date) {
+            const entries = getEntries();
+            const entry = entries[date];
+            if (entry) {
+                document.getElementById('viewer-date').textContent = '📅 ' + date;
+                document.getElementById('viewer-text').textContent = entry.text;
+                document.getElementById('viewer-modal').classList.add('open');
+            }
+        }
+
+        function closeViewer() {
+            document.getElementById('viewer-modal').classList.remove('open');
+        }
+
+        function renderList() {
+            const entries = getEntries();
+            const dates = Object.keys(entries).sort().reverse();
+            const container = document.getElementById('entry-list');
+
+            if (dates.length === 0) {
+                container.innerHTML = '<div style="padding: 16px; text-align: center; opacity: 0.6; font-size: 12px;">No entries yet</div>';
+                return;
+            }
+
+            container.innerHTML = dates.map(date => {
+                const entry = entries[date];
+                const preview = entry.text.substring(0, 100) + (entry.text.length > 100 ? '...' : '');
+                return `
+                    <div class="entry-item">
+                        <div class="entry-date">${date}</div>
+                        <div class="entry-preview">${escapeHtml(preview)}</div>
+                        <div class="entry-actions">
+                            <button onclick="viewEntry('${date}')">Read</button>
+                            <button onclick="document.getElementById('entry-date').value='${date}'; document.getElementById('entry-text').value='${escapeHtml(entry.text).replace(/'/g, "\\'")}'; switchTab('write')">Edit</button>
+                            <button onclick="deleteEntry('${date}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        document.getElementById('entry-date').valueAsDate = new Date();
+        loadEntry();
+    </script>
+</body>
+</html>
