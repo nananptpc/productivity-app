@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - Productivity App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.2);
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --font: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            --radius: 16px;
+            --transition: 0.3s ease;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --shadow: 0 4px 16px rgba(0,0,0,0.4);
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background var(--transition), color var(--transition);
+        }
+        * {
+            font-family: var(--font);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px 24px;
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            transition: background var(--transition);
+        }
+        header h1 {
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .header-actions a {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            cursor: pointer;
+            transition: background var(--transition), transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .header-actions a:hover {
+            background: var(--accent);
+            transform: scale(1.02);
+        }
+        .theme-toggle {
+            background: transparent;
+            border: 2px solid var(--accent);
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: var(--font);
+            cursor: pointer;
+            color: var(--text);
+            transition: 0.3s;
+        }
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            transition: background var(--transition);
+        }
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        .card p {
+            font-size: 13px;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        .form-row input,
+        .form-row select {
+            padding: 8px 14px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            flex: 1 1 140px;
+            transition: border 0.3s;
+        }
+        .form-row input:focus,
+        .form-row select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-row button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .form-row button:hover {
+            opacity: 0.85;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag-item {
+            background: var(--bg);
+            padding: 6px 14px;
+            border-radius: 40px;
+            border: 2px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .tag-item .del {
+            cursor: pointer;
+            color: #e74c6f;
+            font-weight: bold;
+        }
+        .tag-item .color-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 1px solid var(--border);
+        }
+
+        .import-export {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .import-export button {
+            padding: 6px 16px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .import-export button:hover {
+            background: var(--accent2);
+        }
+        .import-export .danger {
+            color: #e74c6f;
+            border-color: #e74c6f;
+        }
+        .import-export .danger:hover {
+            background: #e74c6f;
+            color: #fff;
+        }
+
+        .import-section {
+            border-top: 2px solid var(--border);
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+        .import-section h4 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+            .form-row input,
+            .form-row select {
+                flex: 1 1 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <header>
+            <h1>⚙️ Settings</h1>
+            <div class="header-actions">
+                <a href="index.html">🏠 Home</a>
+                <a href="pages/planner.html">📋 Planner</a>
+                <a href="pages/daily-log.html">📖 Daily Log</a>
+                <a href="pages/finance.html">💰 Finance</a>
+                <a href="pages/teaching.html">📚 Teaching</a>
+                <a href="pages/payroll.html">💵 Payroll</a>
+                <a href="pages/formatter.html">🧾 Formatter</a>
+                <a href="zhongguo-wenhua-yaolue/index.html">🌸 Chinese Culture</a>
+                <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+            </div>
+        </header>
+
+        <div class="card">
+            <h3>📂 Shared Categories</h3>
+            <p>Use one category list across Planner, Finance, Links, Knowledge, Music, and other app pages.</p>
+            <div class="form-row">
+                <input type="text" id="categoryInput" placeholder="Category name" />
+                <input type="color" id="categoryColor" value="#f7a1b5" />
+                <button onclick="addCategory()">Add</button>
+            </div>
+            <div class="tag-list" id="categoryList"></div>
+        </div>
+
+        <div class="card">
+            <h3>💰 Finance Transaction Types</h3>
+            <div class="form-row">
+                <input type="text" id="typeInput" placeholder="Type name, for example Income or Expense" />
+                <button onclick="addType()">Add</button>
+            </div>
+            <div class="tag-list" id="typeList"></div>
+        </div>
+
+        <div class="card">
+            <h3>📦 Import / Export</h3>
+            <p>Export or import app settings and module CSV backups.</p>
+            <div class="import-export">
+                <button onclick="exportSettings()">Export Settings</button>
+                <button onclick="document.getElementById('importSettings').click()">Import Settings</button>
+                <input type="file" id="importSettings" accept=".json" style="display:none" onchange="importSettings(event)" />
+                <button class="danger" onclick="resetAll()">Reset All Data</button>
+            </div>
+
+            <div class="import-section">
+                <h4>📄 Module CSV / TSV</h4>
+                <div class="form-row">
+                    <select id="importModule">
+                        <option value="planner">Planner - Tasks</option>
+                        <option value="finance">Finance - Transactions</option>
+                        <option value="teaching-classes">Teaching - Classes</option>
+                        <option value="teaching-lessons">Teaching - Lessons</option>
+                        <option value="teaching-todos">Teaching - To-dos</option>
+                        <option value="payroll">Teaching - Payroll</option>
+                        <option value="daily-log">Daily Log - Entries</option>
+                        <option value="marked-links">Marked Links</option>
+                        <option value="knowledge">Knowledge Bank</option>
+                        <option value="music">Music Boards</option>
+                        <option value="formatter">Formatter</option>
+                        <option value="culture-lesson">Chinese Studio - Lesson</option>
+                        <option value="culture-terms">Chinese Studio - Vocabulary</option>
+                        <option value="culture-quiz">Chinese Studio - Quiz</option>
+                    </select>
+                    <button onclick="exportModuleCSV()">📥 Export CSV</button>
+                    <button onclick="exportModuleTSV()">Export TSV</button>
+                    <button onclick="exportSampleCSV()">Download Sample CSV</button>
+                    <button onclick="exportSampleTSV()">Download Sample TSV</button>
+                    <button onclick="document.getElementById('importModuleCSV').click()">📤 Choose CSV/TSV</button>
+                    <input type="file" id="importModuleCSV" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" onchange="importModuleCSV(event)" />
+                </div>
+                <p style="font-size:12px;opacity:0.6;">CSV or TSV headers should match the export format for that module.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        // THEME
+        // ============================================================
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('settingsTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('settingsTheme') === 'dark') document.body.classList.add('dark');
+
+        // ============================================================
+        // DATA
+        // ============================================================
+        function getSettings() {
+            try {
+                return JSON.parse(localStorage.getItem('settingsData')) || {
+                    categories: ['Work', 'Study', 'Personal', 'Health', 'Other'],
+                    categoryColors: {},
+                    financeTypes: ['Income', 'Expense']
+                };
+            } catch { return { categories: ['Work', 'Study', 'Personal', 'Health', 'Other'],
+                    categoryColors: {}, financeTypes: ['Income', 'Expense'] }; }
+        }
+
+        function saveSettings(d) {
+            localStorage.setItem('settingsData', JSON.stringify(d));
+        }
+
+        // ============================================================
+        // CATEGORIES
+        // ============================================================
+        function addCategory() {
+            const name = document.getElementById('categoryInput').value.trim();
+            const color = document.getElementById('categoryColor').value;
+            if (!name) return alert('Please enter a category name.');
+            const data = getSettings();
+            if (data.categories.includes(name)) return alert('This category already exists.');
+            data.categories.push(name);
+            data.categoryColors[name] = color;
+            saveSettings(data);
+            document.getElementById('categoryInput').value = '';
+            renderCategories();
+            syncToAll();
+        }
+
+        function deleteCategory(name) {
+            if (!confirm(`Delete category "${name}"? Existing items will keep their text label.`)) return;
+            const data = getSettings();
+            data.categories = data.categories.filter(c => c !== name);
+            delete data.categoryColors[name];
+            saveSettings(data);
+            renderCategories();
+            syncToAll();
+        }
+
+        function renderCategories() {
+            const data = getSettings();
+            const container = document.getElementById('categoryList');
+            container.innerHTML = data.categories.map(c => `
+                    <span class="tag-item">
+                        <span class="color-preview" style="background:${data.categoryColors[c] || '#f7a1b5'}"></span>
+                        <span>${escapeHTML(c)}</span>
+                        <button onclick="editCategory('${encodeURIComponent(c)}')">Edit</button>
+                        <span class="del" onclick="deleteCategory(decodeURIComponent('${encodeURIComponent(c)}'))">✕</span>
+                    </span>
+                `).join('');
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[char]));
+        }
+
+        function editCategory(encodedName) {
+            const oldName = decodeURIComponent(encodedName);
+            const data = getSettings();
+            const nextName = prompt('New category name:', oldName);
+            if (!nextName || !nextName.trim()) return;
+            const cleanName = nextName.trim();
+            if (cleanName !== oldName && data.categories.includes(cleanName)) return alert('This category already exists.');
+            const nextColor = prompt('Color hex code:', data.categoryColors[oldName] || '#f7a1b5') || data.categoryColors[oldName] || '#f7a1b5';
+            data.categories = data.categories.map(c => c === oldName ? cleanName : c);
+            delete data.categoryColors[oldName];
+            data.categoryColors[cleanName] = nextColor;
+            saveSettings(data);
+            renameCategoryEverywhere(oldName, cleanName);
+            renderCategories();
+            syncToAll();
+        }
+
+        // ============================================================
+        // FINANCE TYPES
+        // ============================================================
+        function addType() {
+            const name = document.getElementById('typeInput').value.trim();
+            if (!name) return alert('Please enter a type name.');
+            const data = getSettings();
+            if (data.financeTypes.includes(name)) return alert('This type already exists.');
+            data.financeTypes.push(name);
+            saveSettings(data);
+            document.getElementById('typeInput').value = '';
+            renderTypes();
+        }
+
+        function deleteType(name) {
+            if (!confirm(`Delete type "${name}"?`)) return;
+            const data = getSettings();
+            data.financeTypes = data.financeTypes.filter(t => t !== name);
+            saveSettings(data);
+            renderTypes();
+        }
+
+        function renderTypes() {
+            const data = getSettings();
+            const container = document.getElementById('typeList');
+            container.innerHTML = data.financeTypes.map(t => `
+                    <span class="tag-item">
+                        ${escapeHTML(t)}
+                        <span class="del" onclick="deleteType(decodeURIComponent('${encodeURIComponent(t)}'))">✕</span>
+                    </span>
+                `).join('');
+        }
+
+        // ============================================================
+        // IMPORT MODULE CSV
+        // ============================================================
+        function parseDelimitedTable(text) {
+            const clean = String(text || '').replace(/^\uFEFF/, '');
+            const firstLine = clean.split(/\r?\n/)[0] || '';
+            if (firstLine.includes('\t')) {
+                return clean.split(/\r?\n/).filter(line => line.trim()).map(line => line.split('\t').map(cell => cell.trim()));
+            }
+            const rows = [];
+            let row = [], cell = '', inQuotes = false;
+            for (let i = 0; i < clean.length; i++) {
+                const char = clean[i], next = clean[i + 1];
+                if (char === '"' && inQuotes && next === '"') { cell += '"'; i++; }
+                else if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) { row.push(cell); cell = ''; }
+                else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell);
+                    if (row.some(value => value.trim())) rows.push(row);
+                    row = []; cell = '';
+                } else cell += char;
+            }
+            row.push(cell);
+            if (row.some(value => value.trim())) rows.push(row);
+            return rows;
+        }
+
+        function parseImportLine(line) {
+            return parseDelimitedTable(String(line || ''))[0] || [];
+        }
+
+        function tableToCSVLines(table) {
+            return table.map(row => row.map(csvCell).join(','));
+        }
+
+        function importModuleCSV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const module = document.getElementById('importModule').value;
+
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const text = ev.target.result;
+                    const table = parseDelimitedTable(text);
+                    if (!table.length) return alert('The imported file is empty.');
+                    const lines = tableToCSVLines(table);
+                    const headers = table[0].map(h => h.replace(/"/g, '').trim());
+
+                    if (module === 'planner') {
+                        importPlannerCSV(lines, headers);
+                    } else if (module === 'finance') {
+                        importFinanceCSV(lines, headers);
+                    } else if (module === 'payroll') {
+                        importPayrollCSV(lines, headers);
+                    } else if (module.startsWith('teaching')) {
+                        importTeachingCSV(module, lines, headers);
+                    } else if (module === 'daily-log') {
+                        importDailyLogCSV(lines, headers);
+                    } else if (module === 'marked-links') {
+                        importGenericListCSV('markedLinks_v1', lines, headers, ['title', 'url', 'category', 'note', 'time'], 'Marked Links');
+                    } else if (module === 'knowledge') {
+                        importGenericListCSV('knowledgeBank_v1', lines, headers, ['title', 'type', 'source', 'content', 'time'], 'Knowledge Bank');
+                    } else if (module === 'music') {
+                        importGenericListCSV('musicBoards_v1', lines, headers, ['title', 'url', 'mood', 'embed'], 'Music Boards');
+                    } else if (module === 'culture-lesson') {
+                        importCultureLessonCSV(lines, headers);
+                    } else if (module === 'culture-terms') {
+                        importCultureTermsCSV(lines, headers);
+                    } else if (module === 'culture-quiz') {
+                        importCultureQuizCSV(lines, headers);
+                    } else if (module === 'formatter') {
+                        localStorage.setItem('formatterImportedCSV_v1', text);
+                        alert('Formatter sample/input CSV saved. Open Formatter and import CSV there for formatting.');
+                    }
+                } catch (err) {
+                    alert('Import error: ' + err.message);
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            e.target.value = '';
+        }
+
+        function importPlannerCSV(lines, headers) {
+            const data = JSON.parse(localStorage.getItem('plannerData')) || { tasks: [], habits: { water: false,
+                    exercise: false, date: new Date().toISOString().slice(0, 10) }, cycleStart: null,
+                cycleLength: 28 };
+            let count = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const task = {};
+                headers.forEach((h, idx) => task[h] = vals[idx] || '');
+                if (task.id && task.title) {
+                    if (!data.tasks.some(t => t.id === task.id)) {
+                        data.tasks.push(task);
+                        count++;
+                    }
+                }
+            }
+
+            if (count > 0) {
+                localStorage.setItem('plannerData', JSON.stringify(data));
+                alert(`Imported ${count} task(s) into Planner.`);
+            } else {
+                alert('No new Planner tasks were imported.');
+            }
+        }
+
+        function csvCell(value) {
+            return `"${String(value ?? '').replace(/"/g, '""')}"`;
+        }
+
+        function tsvCell(value) {
+            return String(value ?? '').replace(/\t/g, ' ').replace(/\r?\n/g, ' ');
+        }
+
+        function downloadDelimited(headers, rows, filename, delimiter = ',', ext = 'csv') {
+            const body = headers.join(delimiter) + '\n' + rows.map(row => headers.map(h => delimiter === '\t' ? tsvCell(row[h]) : csvCell(row[h])).join(delimiter)).join('\n');
+            const mime = ext === 'tsv' ? 'text/tab-separated-values;charset=utf-8;' : 'text/csv;charset=utf-8;';
+            const blob = new Blob(['\uFEFF' + body], { type: mime });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${filename}_${new Date().toISOString().slice(0,10)}.${ext}`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 0);
+        }
+
+        function downloadCSV(headers, rows, filename) {
+            downloadDelimited(headers, rows, filename, ',', 'csv');
+        }
+
+        function downloadTSV(headers, rows, filename) {
+            downloadDelimited(headers, rows, filename, '\t', 'tsv');
+        }
+
+        function moduleExportData(module) {
+            if (module === 'planner') {
+                const data = JSON.parse(localStorage.getItem('plannerData')) || { tasks: [] };
+                return { headers: ['id', 'title', 'category', 'status', 'date', 'desc'], rows: data.tasks || [], filename: 'planner_tasks' };
+            }
+            if (module === 'finance') {
+                const data = JSON.parse(localStorage.getItem('financeData')) || { transactions: [] };
+                return { headers: ['id', 'date', 'type', 'category', 'amount', 'sourceId', 'description'], rows: data.transactions || [], filename: 'finance_transactions' };
+            }
+            if (module === 'payroll') {
+                const rows = JSON.parse(localStorage.getItem('teachingPayroll_v1')) || [];
+                return { headers: ['date', 'className', 'studentName', 'detail', 'fee', 'lessonStatus', 'payStatus', 'received', 'note'], rows, filename: 'teaching_payroll' };
+            }
+            if (module === 'marked-links') {
+                const rows = JSON.parse(localStorage.getItem('markedLinks_v1')) || [];
+                return { headers: ['title', 'url', 'category', 'note', 'time'], rows, filename: 'marked_links' };
+            }
+            if (module === 'knowledge') {
+                const rows = JSON.parse(localStorage.getItem('knowledgeBank_v1')) || [];
+                return { headers: ['title', 'type', 'source', 'content', 'time'], rows, filename: 'knowledge_bank' };
+            }
+            if (module === 'music') {
+                const rows = JSON.parse(localStorage.getItem('musicBoards_v1')) || [];
+                return { headers: ['title', 'url', 'mood', 'embed'], rows, filename: 'music_boards' };
+            }
+            if (module === 'culture-lesson') {
+                const rows = (JSON.parse(localStorage.getItem('simpleLessonBlocks_v1')) || []).map(row => ({ type: row.type || 'p', zhongwen: row.zh || '', translation: row.vi || '' }));
+                return { headers: ['type', 'zhongwen', 'translation'], rows, filename: 'chinese_studio_lesson' };
+            }
+            if (module === 'culture-terms') {
+                const rows = (JSON.parse(localStorage.getItem('simpleTerms_v1')) || []).map(row => ({ zhongwen: row.zh || '', meaning: row.vi || '', pinyin: row.pinyin || '' }));
+                return { headers: ['zhongwen', 'meaning', 'pinyin'], rows, filename: 'chinese_studio_terms' };
+            }
+            if (module === 'culture-quiz') {
+                const rows = (JSON.parse(localStorage.getItem('cultureQuizBank_v1')) || []).map(row => ({
+                    question: row.zhQ || '', optionA: row.options?.[0] || '', optionB: row.options?.[1] || '', optionC: row.options?.[2] || '', optionD: row.options?.[3] || '', correct: row.correct ?? 0, hint: row.viQ || ''
+                }));
+                return { headers: ['question', 'optionA', 'optionB', 'optionC', 'optionD', 'correct', 'hint'], rows, filename: 'chinese_studio_quiz' };
+            }
+            if (module.startsWith('teaching')) {
+                const data = JSON.parse(localStorage.getItem('teachingData')) || { classes: [], lessons: [], todos: [] };
+                if (module === 'teaching-classes') return { headers: ['id', 'code', 'time', 'canva', 'shub'], rows: data.classes || [], filename: 'teaching_classes' };
+                if (module === 'teaching-lessons') return { headers: ['id', 'classId', 'name', 'date', 'otherLinks', 'note'], rows: data.lessons || [], filename: 'teaching_lessons' };
+                return { headers: ['id', 'title', 'classId', 'classLabel', 'date', 'done'], rows: data.todos || [], filename: 'teaching_todos' };
+            }
+            const data = JSON.parse(localStorage.getItem('dailylogData')) || { daily: {} };
+            const rows = Object.keys(data.daily || {}).map(date => ({ date, ...(data.daily[date] || {}) }));
+            return { headers: ['date', 'title', 'mood', 'tags', 'text', 'updatedAt'], rows, filename: 'daily_log' };
+        }
+
+        function exportModuleCSV() {
+            const module = document.getElementById('importModule').value;
+            if (module === 'formatter') return exportSampleCSV();
+            const data = moduleExportData(module);
+            return downloadCSV(data.headers, data.rows, data.filename);
+        }
+
+        function exportModuleTSV() {
+            const module = document.getElementById('importModule').value;
+            if (module === 'formatter') return exportSampleTSV();
+            const data = moduleExportData(module);
+            return downloadTSV(data.headers, data.rows, data.filename);
+        }
+
+        function legacyExportModuleCSV() {
+            const module = document.getElementById('importModule').value;
+            if (module === 'planner') {
+                const data = JSON.parse(localStorage.getItem('plannerData')) || { tasks: [] };
+                return downloadCSV(['id', 'title', 'category', 'status', 'date', 'desc'], data.tasks || [], 'planner_tasks');
+            }
+            if (module === 'finance') {
+                const data = JSON.parse(localStorage.getItem('financeData')) || { transactions: [] };
+                return downloadCSV(['id', 'date', 'type', 'category', 'amount', 'sourceId', 'description'], data.transactions || [], 'finance_transactions');
+            }
+            if (module === 'payroll') {
+                const rows = JSON.parse(localStorage.getItem('teachingPayroll_v1')) || [];
+                return downloadCSV(['date', 'className', 'studentName', 'detail', 'fee', 'lessonStatus', 'payStatus', 'received', 'note'], rows, 'teaching_payroll');
+            }
+            if (module === 'marked-links') {
+                const rows = JSON.parse(localStorage.getItem('markedLinks_v1')) || [];
+                return downloadCSV(['title', 'url', 'category', 'note', 'time'], rows, 'marked_links');
+            }
+            if (module === 'knowledge') {
+                const rows = JSON.parse(localStorage.getItem('knowledgeBank_v1')) || [];
+                return downloadCSV(['title', 'type', 'source', 'content', 'time'], rows, 'knowledge_bank');
+            }
+            if (module === 'music') {
+                const rows = JSON.parse(localStorage.getItem('musicBoards_v1')) || [];
+                return downloadCSV(['title', 'url', 'mood', 'embed'], rows, 'music_boards');
+            }
+            if (module === 'formatter') {
+                return exportSampleCSV();
+            }
+            if (module === 'culture-lesson') {
+                const rows = JSON.parse(localStorage.getItem('simpleLessonBlocks_v1')) || [];
+                return downloadCSV(['type', 'zhongwen', 'translation'], rows.map(row => ({ type: row.type || 'p', zhongwen: row.zh || '', translation: row.vi || '' })), 'chinese_studio_lesson');
+            }
+            if (module === 'culture-terms') {
+                const rows = JSON.parse(localStorage.getItem('simpleTerms_v1')) || [];
+                return downloadCSV(['zhongwen', 'meaning', 'pinyin'], rows.map(row => ({ zhongwen: row.zh || '', meaning: row.vi || '', pinyin: row.pinyin || '' })), 'chinese_studio_terms');
+            }
+            if (module === 'culture-quiz') {
+                const rows = JSON.parse(localStorage.getItem('cultureQuizBank_v1')) || [];
+                return downloadCSV(['question', 'optionA', 'optionB', 'optionC', 'optionD', 'correct', 'hint'], rows.map(row => ({
+                    question: row.zhQ || '',
+                    optionA: row.options?.[0] || '',
+                    optionB: row.options?.[1] || '',
+                    optionC: row.options?.[2] || '',
+                    optionD: row.options?.[3] || '',
+                    correct: row.correct ?? 0,
+                    hint: row.viQ || ''
+                })), 'chinese_studio_quiz');
+            }
+            if (module.startsWith('teaching')) {
+                const data = JSON.parse(localStorage.getItem('teachingData')) || { classes: [], lessons: [], todos: [] };
+                if (module === 'teaching-classes') return downloadCSV(['id', 'code', 'time', 'canva', 'shub'], data.classes || [], 'teaching_classes');
+                if (module === 'teaching-lessons') return downloadCSV(['id', 'classId', 'name', 'date', 'otherLinks', 'note'], data.lessons || [], 'teaching_lessons');
+                return downloadCSV(['id', 'title', 'classId', 'classLabel', 'date', 'done'], data.todos || [], 'teaching_todos');
+            }
+            const data = JSON.parse(localStorage.getItem('dailylogData')) || { daily: {} };
+            const rows = Object.keys(data.daily || {}).map(date => ({ date, ...(data.daily[date] || {}) }));
+            return downloadCSV(['date', 'title', 'mood', 'tags', 'text', 'updatedAt'], rows, 'daily_log');
+        }
+
+        function importFinanceCSV(lines, headers) {
+            const data = JSON.parse(localStorage.getItem('financeData')) || { sources: [], transactions: [],
+                funds: [], categories: ['Food', 'Transport', 'Shopping', 'Bills', 'Fun', 'Health', 'Education', 'Other'] };
+            let count = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const tx = {};
+                headers.forEach((h, idx) => tx[h] = vals[idx] || '');
+                tx.amount = parseFloat(tx.amount) || 0;
+                if (tx.id && tx.date && tx.amount) {
+                    if (!data.transactions.some(t => t.id === tx.id)) {
+                        data.transactions.push(tx);
+                        // Update balance
+                        const src = data.sources.find(s => s.id === tx.sourceId);
+                        if (src) {
+                            src.balance += (tx.type === 'income' ? tx.amount : -tx.amount);
+                        }
+                        count++;
+                    }
+                }
+            }
+
+            if (count > 0) {
+                localStorage.setItem('financeData', JSON.stringify(data));
+                alert(`Imported ${count} transaction(s) into Finance.`);
+            } else {
+                alert('No new Finance transactions were imported.');
+            }
+        }
+
+        function exportSampleCSV() {
+            const module = document.getElementById('importModule').value;
+            const sample = getSampleData(module);
+            downloadCSV(sample.headers, sample.rows, sample.filename);
+        }
+
+        function exportSampleTSV() {
+            const module = document.getElementById('importModule').value;
+            const sample = getSampleData(module);
+            downloadTSV(sample.headers, sample.rows, sample.filename);
+        }
+
+        function getSampleData(module) {
+            const samples = {
+                planner: {
+                    filename: 'sample_planner_tasks',
+                    headers: ['id', 'title', 'category', 'status', 'date', 'desc'],
+                    rows: [{ id: 'task_001', title: 'Prepare lesson handout', category: 'Teaching', status: 'todo', date: '2026-06-27', desc: 'Print and review before class' }]
+                },
+                finance: {
+                    filename: 'sample_finance_transactions',
+                    headers: ['id', 'date', 'type', 'category', 'amount', 'sourceId', 'description'],
+                    rows: [{ id: 'tx_001', date: '2026-06-27', type: 'expense', category: 'Teaching', amount: '49000', sourceId: 'cash', description: 'Class materials' }]
+                },
+                'teaching-classes': {
+                    filename: 'sample_teaching_classes',
+                    headers: ['id', 'code', 'time', 'canva', 'shub'],
+                    rows: [{ id: 'class_001', code: 'ENG 06', time: 'Saturday 09:00-10:30', canva: 'https://canva.com/example', shub: 'https://shub.edu.vn/example' }]
+                },
+                'teaching-lessons': {
+                    filename: 'sample_teaching_lessons',
+                    headers: ['id', 'classId', 'name', 'date', 'otherLinks', 'note', 'completed', 'fee'],
+                    rows: [{ id: 'lesson_001', classId: 'class_001', name: 'Present continuous practice', date: '2026-06-27', otherLinks: '', note: 'Homework checked', completed: 'true', fee: '200000' }]
+                },
+                'teaching-todos': {
+                    filename: 'sample_teaching_todos',
+                    headers: ['id', 'title', 'classId', 'classLabel', 'date', 'done'],
+                    rows: [{ id: 'todo_001', title: 'Upload homework', classId: 'class_001', classLabel: 'ENG 06', date: '2026-06-27', done: 'false' }]
+                },
+                payroll: {
+                    filename: 'sample_teaching_payroll',
+                    headers: ['date', 'className', 'studentName', 'detail', 'fee', 'lessonStatus', 'payStatus', 'received', 'note'],
+                    rows: [{ date: '2026-06-27', className: 'ENG 06', studentName: 'Anna', detail: 'Present continuous practice', fee: '200000', lessonStatus: 'Completed', payStatus: 'Unpaid', received: 'No', note: 'Parent invoice item only' }]
+                },
+                'daily-log': {
+                    filename: 'sample_daily_log',
+                    headers: ['date', 'title', 'mood', 'tags', 'text', 'updatedAt'],
+                    rows: [{ date: '2026-06-27', title: 'Morning notes', mood: 'Calm', tags: 'writing,teaching', text: 'A short daily reflection.', updatedAt: '2026-06-27T08:00:00.000Z' }]
+                },
+                'marked-links': {
+                    filename: 'sample_marked_links',
+                    headers: ['title', 'url', 'category', 'note', 'time'],
+                    rows: [{ title: 'Grammar resource', url: 'https://example.com', category: 'Teaching', note: 'Use for A2 worksheet', time: '2026-06-27 08:00' }]
+                },
+                knowledge: {
+                    filename: 'sample_knowledge_bank',
+                    headers: ['title', 'type', 'source', 'content', 'time'],
+                    rows: [{ title: 'Story idea', type: 'Writing', source: 'Self', content: 'A teacher finds a language map inside an old book.', time: '2026-06-27 08:00' }]
+                },
+                music: {
+                    filename: 'sample_music_boards',
+                    headers: ['title', 'url', 'mood', 'embed'],
+                    rows: [{ title: 'Deep Work Playlist', url: 'https://open.spotify.com/playlist/example', mood: 'Focus', embed: '' }]
+                },
+                formatter: {
+                    filename: 'sample_formatter_input',
+                    headers: ['number', 'content', 'answer', 'note'],
+                    rows: [{ number: '1', content: 'She (go) ______ to school by bus every day.', answer: 'goes', note: 'Present simple' }]
+                },
+                'culture-lesson': {
+                    filename: 'sample_chinese_studio_lesson',
+                    headers: ['type', 'zhongwen', 'translation'],
+                    rows: [{ type: 'p', zhongwen: '文化是一个复杂的概念。', translation: 'Culture is a complex concept.' }]
+                },
+                'culture-terms': {
+                    filename: 'sample_chinese_studio_terms',
+                    headers: ['zhongwen', 'meaning', 'pinyin'],
+                    rows: [{ zhongwen: '文化', meaning: 'culture', pinyin: 'wenhua' }]
+                },
+                'culture-quiz': {
+                    filename: 'sample_chinese_studio_quiz',
+                    headers: ['question', 'optionA', 'optionB', 'optionC', 'optionD', 'correct', 'hint'],
+                    rows: [{ question: '文化 means...', optionA: 'culture', optionB: 'weather', optionC: 'money', optionD: 'food', correct: '0', hint: 'Choose the best meaning.' }]
+                }
+            };
+            return samples[module] || samples.planner;
+        }
+
+        function importTeachingCSV(module, lines, headers) {
+            const data = JSON.parse(localStorage.getItem('teachingData')) || { classes: [], lessons: [], todos: [] };
+            let count = 0;
+            const key = module === 'teaching-classes' ? 'classes' : module === 'teaching-lessons' ? 'lessons' : 'todos';
+            data[key] = Array.isArray(data[key]) ? data[key] : [];
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const item = {};
+                headers.forEach((h, idx) => item[h] = vals[idx] || '');
+                item.id = item.id || Date.now() + '_' + i;
+                if (key === 'todos') item.done = item.done === 'true' || item.done === '1';
+                if (!data[key].some(existing => existing.id === item.id)) {
+                    data[key].push(item);
+                    count++;
+                }
+            }
+            localStorage.setItem('teachingData', JSON.stringify(data));
+            alert(`Imported ${count} row(s) into Teaching.`);
+        }
+
+        function importDailyLogCSV(lines, headers) {
+            const data = JSON.parse(localStorage.getItem('dailylogData')) || { daily: {}, stories: {}, storyOrder: [] };
+            data.daily = data.daily || {};
+            let count = 0;
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const row = {};
+                headers.forEach((h, idx) => row[h] = vals[idx] || '');
+                if (row.date) {
+                    data.daily[row.date] = {
+                        title: row.title || '',
+                        mood: row.mood || '',
+                        tags: row.tags || '',
+                        text: row.text || '',
+                        updatedAt: row.updatedAt || new Date().toISOString()
+                    };
+                    count++;
+                }
+            }
+            localStorage.setItem('dailylogData', JSON.stringify(data));
+            alert(`Imported ${count} daily log entries.`);
+        }
+
+        function importPayrollCSV(lines, headers) {
+            const rows = JSON.parse(localStorage.getItem('teachingPayroll_v1')) || [];
+            let count = 0;
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const row = {};
+                headers.forEach((h, idx) => row[h] = vals[idx] || '');
+                if (!row.date && !row.detail) continue;
+                rows.push({
+                    id: Date.now() + '_' + i,
+                    date: row.date || new Date().toISOString().slice(0, 10),
+                    className: row.className || row.class || '',
+                    studentName: row.studentName || row.student || '',
+                    detail: row.detail || '',
+                    fee: Number(String(row.fee || '').replace(/[^\d.-]/g, '')) || 0,
+                    lessonStatus: row.lessonStatus || 'Completed',
+                    payStatus: row.payStatus || row.tuitionStatus || 'Unpaid',
+                    received: row.received || 'No',
+                    note: row.note || ''
+                });
+                count++;
+            }
+            localStorage.setItem('teachingPayroll_v1', JSON.stringify(rows));
+            alert(`Imported ${count} payroll row(s).`);
+        }
+
+        function importGenericListCSV(storageKey, lines, headers, expectedFields, label) {
+            const list = JSON.parse(localStorage.getItem(storageKey)) || [];
+            let count = 0;
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const item = { id: Date.now() + '_' + i };
+                headers.forEach((h, idx) => item[h] = vals[idx] || '');
+                expectedFields.forEach(field => item[field] = item[field] || '');
+                if (!Object.values(item).some(Boolean)) continue;
+                list.push(item);
+                count++;
+            }
+            localStorage.setItem(storageKey, JSON.stringify(list));
+            alert(`Imported ${count} row(s) into ${label}.`);
+        }
+
+        function importCultureLessonCSV(lines, headers) {
+            const blocks = [];
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const row = {};
+                headers.forEach((h, idx) => row[h] = vals[idx] || '');
+                const zh = row.zhongwen || row.zh || row.chinese || vals[1] || '';
+                const vi = row.translation || row.meaning || row.vietnamese || row.english || vals[2] || '';
+                if (!zh && !vi) continue;
+                blocks.push({ type: row.type || 'p', zh, vi });
+            }
+            localStorage.setItem('simpleLessonBlocks_v1', JSON.stringify(blocks));
+            alert(`Imported ${blocks.length} Chinese Studio lesson block(s).`);
+        }
+
+        function importCultureTermsCSV(lines, headers) {
+            const terms = [];
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const row = {};
+                headers.forEach((h, idx) => row[h] = vals[idx] || '');
+                const zh = row.zhongwen || row.zh || row.chinese || vals[0] || '';
+                const vi = row.meaning || row.translation || row.vietnamese || row.english || vals[1] || '';
+                const pinyin = row.pinyin || vals[2] || '';
+                if (!zh && !vi) continue;
+                terms.push({ id: Date.now() + '_' + i, zh, vi, pinyin });
+            }
+            localStorage.setItem('simpleTerms_v1', JSON.stringify(terms));
+            alert(`Imported ${terms.length} Chinese Studio vocabulary item(s).`);
+        }
+
+        function importCultureQuizCSV(lines, headers) {
+            const questions = [];
+            for (let i = 1; i < lines.length; i++) {
+                const vals = parseImportLine(lines[i]).map(v => v.trim());
+                const row = {};
+                headers.forEach((h, idx) => row[h] = vals[idx] || '');
+                const correct = Number(row.correct ?? vals[5] ?? 0);
+                const question = row.question || vals[0] || '';
+                if (!question) continue;
+                questions.push({
+                    id: 'settings_csv_' + Date.now() + '_' + i,
+                    zhQ: question,
+                    viQ: row.hint || vals[6] || 'Choose the best answer.',
+                    options: [row.optionA || vals[1] || '', row.optionB || vals[2] || '', row.optionC || vals[3] || '', row.optionD || vals[4] || ''],
+                    correct: Number.isFinite(correct) && correct >= 0 && correct <= 3 ? correct : 0
+                });
+            }
+            localStorage.setItem('cultureQuizBank_v1', JSON.stringify(questions));
+            alert(`Imported ${questions.length} Chinese Studio quiz question(s).`);
+        }
+
+        // ============================================================
+        // SYNC TO ALL MODULES
+        // ============================================================
+        function syncToAll() {
+            try {
+                const settings = getSettings();
+                const financeData = JSON.parse(localStorage.getItem('financeData'));
+                if (financeData) {
+                    financeData.categories = settings.categories;
+                    localStorage.setItem('financeData', JSON.stringify(financeData));
+                }
+                const plannerData = JSON.parse(localStorage.getItem('plannerData'));
+                if (plannerData) {
+                    plannerData.categories = settings.categories;
+                    localStorage.setItem('plannerData', JSON.stringify(plannerData));
+                }
+            } catch {}
+        }
+
+        function renameCategoryEverywhere(oldName, newName) {
+            try {
+                const plannerData = JSON.parse(localStorage.getItem('plannerData')) || {};
+                if (Array.isArray(plannerData.tasks)) {
+                    plannerData.tasks.forEach(task => {
+                        if (task.category === oldName) task.category = newName;
+                    });
+                    localStorage.setItem('plannerData', JSON.stringify(plannerData));
+                }
+                const financeData = JSON.parse(localStorage.getItem('financeData')) || {};
+                if (Array.isArray(financeData.transactions)) {
+                    financeData.transactions.forEach(tx => {
+                        if (tx.category === oldName) tx.category = newName;
+                    });
+                    localStorage.setItem('financeData', JSON.stringify(financeData));
+                }
+            } catch {}
+        }
+
+        // ============================================================
+        // EXPORT / IMPORT SETTINGS
+        // ============================================================
+        function exportSettings() {
+            const data = getSettings();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `settings_${new Date().toISOString().slice(0,10)}.json`;
+            link.click();
+        }
+
+        function importSettings(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (!imported.categories || !imported.financeTypes) {
+                        throw new Error('Invalid settings file.');
+                    }
+                    saveSettings(imported);
+                    renderAll();
+                    syncToAll();
+                    alert('Settings imported.');
+                } catch (err) {
+                    alert('Import error: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        // ============================================================
+        // RESET
+        // ============================================================
+        function resetAll() {
+            if (!confirm('Reset all app data? This cannot be undone.')) return;
+            if (!confirm('Are you sure you want to delete all module data?')) return;
+            localStorage.removeItem('plannerData');
+            localStorage.removeItem('dailylogData');
+            localStorage.removeItem('financeData');
+            localStorage.removeItem('teachingData');
+            localStorage.removeItem('teachingPayroll_v1');
+            localStorage.removeItem('settingsData');
+            const defaultSettings = {
+                categories: ['Work', 'Study', 'Personal', 'Health', 'Other'],
+                categoryColors: {},
+                financeTypes: ['Income', 'Expense']
+            };
+            saveSettings(defaultSettings);
+            renderAll();
+            alert('All data has been reset.');
+        }
+
+        // ============================================================
+        // RENDER ALL
+        // ============================================================
+        function renderAll() {
+            renderCategories();
+            renderTypes();
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('settingsData')) {
+                const defaultSettings = {
+                    categories: ['Work', 'Study', 'Personal', 'Health', 'Other'],
+                    categoryColors: {},
+                    financeTypes: ['Income', 'Expense']
+                };
+                saveSettings(defaultSettings);
+            }
+            renderAll();
+        });
+    </script>
+</body>
+</html>

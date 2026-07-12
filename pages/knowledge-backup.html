@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Knowledge Bank - Productivity App</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.2);
+            --font: 'American Typewriter', 'Courier New', monospace;
+            --radius: 8px;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --shadow: 0 4px 18px rgba(0,0,0,0.35);
+        }
+        body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 18px; }
+        button, input, select, textarea { font-family: inherit; }
+        .container { max-width: 1160px; margin: 0 auto; }
+        header, .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+        header { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; margin-bottom: 16px; }
+        h1 { font-size: 28px; }
+        .hint { color: color-mix(in srgb, var(--text), transparent 30%); font-size: 13px; line-height: 1.5; margin-top: 6px; }
+        .nav, .row, .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .nav a, button { background: var(--accent2); border: 1px solid var(--accent); border-radius: var(--radius); color: var(--text); cursor: pointer; padding: 8px 13px; text-decoration: none; }
+        button.primary { background: var(--accent); color: white; font-weight: 800; }
+        .grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 380px; align-items: start; }
+        input, select, textarea { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 10px 12px; width: 100%; }
+        textarea { min-height: 210px; resize: vertical; }
+        label { display: grid; gap: 6px; font-weight: 700; margin-bottom: 10px; }
+        .entry-list { display: grid; gap: 10px; }
+        .entry-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; padding: 12px; }
+        .entry-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+        .entry-card h3 { font-size: 18px; margin-bottom: 5px; }
+        .entry-card p { color: color-mix(in srgb, var(--text), transparent 28%); line-height: 1.45; }
+        .meta { color: color-mix(in srgb, var(--text), transparent 35%); font-size: 12px; margin-top: 10px; }
+        .review-toggle summary { cursor: pointer; list-style: none; margin-bottom: 10px; }
+        .review-toggle summary::-webkit-details-marker { display: none; }
+        .review-toggle summary h2::after { content: ' ▸'; font-size: 18px; }
+        .review-toggle[open] summary h2::after { content: ' ▾'; }
+        .empty { color: color-mix(in srgb, var(--text), transparent 30%); padding: 22px; text-align: center; }
+        .compact-capture {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+        }
+        .modal {
+            align-items: center;
+            background: rgba(35, 24, 29, 0.42);
+            display: none;
+            inset: 0;
+            justify-content: center;
+            padding: 18px;
+            position: fixed;
+            z-index: 20;
+        }
+        .modal.active { display: flex; }
+        .modal-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 16px 44px rgba(85, 48, 61, 0.24);
+            max-height: 92vh;
+            max-width: 880px;
+            overflow: auto;
+            padding: 16px;
+            width: min(880px, 100%);
+        }
+        .modal-head {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .editor-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 1fr 1fr;
+        }
+        .rich-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+        }
+        .rich-tools button { padding: 6px 10px; }
+        .rich-editor {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            line-height: 1.7;
+            min-height: 320px;
+            outline: none;
+            overflow: auto;
+            padding: 12px;
+        }
+        .rich-editor h2, .rich-editor h3 { margin: 12px 0 8px; }
+        .rich-editor ul, .rich-editor ol {
+            margin: 8px 0;
+            padding-left: 28px;
+        }
+        .rich-editor li {
+            margin: 4px 0;
+            padding-left: 4px;
+        }
+        .rich-editor table {
+            border-collapse: collapse;
+            margin: 8px 0;
+            width: 100%;
+        }
+        .rich-editor table, .rich-editor td, .rich-editor th {
+            border: 1px solid var(--border);
+        }
+        .rich-editor td, .rich-editor th {
+            padding: 8px;
+        }
+        .rich-editor th {
+            background: var(--accent2);
+        }
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .tag {
+            background: var(--accent2);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+        .tag.remove {
+            cursor: pointer;
+        }
+        .tag.remove:hover {
+            background: var(--accent);
+        }
+        .danger { background: #ef5b7a; color: white; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+    <link rel="stylesheet" href="./ui-cleanup.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>💡 Knowledge Bank</h1>
+                <p class="hint">Catch random thoughts, story seeds, teaching ideas, and useful knowledge before they disappear.</p>
+            </div>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="./planner.html">Planner</a>
+                <a href="../zhongguo-wenhua-yaolue/index.html">Chinese Culture</a>
+                <a href="./marked-links.html">Marked Links</a>
+                <a href="./daily-log.html">Daily Log</a>
+                <a href="./finance.html">Finance</a>
+                <button id="themeBtn">Theme</button>
+            </nav>
+        </header>
+
+        <main class="grid">
+            <section class="card">
+                <div class="compact-capture">
+                    <div>
+                        <h2>Quick Capture</h2>
+                        <p class="hint">Keep the page short. Open the editor only when you need it.</p>
+                    </div>
+                    <button class="primary" id="newEntryBtn">New Entry</button>
+                </div>
+                <div class="row" style="margin-bottom:10px;">
+                    <input id="newCategoryInput" placeholder="New category" />
+                    <button id="addCategoryBtn" type="button">Add Category</button>
+                    <button id="deleteCategoryBtn" type="button">Delete Category</button>
+                </div>
+            </section>
+
+            <aside class="card">
+                <details class="review-toggle">
+                    <summary><h2>Review</h2></summary>
+                    <input id="searchInput" placeholder="Search..." style="margin-bottom:10px;" />
+                    <div class="row" style="margin-bottom:10px;">
+                        <select id="filterInput">
+                            <option value="All">All</option>
+                        </select>
+                        <select id="timeRangeInput">
+                            <option value="all">All time</option>
+                            <option value="custom">Custom range</option>
+                        </select>
+                        <button id="exportBtn">Export CSV</button>
+                        <button onclick="document.getElementById('importCSV').click()">Import CSV/TSV</button>
+                        <input type="file" id="importCSV" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" />
+                    </div>
+                    <div class="row" style="margin-bottom:10px;">
+                        <input id="fromDateInput" type="date" title="From date" />
+                        <input id="toDateInput" type="date" title="To date" />
+                    </div>
+                </details>
+                <div id="entryList" class="entry-list"></div>
+            </aside>
+        </main>
+
+        <div class="modal" id="entryModal" aria-hidden="true">
+            <section class="modal-card">
+                <div class="modal-head">
+                    <h2 id="modalTitle">Knowledge Entry</h2>
+                    <div class="actions">
+                        <button class="primary" id="saveBtn">Save</button>
+                        <button id="collapseBtn" type="button">Collapse</button>
+                    </div>
+                </div>
+                <label>Title <input id="titleInput" placeholder="Short name for this idea" /></label>
+                <div class="editor-grid">
+                    <label>Type
+                        <select id="typeInput"></select>
+                    </label>
+                    <label>Source <input id="sourceInput" placeholder="Book, video, class, self..." /></label>
+                </div>
+                <label>Tags <input id="tagsInput" placeholder="Tag1, Tag2, Tag3..." /></label>
+                <div class="rich-tools" aria-label="Knowledge formatting tools">
+                    <button type="button" onclick="formatEntry('formatBlock','H2')">Heading</button>
+                    <button type="button" onclick="formatEntry('formatBlock','H3')">Subheading</button>
+                    <button type="button" onclick="formatEntry('bold')"><strong>B</strong></button>
+                    <button type="button" onclick="formatEntry('italic')"><em>I</em></button>
+                    <button type="button" onclick="formatEntry('underline')"><u>U</u></button>
+                    <button type="button" onclick="formatEntry('strikeThrough')"><s>S</s></button>
+                    <button type="button" onclick="formatEntry('insertUnorderedList')">List</button>
+                    <button type="button" onclick="formatEntry('insertOrderedList')">Numbering</button>
+                    <button type="button" onclick="openTableDialog()">Table</button>
+                    <button type="button" onclick="insertEntryLineBreak()">Line Break</button>
+                    <button type="button" onclick="highlightEntry()">Highlight</button>
+                    <button type="button" onclick="addEntryNote()">Note</button>
+                </div>
+                <div id="contentInput" class="rich-editor" contenteditable="true" data-placeholder="Write the thought, explanation, example, or story fragment..."></div>
+                <div class="actions" style="justify-content:space-between; margin-top:12px;">
+                    <button class="danger" id="deleteEntryBtn" type="button">Delete Entry</button>
+                    <button class="primary" id="saveBottomBtn" type="button">Save Entry</button>
+                </div>
+            </section>
+        </div>
+
+        <div class="modal" id="tableModal" aria-hidden="true">
+            <section class="modal-card">
+                <div class="modal-head">
+                    <h2>Create Table</h2>
+                    <button id="closeTableModalBtn" type="button">✕</button>
+                </div>
+                <label>Rows <input id="tableRowsInput" type="number" min="1" max="20" value="3" style="width: 100px;" /></label>
+                <label>Columns <input id="tableColsInput" type="number" min="1" max="10" value="2" style="width: 100px;" /></label>
+                <div class="actions" style="gap: 12px; margin-top: 16px;">
+                    <button class="primary" id="insertTableBtn">Insert Table</button>
+                    <button id="cancelTableBtn">Cancel</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const storeKey = 'knowledgeBank_v1';
+        let entries = JSON.parse(localStorage.getItem(storeKey) || '[]');
+        let editingId = null;
+        const $ = id => document.getElementById(id);
+        document.body.classList.toggle('dark', localStorage.getItem('appTheme') === 'dark');
+        $('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('appTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        };
+        function saveStore() { localStorage.setItem(storeKey, JSON.stringify(entries)); render(); }
+        function getSettings() {
+            try {
+                const data = JSON.parse(localStorage.getItem('settingsData')) || {};
+                return {
+                    categories: Array.isArray(data.categories) && data.categories.length ? [...new Set([...data.categories, 'Notes'])] : ['Thought', 'Knowledge', 'Story Seed', 'Teaching Idea', 'Language Note', 'Quote', 'Notes'],
+                    categoryColors: data.categoryColors || {},
+                    financeTypes: data.financeTypes || ['Income', 'Expense']
+                };
+            } catch {
+                return { categories: ['Thought', 'Knowledge', 'Story Seed', 'Teaching Idea', 'Language Note', 'Quote', 'Notes'], categoryColors: {}, financeTypes: ['Income', 'Expense'] };
+            }
+        }
+        function saveSettings(data) { localStorage.setItem('settingsData', JSON.stringify(data)); }
+        function renderCategoryControls() {
+            const settings = getSettings();
+            const used = entries.map(entry => entry.type).filter(Boolean);
+            const categories = [...new Set([...settings.categories, ...used])];
+            const currentType = $('typeInput').value;
+            const currentFilter = $('filterInput').value;
+            $('typeInput').innerHTML = categories.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+            $('filterInput').innerHTML = '<option value="All">All</option>' + categories.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+            $('typeInput').value = categories.includes(currentType) ? currentType : categories[0];
+            $('filterInput').value = ['All', ...categories].includes(currentFilter) ? currentFilter : 'All';
+        }
+        function addSharedCategory() {
+            const name = $('newCategoryInput').value.trim();
+            if (!name) return alert('Enter a category name.');
+            const settings = getSettings();
+            if (!settings.categories.includes(name)) settings.categories.push(name);
+            saveSettings(settings);
+            $('newCategoryInput').value = '';
+            renderCategoryControls();
+            render();
+        }
+        function deleteSharedCategory() {
+            const name = $('typeInput').value;
+            if (!name || !confirm(`Delete category "${name}" from the shared category list? Existing entries keep their label.`)) return;
+            const settings = getSettings();
+            settings.categories = settings.categories.filter(c => c !== name);
+            delete settings.categoryColors[name];
+            saveSettings(settings);
+            renderCategoryControls();
+            render();
+        }
+        function escapeHTML(value) {
+            return String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        }
+        function saveEntry() {
+            const content = $('contentInput').innerHTML.trim();
+            if (!content) return alert('Write something first.');
+            const tags = $('tagsInput').value.trim().split(',').map(t => t.trim()).filter(t => t);
+            const payload = {
+                id: editingId || Date.now(),
+                title: $('titleInput').value.trim() || 'Untitled',
+                type: $('typeInput').value,
+                source: $('sourceInput').value.trim(),
+                content,
+                tags,
+                time: new Date().toLocaleString('en-US')
+            };
+            const existing = entries.find(entry => String(entry.id) === String(editingId));
+            if (existing) Object.assign(existing, payload, { time: existing.time || payload.time, updatedAt: payload.time });
+            else entries.unshift(payload);
+            closeEditor();
+            saveStore();
+        }
+        function plainPreview(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html || '';
+            return div.textContent || div.innerText || '';
+        }
+        function entryDateKey(entry) {
+            const raw = entry.updatedAt || entry.createdAt || entry.time || '';
+            if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+            const parsed = new Date(raw);
+            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10);
+        }
+        function matchesTimeFilter(entry) {
+            if ($('timeRangeInput').value !== 'custom') return true;
+            const date = entryDateKey(entry);
+            return (!$('fromDateInput').value || date >= $('fromDateInput').value) && (!$('toDateInput').value || date <= $('toDateInput').value);
+        }
+        function render() {
+            renderCategoryControls();
+            const search = $('searchInput').value.toLowerCase();
+            const type = $('filterInput').value;
+            const filtered = entries.filter(entry => matchesTimeFilter(entry) && (type === 'All' || entry.type === type) && [entry.title, entry.type, entry.source, entry.content].join(' ').toLowerCase().includes(search));
+            $('entryList').innerHTML = filtered.length ? filtered.map(entry => `
+                <article class="entry-card" onclick="openEditor('${entry.id}')">
+                    <h3>${escapeHTML(entry.title)}</h3>
+                    ${(entry.tags && entry.tags.length) ? `<div class="tags-container">${entry.tags.map(tag => `<span class="tag">${escapeHTML(tag)}</span>`).join('')}</div>` : ''}
+                </article>`).join('') : '<p class="empty">No saved thoughts yet.</p>';
+        }
+        window.removeEntry = id => { entries = entries.filter(entry => entry.id !== id); saveStore(); };
+        function openEditor(id = null) {
+            editingId = id;
+            const entry = entries.find(item => String(item.id) === String(id));
+            $('modalTitle').textContent = entry ? 'Edit Knowledge Entry' : 'New Knowledge Entry';
+            $('titleInput').value = entry?.title || '';
+            $('sourceInput').value = entry?.source || '';
+            $('tagsInput').value = (entry?.tags || []).join(', ');
+            renderCategoryControls();
+            $('typeInput').value = entry?.type || $('typeInput').value;
+            $('contentInput').innerHTML = entry?.content || '';
+            $('deleteEntryBtn').style.display = entry ? 'inline-block' : 'none';
+            $('entryModal').classList.add('active');
+            $('entryModal').setAttribute('aria-hidden', 'false');
+            setTimeout(() => (entry ? $('contentInput') : $('titleInput')).focus(), 0);
+        }
+        function closeEditor() {
+            editingId = null;
+            ['titleInput', 'sourceInput', 'tagsInput'].forEach(id => $(id).value = '');
+            $('contentInput').innerHTML = '';
+            $('entryModal').classList.remove('active');
+            $('entryModal').setAttribute('aria-hidden', 'true');
+        }
+        function deleteCurrentEntry() {
+            if (!editingId) return closeEditor();
+            if (!confirm('Delete this knowledge entry?')) return;
+            entries = entries.filter(entry => String(entry.id) !== String(editingId));
+            closeEditor();
+            saveStore();
+        }
+        function formatEntry(command, value = null) {
+            $('contentInput').focus();
+            document.execCommand(command, false, value);
+        }
+        function openTableDialog() {
+            $('tableRowsInput').value = 3;
+            $('tableColsInput').value = 2;
+            $('tableModal').classList.add('active');
+            $('tableModal').setAttribute('aria-hidden', 'false');
+            setTimeout(() => $('tableRowsInput').focus(), 0);
+        }
+        function closeTableDialog() {
+            $('tableModal').classList.remove('active');
+            $('tableModal').setAttribute('aria-hidden', 'true');
+        }
+        function insertCustomTable() {
+            const rows = parseInt($('tableRowsInput').value) || 3;
+            const cols = parseInt($('tableColsInput').value) || 2;
+
+            if (rows < 1 || cols < 1) return alert('Rows and columns must be at least 1');
+
+            let tableHTML = '<table>';
+            for (let i = 0; i < rows; i++) {
+                tableHTML += '<tr>';
+                for (let j = 0; j < cols; j++) {
+                    if (i === 0) {
+                        tableHTML += `<th>Header ${j + 1}</th>`;
+                    } else {
+                        tableHTML += '<td>Data</td>';
+                    }
+                }
+                tableHTML += '</tr>';
+            }
+            tableHTML += '</table><br>';
+
+            $('contentInput').focus();
+            document.execCommand('insertHTML', false, tableHTML);
+            closeTableDialog();
+        }
+        function insertEntryLineBreak() {
+            $('contentInput').focus();
+            document.execCommand('insertHTML', false, '<br><br>');
+        }
+        function saveKnowledgeNote(source, selectedText, note) {
+            const title = selectedText ? `Note: ${selectedText.slice(0, 48)}` : 'Note';
+            entries.unshift({
+                id: Date.now() + Math.random(),
+                title,
+                type: 'Notes',
+                source: source || 'Knowledge Bank',
+                content: `<p><mark>${escapeHTML(selectedText || 'No selected text')}</mark></p><p>${escapeHTML(note || '')}</p>`,
+                time: new Date().toLocaleString('en-US')
+            });
+            saveStore();
+        }
+        function selectedEditorText() {
+            const selection = window.getSelection();
+            return selection && $('contentInput').contains(selection.anchorNode) ? selection.toString().trim() : '';
+        }
+        function highlightEntry() {
+            $('contentInput').focus();
+            document.execCommand('hiliteColor', false, '#fff0a8');
+        }
+        function addEntryNote() {
+            const selected = selectedEditorText();
+            const note = prompt('Note for this highlight:', selected);
+            if (note === null) return;
+            highlightEntry();
+            saveKnowledgeNote($('titleInput').value.trim() || 'Knowledge Bank', selected, note);
+        }
+        function csvCell(value) { return `"${String(value || '').replace(/"/g, '""')}"`; }
+        function parseCSV(text) {
+            const firstLine = String(text || '').split(/\r?\n/)[0] || '';
+            if (firstLine.includes('\t')) {
+                return String(text || '').replace(/^﻿/, '').split(/\r?\n/).filter(line => line.trim()).map(line => line.split('\t').map(cell => cell.trim()));
+            }
+            const output = [];
+            let row = [], cell = '', quote = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], next = text[i + 1];
+                if (char === '"' && quote && next === '"') { cell += '"'; i++; }
+                else if (char === '"') quote = !quote;
+                else if (char === ',' && !quote) { row.push(cell); cell = ''; }
+                else if ((char === '\n' || char === '\r') && !quote) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell);
+                    if (row.some(v => v.trim())) output.push(row);
+                    row = []; cell = '';
+                } else cell += char;
+            }
+            row.push(cell);
+            if (row.some(v => v.trim())) output.push(row);
+            return output;
+        }
+        function importCSV(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                const table = parseCSV(event.target.result);
+                if (table.length < 2) return alert('CSV has no rows.');
+                const headers = table[0].map(h => h.trim().toLowerCase());
+                table.slice(1).forEach(row => {
+                    const item = {};
+                    headers.forEach((h, i) => item[h] = row[i] || '');
+                    if (!item.content && !item.title) return;
+                    const tags = item.tags ? item.tags.split(',').map(t => t.trim()).filter(t => t) : [];
+                    entries.unshift({ id: Date.now() + Math.random(), title: item.title || 'Untitled', type: item.type || item.category || 'Knowledge', source: item.source || '', content: escapeHTML(item.content || '').replace(/\n/g, '<br>'), tags, time: item.time || new Date().toLocaleString('en-US') });
+                });
+                saveStore();
+                alert('Knowledge entries imported and synced.');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+        $('saveBtn').onclick = saveEntry;
+        $('saveBottomBtn').onclick = saveEntry;
+        $('newEntryBtn').onclick = () => openEditor();
+        $('collapseBtn').onclick = closeEditor;
+        $('deleteEntryBtn').onclick = deleteCurrentEntry;
+        $('entryModal').addEventListener('click', event => { if (event.target.id === 'entryModal') closeEditor(); });
+        $('insertTableBtn').onclick = insertCustomTable;
+        $('closeTableModalBtn').onclick = closeTableDialog;
+        $('cancelTableBtn').onclick = closeTableDialog;
+        $('tableModal').addEventListener('click', event => { if (event.target.id === 'tableModal') closeTableDialog(); });
+        $('contentInput').addEventListener('keydown', event => {
+            if (event.shiftKey && (event.key === '*' || event.code === 'Digit8')) {
+                event.preventDefault();
+                formatEntry('insertUnorderedList');
+            }
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
+            }
+        });
+        $('addCategoryBtn').onclick = addSharedCategory;
+        $('deleteCategoryBtn').onclick = deleteSharedCategory;
+        $('searchInput').oninput = render;
+        $('filterInput').onchange = render;
+        $('timeRangeInput').onchange = render;
+        $('fromDateInput').onchange = render;
+        $('toDateInput').onchange = render;
+        $('importCSV').onchange = event => importCSV(event.target.files[0]);
+        $('exportBtn').onclick = () => {
+            const csv = ['title,type,source,tags,content,time'].concat(entries.map(entry => [entry.title, entry.type, entry.source, (entry.tags || []).join('; '), entry.content, entry.time].map(csvCell).join(','))).join('\n');
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }));
+            a.download = 'knowledge_bank.csv';
+            a.click();
+        };
+        render();
+    </script>
+</body>
+</html>
