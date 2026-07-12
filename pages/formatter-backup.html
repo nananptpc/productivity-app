@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Format Studio - Productivity App</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --sheet-head: #c7d9f7;
+            --sheet-row: #edf3ff;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.18);
+            --font: 'American Typewriter', 'Courier New', monospace;
+            --radius: 8px;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --sheet-head: #4d5675;
+            --sheet-row: #34394d;
+            --shadow: 0 4px 18px rgba(0,0,0,0.35);
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        button, input, select, textarea { font-family: inherit; }
+        .container { max-width: 1500px; margin: 0 auto; }
+        header, .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+        header {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        h1 { font-size: 28px; }
+        .hint {
+            color: color-mix(in srgb, var(--text), transparent 32%);
+            font-size: 13px;
+            line-height: 1.45;
+            margin-top: 4px;
+        }
+        .nav, .toolbar, .actions, .preset-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .format-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .format-tools button { padding: 6px 10px; }
+        .nav a, button {
+            background: var(--accent2);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px 13px;
+            text-decoration: none;
+        }
+        button.primary { background: var(--accent); color: white; font-weight: 800; }
+        button.active { background: var(--accent); color: white; font-weight: 800; }
+        .layout {
+            align-items: start;
+            display: grid;
+            gap: 14px;
+            grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
+        }
+        .stack { display: grid; gap: 14px; }
+        .field-grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        label {
+            display: grid;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        input, select, textarea {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            min-width: 0;
+            padding: 9px 11px;
+            width: 100%;
+        }
+        textarea {
+            min-height: 260px;
+            resize: vertical;
+        }
+        .small-textarea { min-height: 76px; }
+        .preview-wrap {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            min-height: 520px;
+            overflow: auto;
+            padding: 18px;
+            resize: both;
+        }
+        .doc-preview {
+            --doc-font-size: 16px;
+            --doc-line-spacing: 1.8;
+            --doc-item-spacing: 7px;
+            background: white;
+            color: #242124;
+            font-size: var(--doc-font-size);
+            margin: 0 auto;
+            max-width: 820px;
+            min-height: 480px;
+            padding: 34px;
+            position: relative;
+        }
+        .doc-preview.paper-a4 { max-width: 794px; min-height: 1123px; }
+        .doc-preview.paper-letter { max-width: 816px; min-height: 1056px; }
+        .doc-preview.paper-compact { max-width: 720px; min-height: 720px; }
+        .doc-header, .doc-footer {
+            color: #6f6670;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: center;
+        }
+        .doc-header {
+            border-bottom: 1px solid #ece4e8;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+        }
+        .doc-footer {
+            border-top: 1px solid #ece4e8;
+            margin-top: 18px;
+            padding-top: 8px;
+        }
+        .doc-preview.no-numbers .item-no { display: none; }
+        .doc-preview.style-clean { font-family: Arial, sans-serif; }
+        .doc-preview.style-typewriter { font-family: 'American Typewriter', 'Courier New', monospace; }
+        .doc-preview.style-serif { font-family: Georgia, 'Times New Roman', serif; }
+        .doc-preview h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .worksheet-heading {
+            border-bottom: 1px solid #f3cbd7;
+            color: #3f3439;
+            font-size: 21px;
+            margin: 18px 0 10px;
+            padding-bottom: 6px;
+            text-align: left;
+        }
+        .worksheet-subheading {
+            color: #604c55;
+            font-size: 18px;
+            margin: 14px 0 8px;
+        }
+        .doc-row {
+            border-bottom: 1px solid #dad7dc;
+            line-height: var(--doc-line-spacing);
+            padding: var(--doc-item-spacing) 0;
+        }
+        .doc-item {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .doc-bullet {
+            margin-left: 1.2em;
+            text-indent: -1.2em;
+        }
+        .doc-preview mark {
+            background: #ffd5e3;
+            border-radius: 4px;
+            padding: 0 3px;
+        }
+        .sheet-preview {
+            border-collapse: collapse;
+            color: #242124;
+            min-width: 900px;
+            width: max-content;
+            table-layout: fixed;
+        }
+        .sheet-preview th {
+            background: var(--sheet-head);
+            border: 1px solid #b7c4dc;
+            font-weight: 800;
+            padding: 8px;
+            text-align: left;
+        }
+        .sheet-preview td {
+            background: white;
+            border: 1px solid #cfd6e4;
+            line-height: 1.5;
+            min-width: 140px;
+            max-width: 320px;
+            overflow: auto;
+            padding: 7px 8px;
+            resize: both;
+            overflow-wrap: anywhere;
+            vertical-align: top;
+        }
+        .sheet-preview tr:nth-child(even) td {
+            background: var(--sheet-row);
+        }
+        .stats {
+            color: color-mix(in srgb, var(--text), transparent 25%);
+            font-size: 13px;
+        }
+        @media (max-width: 980px) {
+            .layout, .field-grid { grid-template-columns: 1fr; }
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            header, .input-panel, .actions, .stats { display: none !important; }
+            .layout { display: block; }
+            .card { border: 0; box-shadow: none; padding: 0; }
+            .preview-wrap { border: 0; padding: 0; }
+            .doc-preview { max-width: none; padding: 24px; }
+        }
+    </style>
+    <link rel="stylesheet" href="./ui-cleanup.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🧾 Format Studio</h1>
+                <p class="hint">Paste raw text, then turn it into a printable doc or Google-Sheets-ready table.</p>
+            </div>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="./teaching.html">Teaching</a>
+                <button id="themeBtn">Theme</button>
+                <details class="actions-menu">
+                    <summary>More</summary>
+                    <div class="actions-menu-list">
+                        <a href="./payroll.html">Payroll</a>
+                        <a href="../zhongguo-wenhua-yaolue/index.html">Chinese Culture</a>
+                        <a href="./knowledge.html">Knowledge</a>
+                    </div>
+                </details>
+            </nav>
+        </header>
+
+        <main class="layout">
+            <section class="stack input-panel">
+                <div class="card">
+                    <h2>Paste</h2>
+                    <p class="hint">Works well with Gemini output, numbered exercise lists, copied PDF text, and line-by-line worksheet content.</p>
+                    <textarea id="rawInput" placeholder="Paste raw text here..."></textarea>
+                    <div class="format-tools" aria-label="Text formatting tools">
+                        <button type="button" onclick="formatRaw('heading')">Heading</button>
+                        <button type="button" onclick="formatRaw('subheading')">Subheading</button>
+                        <button type="button" onclick="formatRaw('bold')"><strong>B</strong></button>
+                        <button type="button" onclick="formatRaw('italic')"><em>I</em></button>
+                        <button type="button" onclick="formatRaw('underline')"><u>U</u></button>
+                        <button type="button" onclick="formatRaw('strike')"><s>S</s></button>
+                        <button type="button" onclick="formatRaw('bullet')">Bullet</button>
+                        <button type="button" onclick="formatRaw('numbering')">Numbering</button>
+                        <button type="button" onclick="formatRaw('linebreak')">Line Break</button>
+                        <button type="button" onclick="formatRaw('highlight')">Highlight</button>
+                        <button type="button" onclick="addRawNote()">Note</button>
+                    </div>
+                    <div class="actions" style="margin-top:10px;">
+                        <button class="primary" id="formatBtn">Format</button>
+                        <button id="sampleBtn">Sample</button>
+                        <button onclick="document.getElementById('importCSV').click()" type="button">Import CSV/TSV</button>
+                        <input type="file" id="importCSV" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" />
+                        <button id="clearBtn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Presets</h2>
+                    <div class="preset-grid" style="margin-top:10px;">
+                        <button class="preset active" data-preset="worksheet">Worksheet Doc</button>
+                        <button class="preset" data-preset="sheet">Google Sheet</button>
+                        <button class="preset" data-preset="twoColumn">Two Columns</button>
+                        <button class="preset" data-preset="answerKey">Answer Key</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Customize</h2>
+                    <div class="field-grid">
+                        <label>Title
+                            <input id="titleInput" value="Practice Worksheet" />
+                        </label>
+                        <label>Split by
+                            <select id="splitMode">
+                                <option value="line">Line</option>
+                                <option value="numbered">Numbered list</option>
+                                <option value="sentence">Sentence</option>
+                                <option value="blank">Blank line</option>
+                            </select>
+                        </label>
+                        <label>Output
+                            <select id="outputMode">
+                                <option value="doc">Doc preview</option>
+                                <option value="sheet">Sheet table</option>
+                            </select>
+                        </label>
+                        <label>Columns
+                            <select id="columnCount">
+                                <option value="1">1</option>
+                                <option value="2" selected>2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </label>
+                        <label>Start number
+                            <input id="startNumber" type="number" value="1" />
+                        </label>
+                        <label>Numbering
+                            <select id="numberingMode">
+                                <option value="yes" selected>Show numbers</option>
+                                <option value="no">No numbers</option>
+                            </select>
+                        </label>
+                        <label>Blank length
+                            <input id="blankLength" type="number" value="8" />
+                        </label>
+                        <label>Header
+                            <input id="headerInput" placeholder="Name / class / date" />
+                        </label>
+                        <label>Footer
+                            <input id="footerInput" placeholder="Page note / source" />
+                        </label>
+                        <label>Paper
+                            <select id="paperSize">
+                                <option value="a4">A4</option>
+                                <option value="letter">Letter</option>
+                                <option value="compact">Compact</option>
+                            </select>
+                        </label>
+                        <label>Format
+                            <select id="docStyle">
+                                <option value="typewriter">American Typewriter</option>
+                                <option value="clean">Clean worksheet</option>
+                                <option value="serif">Reading serif</option>
+                            </select>
+                        </label>
+                        <label>Line spacing
+                            <select id="lineSpacing">
+                                <option value="1.5">Comfortable</option>
+                                <option value="1.8" selected>Roomy</option>
+                                <option value="2.2">Handwriting space</option>
+                            </select>
+                        </label>
+                        <label>Question spacing
+                            <select id="itemSpacing">
+                                <option value="4px">Tight</option>
+                                <option value="7px" selected>Normal</option>
+                                <option value="12px">Roomy</option>
+                                <option value="18px">Writing space</option>
+                            </select>
+                        </label>
+                        <label>Font size
+                            <select id="docFontSize">
+                                <option value="14px">Small</option>
+                                <option value="16px" selected>Normal</option>
+                                <option value="18px">Large</option>
+                                <option value="20px">Extra large</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label style="margin-top:10px;">Find / replace rules
+                        <textarea id="rulesInput" class="small-textarea" placeholder="One rule per line, for example:&#10;______ => ________&#10; -  => "></textarea>
+                    </label>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="toolbar" style="justify-content:space-between; margin-bottom:10px;">
+                    <p class="stats" id="statsText">0 item(s)</p>
+                    <div class="actions">
+                        <button id="copyTsvBtn">Copy for Sheets</button>
+                        <button id="exportCsvBtn">Export CSV</button>
+                        <button id="downloadHtmlBtn">Download HTML</button>
+                        <button id="printBtn">Print / Save PDF</button>
+                    </div>
+                </div>
+                <div class="preview-wrap" id="previewWrap">
+                    <div class="doc-preview" id="preview"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        let activePreset = 'worksheet';
+        let rows = [];
+
+        document.body.classList.toggle('dark', localStorage.getItem('appTheme') === 'dark');
+        $('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('appTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[char]));
+        }
+
+        function renderInline(text) {
+            let safe = escapeHTML(text);
+            safe = safe.replace(/&lt;mark&gt;([\s\S]*?)&lt;\/mark&gt;/g, '<mark>$1</mark>');
+            safe = safe.replace(/&lt;u&gt;([\s\S]*?)&lt;\/u&gt;/g, '<u>$1</u>');
+            safe = safe.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+            safe = safe.replace(/~~([^~\n]+)~~/g, '<s>$1</s>');
+            safe = safe.replace(/(^|[\s([{])_([^_\n]+)_(?=$|[\s)\]},.!?;:])/g, '$1<em>$2</em>');
+            return safe;
+        }
+
+        function renderDocItem(row, showNumbers) {
+            const text = row.text || '';
+            if (/^##\s+/.test(text)) {
+                return `<h2 class="worksheet-heading">${renderInline(text.replace(/^##\s+/, ''))}</h2>`;
+            }
+            if (/^###\s+/.test(text)) {
+                return `<h3 class="worksheet-subheading">${renderInline(text.replace(/^###\s+/, ''))}</h3>`;
+            }
+            const isBullet = /^[-*]\s+/.test(text);
+            const body = isBullet ? text.replace(/^[-*]\s+/, '') : text;
+            const bullet = isBullet ? '<span aria-hidden="true">• </span>' : '';
+            const number = showNumbers && !isBullet ? `<strong class="item-no">${row.no}.</strong> ` : '';
+            const className = isBullet ? 'doc-item doc-bullet' : 'doc-item';
+            return `<div class="${className}">${bullet}${number}${renderInline(body)}</div>`;
+        }
+
+        function applyRules(text) {
+            let result = String(text || '');
+            $('rulesInput').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach(rule => {
+                const [find, replace = ''] = rule.split('=>').map(part => part.trim());
+                if (find) result = result.split(find).join(replace);
+            });
+            return result;
+        }
+
+        function formatRaw(type) {
+            if (type === 'bullet' || type === 'numbering') return formatRawList(type);
+            if (type === 'linebreak') return wrapRawSelection('\n', '');
+            const markers = {
+                heading: ['## ', ''],
+                subheading: ['### ', ''],
+                bold: ['**', '**'],
+                italic: ['_', '_'],
+                underline: ['<u>', '</u>'],
+                strike: ['~~', '~~'],
+                highlight: ['<mark>', '</mark>']
+            };
+            const pair = markers[type];
+            if (!pair) return;
+            const area = $('rawInput');
+            const start = area.selectionStart;
+            const end = area.selectionEnd;
+            const selected = area.value.slice(start, end) || 'text';
+            const wrapped = `${pair[0]}${selected}${pair[1]}`;
+            area.value = area.value.slice(0, start) + wrapped + area.value.slice(end);
+            area.focus();
+            area.setSelectionRange(start + pair[0].length, start + pair[0].length + selected.length);
+            format();
+        }
+
+        function formatRawList(type) {
+            const area = $('rawInput');
+            const start = area.selectionStart;
+            const end = area.selectionEnd;
+            const selected = area.value.slice(start, end) || 'List item';
+            const lines = selected.split(/\r?\n/).filter(line => line.trim());
+            const next = lines.map((line, index) => type === 'numbering' ? `${index + 1}. ${line.trim()}` : `- ${line.trim()}`).join('\n');
+            area.value = area.value.slice(0, start) + next + area.value.slice(end);
+            area.focus();
+            area.setSelectionRange(start, start + next.length);
+            format();
+        }
+
+        function saveNoteToKnowledge(source, selectedText, note) {
+            let bank;
+            try { bank = JSON.parse(localStorage.getItem('knowledgeBank_v1')) || []; } catch { bank = []; }
+            bank.unshift({
+                id: Date.now() + Math.random(),
+                title: `Note: ${(selectedText || source || 'Formatter').slice(0, 48)}`,
+                type: 'Notes',
+                source: source || 'Formatter',
+                content: `<p><mark>${escapeHTML(selectedText || 'No selected text')}</mark></p><p>${escapeHTML(note || '')}</p>`,
+                time: new Date().toLocaleString('en-US')
+            });
+            localStorage.setItem('knowledgeBank_v1', JSON.stringify(bank));
+        }
+
+        function addRawNote() {
+            const area = $('rawInput');
+            const selected = area.value.slice(area.selectionStart, area.selectionEnd).trim();
+            const note = prompt('Note for this highlight:', selected);
+            if (note === null) return;
+            formatRaw('highlight');
+            saveNoteToKnowledge($('titleInput').value || 'Formatter', selected, note);
+        }
+
+        function cleanLine(line) {
+            return applyRules(line)
+                .replace(/^\s*\d+[\).、:-]\s*/, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function splitRawText() {
+            const raw = $('rawInput').value.trim();
+            const mode = $('splitMode').value;
+            if (!raw) return [];
+            if (mode === 'blank') return raw.split(/\n\s*\n/).map(cleanLine).filter(Boolean);
+            if (mode === 'sentence') return raw.split(/(?<=[.!?。！？])\s+/).map(cleanLine).filter(Boolean);
+            if (mode === 'numbered') {
+                return raw
+                    .replace(/\s*(\d+[\).])\s*/g, '\n$1 ')
+                    .split(/\r?\n/)
+                    .map(cleanLine)
+                    .filter(Boolean);
+            }
+            return raw.split(/\r?\n/).map(cleanLine).filter(Boolean);
+        }
+
+        function makeBlank() {
+            return '_'.repeat(Math.max(3, Number($('blankLength').value) || 8));
+        }
+
+        function buildRows() {
+            const items = splitRawText();
+            const start = Number($('startNumber').value) || 1;
+            const blank = makeBlank();
+            rows = items.map((text, index) => {
+                const number = start + index;
+                const hasBlank = /_{3,}/.test(text);
+                const worksheetText = hasBlank ? text : text.replace(/\(([^)]+)\)/, '($1) ' + blank);
+                return {
+                    no: number,
+                    text: worksheetText,
+                    answer: '',
+                    note: ''
+                };
+            });
+            return rows;
+        }
+
+        function renderDoc() {
+            const title = escapeHTML($('titleInput').value || 'Practice Worksheet');
+            const columns = Number($('columnCount').value) || 1;
+            const header = escapeHTML($('headerInput').value || '');
+            const footer = escapeHTML($('footerInput').value || '');
+            const showNumbers = $('numberingMode').value !== 'no';
+            const lineHeight = Number($('lineSpacing').value) || 1.8;
+            const itemSpacing = $('itemSpacing').value || '7px';
+            const fontSize = $('docFontSize').value || '16px';
+            const chunks = [];
+            for (let i = 0; i < rows.length; i += columns) chunks.push(rows.slice(i, i + columns));
+            $('preview').className = `doc-preview paper-${$('paperSize').value} style-${$('docStyle').value} ${showNumbers ? '' : 'no-numbers'}`;
+            $('preview').style.setProperty('--doc-line-spacing', lineHeight);
+            $('preview').style.setProperty('--doc-item-spacing', itemSpacing);
+            $('preview').style.setProperty('--doc-font-size', fontSize);
+            $('preview').innerHTML = `${header ? `<div class="doc-header">${header}</div>` : ''}
+                <h2>${title}</h2>` + chunks.map(group => `
+                <div class="doc-row" style="display:grid; grid-template-columns:repeat(${columns}, minmax(0, 1fr)); gap:22px;">
+                    ${group.map(row => renderDocItem(row, showNumbers)).join('')}
+                </div>
+            `).join('') + `${footer ? `<div class="doc-footer">${footer}</div>` : ''}`;
+        }
+
+        function renderSheet() {
+            const headers = activePreset === 'answerKey'
+                ? ['n.o', 'Question', 'Answer', 'Note']
+                : ['n.o', 'Content', 'Answer', 'Status', 'Note'];
+            $('preview').className = '';
+            $('preview').innerHTML = `<table class="sheet-preview">
+                <thead><tr>${headers.map(header => `<th>${escapeHTML(header)}</th>`).join('')}</tr></thead>
+                <tbody>${rows.map(row => `
+                    <tr>
+                        <td>${row.no}</td>
+                        <td>${escapeHTML(row.text)}</td>
+                        <td></td>
+                        ${activePreset === 'answerKey' ? '' : '<td>Need review</td>'}
+                        <td></td>
+                    </tr>`).join('')}</tbody>
+            </table>`;
+        }
+
+        function format() {
+            buildRows();
+            $('statsText').textContent = `${rows.length} item(s)`;
+            const output = $('outputMode').value;
+            if (output === 'sheet' || activePreset === 'sheet' || activePreset === 'answerKey') renderSheet();
+            else renderDoc();
+        }
+
+        function setPreset(preset) {
+            activePreset = preset;
+            document.querySelectorAll('.preset').forEach(btn => btn.classList.toggle('active', btn.dataset.preset === preset));
+            if (preset === 'worksheet') {
+                $('outputMode').value = 'doc';
+                $('splitMode').value = 'numbered';
+                $('columnCount').value = '2';
+            } else if (preset === 'sheet') {
+                $('outputMode').value = 'sheet';
+                $('splitMode').value = 'line';
+                $('columnCount').value = '1';
+            } else if (preset === 'twoColumn') {
+                $('outputMode').value = 'doc';
+                $('splitMode').value = 'line';
+                $('columnCount').value = '2';
+            } else if (preset === 'answerKey') {
+                $('outputMode').value = 'sheet';
+                $('splitMode').value = 'numbered';
+                $('columnCount').value = '1';
+            }
+            format();
+        }
+
+        function toTableRows() {
+            const showNumbers = $('numberingMode').value !== 'no';
+            return rows.map(row => [showNumbers ? row.no : '', row.text, row.answer, activePreset === 'answerKey' ? row.note : 'Need review', row.note]);
+        }
+
+        function copyForSheets() {
+            if (!rows.length) format();
+            const tsv = toTableRows().map(row => row.map(cell => String(cell ?? '').replace(/\t/g, ' ')).join('\t')).join('\n');
+            navigator.clipboard?.writeText(tsv).then(() => {
+                $('statsText').textContent = `${rows.length} item(s) · copied for Google Sheets`;
+            }).catch(() => window.prompt('Copy this table:', tsv));
+        }
+
+        function csvCell(value) {
+            return `"${String(value ?? '').replace(/"/g, '""')}"`;
+        }
+
+        function parseCSV(text) {
+            const firstLine = String(text || '').split(/\r?\n/)[0] || '';
+            if (firstLine.includes('\t')) {
+                return String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim()).map(line => line.split('\t').map(cell => cell.trim()));
+            }
+            const output = [];
+            let row = [], cell = '', quote = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], next = text[i + 1];
+                if (char === '"' && quote && next === '"') { cell += '"'; i++; }
+                else if (char === '"') quote = !quote;
+                else if (char === ',' && !quote) { row.push(cell); cell = ''; }
+                else if ((char === '\n' || char === '\r') && !quote) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell);
+                    if (row.some(v => v.trim())) output.push(row);
+                    row = []; cell = '';
+                } else cell += char;
+            }
+            row.push(cell);
+            if (row.some(v => v.trim())) output.push(row);
+            return output;
+        }
+
+        function importCSV(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                const table = parseCSV(event.target.result);
+                if (!table.length) return alert('CSV has no rows.');
+                const start = table[0].some(cell => /question|content|text|title/i.test(cell)) ? 1 : 0;
+                $('rawInput').value = table.slice(start).map(row => row.filter(Boolean).join(' ')).join('\n');
+                format();
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function exportCSV() {
+            if (!rows.length) format();
+            const csv = toTableRows().map(row => row.map(csvCell).join(',')).join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = 'formatted_sheet.csv';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 0);
+        }
+
+        function downloadHTML() {
+            if (!rows.length) format();
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHTML($('titleInput').value || 'Formatted Document')}</title></head><body>${$('preview').innerHTML}</body></html>`;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8;' }));
+            link.download = 'formatted_document.html';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 0);
+        }
+
+        document.querySelectorAll('.preset').forEach(btn => btn.addEventListener('click', () => setPreset(btn.dataset.preset)));
+        ['rawInput', 'titleInput', 'splitMode', 'outputMode', 'columnCount', 'startNumber', 'numberingMode', 'blankLength', 'headerInput', 'footerInput', 'paperSize', 'docStyle', 'lineSpacing', 'itemSpacing', 'docFontSize', 'rulesInput'].forEach(id => {
+            $(id).addEventListener(id === 'rawInput' || id === 'rulesInput' ? 'input' : 'change', format);
+        });
+        $('formatBtn').onclick = format;
+        $('sampleBtn').onclick = () => {
+            $('rawInput').value = `31. Look! Those kids (play) ______ in the park.\n32. I (be) ______ back in five minutes.\n33. He (work) ______ as a teacher.\n34. (they/listen) ______ to music right now?\n35. The shops (close) ______ at 9:00 p.m.`;
+            setPreset('worksheet');
+        };
+        $('clearBtn').onclick = () => { $('rawInput').value = ''; rows = []; format(); };
+        $('copyTsvBtn').onclick = copyForSheets;
+        $('exportCsvBtn').onclick = exportCSV;
+        $('importCSV').onchange = event => importCSV(event.target.files[0]);
+        $('downloadHtmlBtn').onclick = downloadHTML;
+        $('printBtn').onclick = () => window.print();
+        format();
+    </script>
+</body>
+</html>
