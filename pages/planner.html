@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planner - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg: #fff0f6;
+            --text: #3f3037;
+            --card: #fffafb;
+            --shadow: 0 6px 22px rgba(229, 103, 139, 0.18);
+            --border: #f3b8c8;
+            --accent: #ee7fa1;
+            --accent2: #ffc1d1;
+            --font: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            --font-zh: 'Yuanti SC', '圆体', 'STYuanti', 'PingFang SC', 'Noto Sans SC', sans-serif;
+            --radius: 8px;
+            --danger: #e74c6f;
+            --danger-hover: #c0392b;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --shadow: 0 4px 16px rgba(0,0,0,0.4);
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --danger: #e74c6f;
+            --danger-hover: #ff6b81;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .app-wrapper {
+            display: flex;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        /* Left Panel - Fixed */
+        .left-panel {
+            position: sticky;
+            top: 20px;
+            flex: 0 0 340px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: calc(100vh - 40px);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+            padding: 0 4px;
+        }
+        .header h1 {
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+        .theme-toggle {
+            background: transparent;
+            border: 2px solid var(--accent);
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: var(--font);
+            cursor: pointer;
+            color: var(--text);
+            transition: 0.3s;
+            font-size: 14px;
+        }
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Calendar */
+        .calendar-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            flex-shrink: 0;
+        }
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+        .calendar-nav button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-family: var(--font);
+            transition: 0.2s;
+            font-size: 14px;
+        }
+        .calendar-nav button:hover {
+            background: var(--accent2);
+            border-color: var(--accent);
+        }
+        .calendar-nav button:last-child {
+            width: auto;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            background: var(--accent2);
+            border-color: var(--accent);
+        }
+        .calendar-nav button:last-child:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        .month-label {
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            flex: 1;
+            letter-spacing: 0.5px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 8px;
+        }
+        .day-name {
+            text-align: center;
+            font-size: 10px;
+            opacity: 0.6;
+            padding: 2px 0;
+            font-weight: bold;
+        }
+        .calendar-day {
+            text-align: center;
+            padding: 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: 0.2s;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-family: var(--font);
+        }
+        .calendar-day:hover {
+            background: var(--accent2);
+        }
+        .calendar-day.today {
+            background: var(--accent2);
+            border: 2px solid var(--accent);
+        }
+        .calendar-day.selected {
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
+        }
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        /* Week Toggle */
+        .week-toggle-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 12px 16px;
+            flex-shrink: 0;
+        }
+        .week-toggle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .week-toggle-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .week-toggle-header .arrow {
+            transition: transform 0.3s;
+            font-size: 12px;
+        }
+        .week-toggle-header .arrow.open {
+            transform: rotate(180deg);
+        }
+        .week-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 10px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        .week-days.open {
+            max-height: 200px;
+            opacity: 1;
+        }
+        .week-day-btn {
+            padding: 6px 4px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 11px;
+            color: var(--text);
+            transition: 0.2s;
+        }
+        .week-day-btn:hover {
+            background: var(--accent2);
+        }
+        .week-day-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .week-day-btn .day-num {
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+        }
+        .week-day-btn .day-name-short {
+            font-size: 9px;
+            opacity: 0.7;
+        }
+
+        /* Task Filter */
+        .task-filter-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 12px 16px;
+            flex-shrink: 0;
+        }
+        .task-filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .task-filter-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .task-filter-header .arrow {
+            transition: transform 0.3s;
+            font-size: 12px;
+        }
+        .task-filter-header .arrow.open {
+            transform: rotate(180deg);
+        }
+        .task-filter-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+            opacity: 0;
+            margin-top: 0;
+        }
+        .task-filter-body.open {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 12px;
+        }
+        .filter-date-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .filter-date-grid input {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+            width: 100%;
+        }
+        .filter-date-grid input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .filter-actions button {
+            flex: 1;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 12px;
+            color: var(--text);
+            transition: 0.2s;
+        }
+        .filter-actions button:hover {
+            background: var(--accent2);
+        }
+        .filter-actions button.primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .filter-actions button.primary:hover {
+            opacity: 0.8;
+        }
+        .filter-result {
+            margin-top: 10px;
+            font-size: 12px;
+            color: color-mix(in srgb, var(--text), transparent 35%);
+        }
+
+        /* Dashboard - Scrollable */
+        .dashboard-wrapper {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: visible;
+            padding: 0 4px 10px 4px;
+            min-width: 0;
+        }
+        .dashboard-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+        .dashboard-wrapper::-webkit-scrollbar-thumb {
+            background: var(--accent2);
+            border-radius: 4px;
+        }
+        .dashboard {
+            display: flex;
+            gap: 16px;
+            padding: 4px 0;
+            min-width: fit-content;
+        }
+
+        .day-column {
+            flex: 0 0 300px;
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            max-height: 70vh;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .day-column.deleting {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        .day-column.highlight {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(238, 127, 161, 0.3);
+        }
+
+        .day-header {
+            padding: 12px 14px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .day-header-title {
+            flex: 1;
+            text-align: center;
+            font-family: var(--font-zh);
+        }
+        .section-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .section-actions .delete-column-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: 0.2s;
+            font-family: var(--font);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .section-actions .delete-column-btn:hover {
+            background: var(--danger);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(231, 76, 111, 0.5);
+        }
+        .section-actions .delete-column-btn:active {
+            transform: scale(0.9);
+        }
+
+        .tasks-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tasks-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .tasks-container::-webkit-scrollbar-thumb {
+            background: var(--accent2);
+            border-radius: 3px;
+        }
+
+        .task-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+        .task-input-row input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+        }
+        .task-input-row input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .task-input-row button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 16px;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .task-input-row button:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .task-item {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            transition: 0.2s;
+            align-items: flex-start;
+        }
+        .task-item:hover {
+            border-color: var(--accent);
+        }
+        .task-item.done {
+            opacity: 0.4;
+        }
+        .task-item.done .task-text {
+            text-decoration: line-through;
+        }
+        .task-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .task-text {
+            flex: 1;
+            font-size: 13px;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+        .task-delete {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+        .task-delete:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .add-section-btn {
+            flex: 0 0 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 14px;
+            color: var(--text);
+            transition: 0.2s;
+            min-height: 100px;
+        }
+        .add-section-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(238, 127, 161, 0.05);
+        }
+
+        .empty-column {
+            text-align: center;
+            color: #999;
+            padding: 16px;
+            font-size: 12px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--card);
+            color: var(--text);
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-left: 4px solid var(--danger);
+            font-family: var(--font);
+            font-size: 14px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .app-wrapper {
+                flex-direction: column;
+            }
+            .left-panel {
+                position: relative;
+                top: 0;
+                flex: 1 1 auto;
+                max-height: none;
+            }
+            .dashboard-wrapper {
+                overflow-x: auto;
+            }
+            .filter-date-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Left Panel - Fixed -->
+        <div class="left-panel">
+            <!-- Header -->
+            <div class="header">
+                <h1>📋 Planner</h1>
+                <button class="theme-toggle" id="themeToggle">🌙</button>
+            </div>
+
+            <!-- Calendar -->
+            <div class="calendar-section">
+                <div class="calendar-nav">
+                    <button id="prevMonthBtn">◀</button>
+                    <div class="month-label" id="monthLabel"></div>
+                    <button id="nextMonthBtn">▶</button>
+                    <button id="todayBtn">Today</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- Week Toggle -->
+            <div class="week-toggle-section">
+                <div class="week-toggle-header" id="weekToggleHeader">
+                    <h3>📅 This Week</h3>
+                    <span class="arrow" id="weekArrow">▼</span>
+                </div>
+                <div class="week-days" id="weekDays"></div>
+            </div>
+
+            <!-- Task Filter by Date -->
+            <div class="task-filter-section">
+                <div class="task-filter-header" id="filterToggleHeader">
+                    <h3>🔍 Filter by Date</h3>
+                    <span class="arrow" id="filterArrow">▼</span>
+                </div>
+                <div class="task-filter-body" id="filterBody">
+                    <div class="filter-date-grid">
+                        <input type="date" id="filterStartDate" />
+                        <input type="date" id="filterEndDate" />
+                    </div>
+                    <div class="filter-actions">
+                        <button class="primary" id="applyFilterBtn">Apply</button>
+                        <button id="clearFilterBtn">Clear</button>
+                    </div>
+                    <div class="filter-result" id="filterResult"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard - Scrollable -->
+        <div class="dashboard-wrapper">
+            <div class="dashboard" id="dashboard"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedDate = new Date().toISOString().slice(0, 10);
+        let weekOpen = false;
+        let filterOpen = false;
+        let filterStart = null;
+        let filterEnd = null;
+
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('plannerTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('plannerTheme') === 'dark') {
+            document.body.classList.add('dark');
+        }
+
+        // Toast
+        function showToast(message, isSuccess = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.borderLeftColor = isSuccess ? '#27ae60' : 'var(--danger)';
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Data management
+        function getPlannerData() {
+            try {
+                return JSON.parse(localStorage.getItem('plannerData')) || { tasks: [] };
+            } catch {
+                return { tasks: [] };
+            }
+        }
+
+        function savePlannerData(data) {
+            localStorage.setItem('plannerData', JSON.stringify(data));
+            // Broadcast change to other tabs
+            window.dispatchEvent(new CustomEvent('plannerDataChanged', { detail: data }));
+            render();
+            renderCalendar();
+            renderWeekDays();
+            updateFilterResult();
+        }
+
+        // Listen for changes from teaching page
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'plannerData') {
+                render();
+                renderCalendar();
+                renderWeekDays();
+                updateFilterResult();
+            }
+        });
+
+        // Calendar
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const label = document.getElementById('monthLabel');
+
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            label.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            grid.innerHTML = '';
+
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                const el = document.createElement('div');
+                el.className = 'day-name';
+                el.textContent = day;
+                grid.appendChild(el);
+            });
+
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const btn = document.createElement('button');
+                btn.className = 'calendar-day other-month';
+                btn.textContent = daysInPrevMonth - i;
+                grid.appendChild(btn);
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const btn = document.createElement('button');
+                btn.className = 'calendar-day';
+                if (dateStr === today) btn.classList.add('today');
+                if (dateStr === selectedDate) btn.classList.add('selected');
+                btn.textContent = day;
+                btn.dataset.date = dateStr;
+                grid.appendChild(btn);
+            }
+
+            const totalCells = grid.children.length - 7;
+            for (let day = 1; day <= 42 - totalCells; day++) {
+                const btn = document.createElement('button');
+                btn.className = 'calendar-day other-month';
+                btn.textContent = day;
+                grid.appendChild(btn);
+            }
+        }
+
+        // Week Days
+        function renderWeekDays() {
+            const container = document.getElementById('weekDays');
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+
+            container.innerHTML = '';
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(startOfWeek);
+                d.setDate(startOfWeek.getDate() + i);
+                const dateStr = d.toISOString().slice(0, 10);
+                const isToday = dateStr === new Date().toISOString().slice(0, 10);
+                const isSelected = dateStr === selectedDate;
+                
+                const btn = document.createElement('button');
+                btn.className = `week-day-btn${isSelected ? ' active' : ''}`;
+                btn.dataset.date = dateStr;
+                btn.innerHTML = `
+                    <span class="day-num">${d.getDate()}</span>
+                    <span class="day-name-short">${dayNames[i]}</span>
+                    ${isToday ? '⭐' : ''}
+                `;
+                container.appendChild(btn);
+            }
+
+            if (weekOpen) {
+                container.classList.add('open');
+                document.getElementById('weekArrow').classList.add('open');
+            }
+        }
+
+        // Navigation
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        function goToday() {
+            const today = new Date();
+            currentMonth = today.getMonth();
+            currentYear = today.getFullYear();
+            selectedDate = today.toISOString().slice(0, 10);
+            renderCalendar();
+            renderWeekDays();
+            render();
+        }
+
+        function selectDate(dateStr) {
+            selectedDate = dateStr;
+            renderCalendar();
+            renderWeekDays();
+            render();
+            // Scroll to the selected column
+            const targetCol = document.querySelector(`.day-column[data-date="${dateStr}"]`);
+            if (targetCol) {
+                targetCol.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
+        // Task operations
+        function addTask(dateStr, title) {
+            if (!title.trim()) return;
+            const data = getPlannerData();
+            data.tasks.push({
+                id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                title: title.trim(),
+                dueDate: dateStr,
+                done: false
+            });
+            savePlannerData(data);
+            showToast('✅ Task added successfully!', true);
+        }
+
+        function toggleTask(id) {
+            const data = getPlannerData();
+            const task = data.tasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                savePlannerData(data);
+            }
+        }
+
+        function deleteTask(id) {
+            if (!confirm('Delete this task?')) return;
+            const data = getPlannerData();
+            data.tasks = data.tasks.filter(t => t.id !== id);
+            savePlannerData(data);
+            showToast('🗑️ Task deleted!', true);
+        }
+
+        function deleteSection(dateStr) {
+            const data = getPlannerData();
+            const tasksInSection = data.tasks.filter(t => t.dueDate === dateStr);
+
+            const msg = tasksInSection.length > 0 
+                ? `⚠️ Delete entire column for ${dateStr}?\nThis will delete ${tasksInSection.length} task(s).`
+                : `Delete empty column for ${dateStr}?`;
+
+            if (!confirm(msg)) return;
+
+            // Animate deletion
+            const col = document.querySelector(`.day-column[data-date="${dateStr}"]`);
+            if (col) {
+                col.classList.add('deleting');
+                setTimeout(() => {
+                    data.tasks = data.tasks.filter(t => t.dueDate !== dateStr);
+                    savePlannerData(data);
+                    showToast(`🗑️ Column ${dateStr} deleted!`, true);
+                }, 300);
+            } else {
+                data.tasks = data.tasks.filter(t => t.dueDate !== dateStr);
+                savePlannerData(data);
+                showToast(`🗑️ Column ${dateStr} deleted!`, true);
+            }
+        }
+
+        function addSection() {
+            const d = new Date();
+            d.setDate(d.getDate() + 7);
+            const dateStr = d.toISOString().slice(0, 10);
+            
+            const data = getPlannerData();
+            const existing = data.tasks.some(t => t.dueDate === dateStr);
+            
+            if (!existing) {
+                data.tasks.push({
+                    id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                    title: '✨ New section',
+                    dueDate: dateStr,
+                    done: false
+                });
+                savePlannerData(data);
+                showToast('📋 New section added!', true);
+            } else {
+                showToast('⚠️ Section already exists!');
+            }
+            
+            selectedDate = dateStr;
+            render();
+            renderCalendar();
+            renderWeekDays();
+        }
+
+        // Filter functions
+        function applyFilter() {
+            const startInput = document.getElementById('filterStartDate');
+            const endInput = document.getElementById('filterEndDate');
+            filterStart = startInput.value ? startInput.value : null;
+            filterEnd = endInput.value ? endInput.value : null;
+            updateFilterResult();
+            render();
+            showToast(`🔍 Filter applied: ${filterStart || 'any'} → ${filterEnd || 'any'}`, true);
+        }
+
+        function clearFilter() {
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            filterStart = null;
+            filterEnd = null;
+            updateFilterResult();
+            render();
+            showToast('🧹 Filter cleared', true);
+        }
+
+        function updateFilterResult() {
+            const result = document.getElementById('filterResult');
+            if (filterStart && filterEnd) {
+                result.textContent = `📅 Showing tasks from ${filterStart} to ${filterEnd}`;
+            } else if (filterStart) {
+                result.textContent = `📅 Showing tasks from ${filterStart} onwards`;
+            } else if (filterEnd) {
+                result.textContent = `📅 Showing tasks up to ${filterEnd}`;
+            } else {
+                result.textContent = '📅 Showing all tasks';
+            }
+        }
+
+        function isDateInRange(dateStr) {
+            if (!filterStart && !filterEnd) return true;
+            if (!dateStr) return false;
+            if (filterStart && dateStr < filterStart) return false;
+            if (filterEnd && dateStr > filterEnd) return false;
+            return true;
+        }
+
+        // Utilities
+        function escapeHTML(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDateChinese(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return 'Invalid Date';
+            const date = new Date(dateStr + 'T00:00:00');
+            if (isNaN(date.getTime())) return 'Invalid Date';
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return `${year}年${month}月${day}日 (${weekdays[date.getDay()]})`;
+        }
+
+        function handleAddTaskClick(dateStr, inputElement) {
+            const title = inputElement.value;
+            if (!title.trim()) {
+                showToast('⚠️ Please enter a task!');
+                return;
+            }
+            addTask(dateStr, title);
+            inputElement.value = '';
+            inputElement.focus();
+        }
+
+        // Render dashboard
+        function render() {
+            const data = getPlannerData();
+            const dashboard = document.getElementById('dashboard');
+            const tasksByDate = {};
+
+            // Filter tasks by date range
+            const filteredTasks = data.tasks.filter(task => isDateInRange(task.dueDate));
+
+            filteredTasks.forEach(task => {
+                if (!tasksByDate[task.dueDate]) {
+                    tasksByDate[task.dueDate] = [];
+                }
+                tasksByDate[task.dueDate].push(task);
+            });
+
+            const today = new Date();
+            const dates = new Set();
+
+            // Show next 7 days
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(today);
+                d.setDate(d.getDate() + i);
+                const dateStr = d.toISOString().slice(0, 10);
+                if (isDateInRange(dateStr)) {
+                    dates.add(dateStr);
+                }
+            }
+
+            // Include selected date if not in next 7 days
+            if (selectedDate && /^\d{4}-\d{2}-\d{2}$/.test(selectedDate) && isDateInRange(selectedDate)) {
+                dates.add(selectedDate);
+            }
+
+            // Include any dates that have tasks
+            Object.keys(tasksByDate).forEach(date => {
+                if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && isDateInRange(date)) {
+                    dates.add(date);
+                }
+            });
+
+            const sortedDates = Array.from(dates)
+                .sort()
+                .filter(dateStr => tasksByDate[dateStr] || dateStr === selectedDate);
+
+            if (sortedDates.length === 0) {
+                const todayStr = today.toISOString().slice(0, 10);
+                if (isDateInRange(todayStr)) {
+                    sortedDates.push(todayStr);
+                    selectedDate = todayStr;
+                } else {
+                    // If today is filtered out, show first available date with tasks
+                    const firstDate = Object.keys(tasksByDate).sort()[0];
+                    if (firstDate) {
+                        sortedDates.push(firstDate);
+                        selectedDate = firstDate;
+                    }
+                }
+            }
+
+            dashboard.innerHTML = sortedDates.map(dateStr => {
+                const tasks = (tasksByDate[dateStr] || []).sort((a, b) => {
+                    if (a.done === b.done) return 0;
+                    return a.done ? 1 : -1;
+                });
+
+                const isHighlighted = dateStr === selectedDate;
+
+                return `
+                    <div class="day-column${isHighlighted ? ' highlight' : ''}" data-date="${dateStr}">
+                        <div class="day-header">
+                            <div class="day-header-title">${formatDateChinese(dateStr)}</div>
+                            <div class="section-actions">
+                                <button class="delete-column-btn" data-date="${dateStr}" title="Delete entire column">✕</button>
+                            </div>
+                        </div>
+                        <div class="tasks-container">
+                            <div class="task-input-row">
+                                <input type="text" placeholder="+ Add task" class="task-input" data-date="${dateStr}" />
+                                <button class="add-task-btn" data-date="${dateStr}">➕</button>
+                            </div>
+                            ${tasks.map(task => `
+                                <div class="task-item ${task.done ? 'done' : ''}">
+                                    <input type="checkbox" class="task-checkbox task-toggle" data-id="${task.id}" ${task.done ? 'checked' : ''} />
+                                    <div style="flex: 1;">
+                                        <div class="task-text">${escapeHTML(task.title)}</div>
+                                    </div>
+                                    <button class="task-delete" data-id="${task.id}">✕</button>
+                                </div>
+                            `).join('')}
+                            ${!tasks.length ? '<div class="empty-column">✨ No tasks</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            dashboard.innerHTML += `
+                <button class="add-section-btn" id="addSectionBtn">➕ Add Section</button>
+            `;
+
+            // Attach event listeners for add task buttons
+            document.querySelectorAll('.add-task-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dateStr = this.dataset.date;
+                    const input = this.parentElement.querySelector('.task-input');
+                    handleAddTaskClick(dateStr, input);
+                });
+            });
+
+            // Attach event listeners for task inputs (Enter key)
+            document.querySelectorAll('.task-input').forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const dateStr = this.dataset.date;
+                        const btn = this.parentElement.querySelector('.add-task-btn');
+                        if (btn) {
+                            btn.click();
+                        }
+                    }
+                });
+            });
+        }
+
+        // Event Delegation
+        document.addEventListener('click', (e) => {
+            // Delete section (entire column)
+            const deleteColBtn = e.target.closest('.delete-column-btn');
+            if (deleteColBtn) {
+                const dateStr = deleteColBtn.dataset.date;
+                deleteSection(dateStr);
+                return;
+            }
+
+            // Add section
+            if (e.target.id === 'addSectionBtn') {
+                addSection();
+                return;
+            }
+
+            // Delete task
+            if (e.target.classList.contains('task-delete')) {
+                const id = e.target.dataset.id;
+                deleteTask(id);
+                return;
+            }
+
+            // Toggle task
+            if (e.target.classList.contains('task-toggle')) {
+                const id = e.target.dataset.id;
+                toggleTask(id);
+                return;
+            }
+
+            // Select date from calendar
+            if (e.target.classList.contains('calendar-day') && !e.target.classList.contains('other-month')) {
+                const dateStr = e.target.dataset.date;
+                if (dateStr) selectDate(dateStr);
+                return;
+            }
+
+            // Select date from week days
+            if (e.target.closest('.week-day-btn')) {
+                const btn = e.target.closest('.week-day-btn');
+                const dateStr = btn.dataset.date;
+                if (dateStr) selectDate(dateStr);
+                return;
+            }
+        });
+
+        // Week toggle
+        document.getElementById('weekToggleHeader').addEventListener('click', function() {
+            weekOpen = !weekOpen;
+            const container = document.getElementById('weekDays');
+            const arrow = document.getElementById('weekArrow');
+            container.classList.toggle('open');
+            arrow.classList.toggle('open');
+        });
+
+        // Filter toggle
+        document.getElementById('filterToggleHeader').addEventListener('click', function() {
+            filterOpen = !filterOpen;
+            const body = document.getElementById('filterBody');
+            const arrow = document.getElementById('filterArrow');
+            body.classList.toggle('open');
+            arrow.classList.toggle('open');
+        });
+
+        // Filter buttons
+        document.getElementById('applyFilterBtn').addEventListener('click', applyFilter);
+        document.getElementById('clearFilterBtn').addEventListener('click', clearFilter);
+
+        // Button handlers
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('prevMonthBtn').addEventListener('click', prevMonth);
+        document.getElementById('nextMonthBtn').addEventListener('click', nextMonth);
+        document.getElementById('todayBtn').addEventListener('click', goToday);
+
+        // Initialize
+        renderCalendar();
+        renderWeekDays();
+        updateFilterResult();
+        render();
+    </script>
+</body>
+</html>
