@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard - Spaced Repetition</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --soft: #fff0f4;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.18);
+            --font: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            --font-zh: 'Yuanti SC', '圆体', 'STYuanti', 'PingFang SC', 'Noto Sans SC', sans-serif;
+            --radius: 8px;
+        }
+
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --soft: #382c32;
+            --shadow: 0 4px 18px rgba(0,0,0,0.35);
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 18px;
+        }
+
+        button, input, select, textarea { font-family: inherit; }
+
+        .container { max-width: 1180px; margin: 0 auto; }
+
+        header, .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        h1 { font-size: 28px; }
+        h2 { font-size: 20px; margin-bottom: 10px; }
+
+        .hint {
+            color: color-mix(in srgb, var(--text), transparent 32%);
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .font-size-control input[type="range"] {
+            width: 120px;
+            height: 5px;
+            cursor: pointer;
+        }
+
+        .font-size-label {
+            font-size: 12px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .tabs, .nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .nav { margin: 0; }
+
+        .tab-btn, button, .nav a {
+            background: var(--accent2);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px 13px;
+            min-height: 34px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        button:hover, .tab-btn:hover, .nav a:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab-btn.active, button.primary {
+            background: var(--accent);
+            color: white;
+            font-weight: 800;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .form-body { padding: 16px; }
+
+        input, select, textarea {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 10px 12px;
+            width: 100%;
+        }
+
+        textarea { min-height: 76px; resize: vertical; }
+
+        label {
+            display: grid;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .import-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--soft);
+            transition: all 0.3s ease;
+        }
+
+        .import-area:hover, .import-area.dragover {
+            border-color: var(--accent);
+            background: rgba(247, 161, 181, 0.1);
+        }
+
+        .csv-format {
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .csv-format p { margin: 8px 0; color: var(--text); opacity: 0.8; }
+
+        .actions, .study-stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .study-bar {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .study-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .study-stats strong { color: var(--accent); font-weight: 800; }
+        .study-stats span { font-size: 13px; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            color: color-mix(in srgb, var(--text), transparent 35%);
+        }
+
+        .flashcard {
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .flashcard:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        .flashcard.show { background: var(--lavender); border-color: var(--accent); }
+
+        .flashcard .zh {
+            font-family: var(--font-zh);
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .flashcard .vi {
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+
+        .flashcard .en {
+            font-size: 16px;
+            line-height: 1.45;
+        }
+
+        .card-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .card-pos {
+            font-size: 14px;
+            opacity: 0.8;
+            color: color-mix(in srgb, var(--text), transparent 28%);
+        }
+
+        .flash-answer {
+            border-top: 1px dashed var(--border);
+            display: none;
+            margin-top: 14px;
+            padding-top: 14px;
+            width: 100%;
+        }
+
+        .flashcard.show .flash-answer { display: block; }
+
+        .card-hint {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 30px;
+        }
+
+        .flashcard.show .card-hint { display: none; }
+
+        .progress-bar {
+            background: var(--border);
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .rating-actions {
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .flashcard.show ~ .rating-actions { display: grid; }
+
+        .rating-actions button {
+            min-height: 36px;
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        .rating-actions .again { background: #ffd4dc; color: var(--text); }
+        .rating-actions .hard { background: #ffe3c7; color: var(--text); }
+        .rating-actions .good { background: #d7f4df; color: var(--text); }
+        .rating-actions .easy { background: #dbeafe; color: var(--text); }
+
+        .decks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .deck-card {
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .deck-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .deck-title {
+            font-weight: 800;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .deck-info {
+            font-size: 12px;
+            color: color-mix(in srgb, var(--text), transparent 34%);
+            margin: 5px 0;
+        }
+
+        .deck-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .deck-actions button {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 12px;
+            min-height: 28px;
+        }
+
+        button.danger {
+            background: #ef5b7a;
+            color: white;
+            border: 1px solid #ef5b7a;
+        }
+
+        button.danger:hover {
+            background: #d4445f;
+            border-color: #d4445f;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            border-left: 4px solid;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert.show { display: block; }
+
+        .alert-success {
+            background: var(--soft);
+            border-left-color: #4caf50;
+            color: var(--text);
+        }
+
+        .alert-error {
+            background: rgba(239, 91, 122, 0.15);
+            border-left-color: #ef5b7a;
+            color: var(--text);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .meta {
+            font-size: 12px;
+            color: color-mix(in srgb, var(--text), transparent 34%);
+            line-height: 1.45;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 900px) {
+            .study-header { flex-direction: column; align-items: flex-start; }
+            .decks-grid { grid-template-columns: 1fr; }
+            .flashcard { min-height: 250px; padding: 30px 20px; }
+            .flashcard .zh { font-size: 24px; }
+            button { width: 100%; }
+            header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>📚 Flashcard</h1>
+            <p class="hint">Learn Chinese with spaced repetition (SM-2 algorithm)</p>
+        </div>
+        <div class="header-controls">
+            <div class="font-size-control">
+                <span style="font-size: 12px; font-weight: 800;">A</span>
+                <input type="range" id="fontSizeSlider" min="80" max="120" value="100" step="5">
+                <span class="font-size-label" id="fontSizeLabel">100%</span>
+            </div>
+            <button id="themeBtn">🌙 Dark</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="alert alert-success" id="alertSuccess"></div>
+        <div class="alert alert-error" id="alertError"></div>
+
+        <div class="tabs" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;">
+            <button class="tab-btn active" data-tab="study">Study</button>
+            <button class="tab-btn" data-tab="import">Import CSV</button>
+            <button class="tab-btn" data-tab="manage">Manage</button>
+        </div>
+
+        <!-- Study Tab -->
+        <div id="study" class="tab-content active">
+            <div class="study-bar">
+                <div class="study-header">
+                    <h2 id="currentDeckName" style="margin: 0;">No Deck Selected</h2>
+                    <div class="study-stats">
+                        <span><strong id="cardCount">0</strong> cards</span>
+                        <span><strong id="readyCount">0</strong> ready</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+                <h3>No Flashcards</h3>
+                <p>Import a CSV file to start learning</p>
+            </div>
+
+            <div id="studyArea" style="display: none;">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+                <div class="flashcard" id="flashcard">
+                    <div class="card-label" id="cardLabel">Chinese</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                        <div class="zh" id="cardContent">你好</div>
+                        <button id="speakBtn" style="padding: 8px 12px; min-height: auto; font-size: 16px;">🔊</button>
+                    </div>
+                    <div class="card-pos" id="cardPos"></div>
+                    <div class="flash-answer" id="flashAnswer">
+                        <div class="meta" id="cardPinyin" style="margin-bottom: 8px; font-style: italic; font-size: 14px;"></div>
+                        <div class="en" id="cardEnglish"></div>
+                        <div id="cardExample"></div>
+                    </div>
+                    <div class="card-hint" id="cardHint">👆 Click to reveal answer</div>
+                </div>
+
+                <div class="rating-actions" id="cardControls">
+                    <button class="again" onclick="answerCard('again')">❌ Again</button>
+                    <button class="hard" onclick="answerCard('hard')">😕 Hard</button>
+                    <button class="good" onclick="answerCard('good')">✓ Good</button>
+                    <button class="easy" onclick="answerCard('easy')">🎯 Easy</button>
+                </div>
+
+                <div class="actions">
+                    <button onclick="changeDeck()">🔄 Change Deck</button>
+                    <button onclick="resetProgress()">↺ Reset Progress</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Tab -->
+        <div id="import" class="tab-content">
+            <div class="card">
+                <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+                    <h2 style="margin: 0;">📥 Import CSV</h2>
+                </div>
+                <div class="form-body">
+                    <div class="import-area" id="dropArea">
+                        <p style="font-size: 24px; margin: 0 0 10px 0;">📄</p>
+                        <p><strong>Drag & drop CSV file</strong> or</p>
+                        <p><button class="primary" onclick="document.getElementById('csvFile').click()">Select File</button></p>
+                    </div>
+                    <input type="file" id="csvFile" accept=".csv">
+
+                    <div class="csv-format">
+                        <p><strong>CSV Format (5 columns):</strong></p>
+                        <p>chinese,pinyin,pos,english,example</p>
+                        <p>你好,nǐ hǎo,Greeting,Hello,你好，我是小王。</p>
+                        <p>学习,xuéxí,Verb,Study,我每天都在学习汉语。</p>
+                        <p><strong>Required:</strong> (1) chinese, (4) english</p>
+                        <p><strong>Optional:</strong> (2) pinyin, (3) pos, (5) example</p>
+                    </div>
+
+                    <div class="actions">
+                        <button class="primary" onclick="importCSV()">💾 Import</button>
+                        <button onclick="resetImport()">🔄 Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Tab -->
+        <div id="manage" class="tab-content">
+            <div class="card">
+                <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+                    <h2 style="margin: 0;">⚙️ Manage Decks</h2>
+                </div>
+                <div class="form-body">
+                    <div class="decks-grid" id="decksGrid"></div>
+                    <div class="actions">
+                        <button onclick="exportAllData()">📥 Export Data</button>
+                        <button class="danger" onclick="clearAllData()">🗑️ Delete All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deck Selection Modal -->
+    <div id="deckModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Select a Deck</div>
+            <div id="deckList"></div>
+            <div class="modal-footer">
+                <button onclick="closeDeckModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme & Font Size Management
+        function applyTheme(isDark) {
+            document.body.classList.toggle('dark', isDark);
+            localStorage.setItem('appTheme', isDark ? 'dark' : 'light');
+            document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+        }
+
+        function applyFontSize(sizePercent) {
+            document.documentElement.style.fontSize = (sizePercent / 100) * 16 + 'px';
+            document.getElementById('fontSizeLabel').textContent = sizePercent + '%';
+            localStorage.setItem('appFontSize', sizePercent);
+        }
+
+        // Load saved preferences
+        const savedTheme = localStorage.getItem('appTheme') === 'dark';
+        const savedFontSize = parseInt(localStorage.getItem('appFontSize')) || 100;
+
+        applyTheme(savedTheme);
+        applyFontSize(savedFontSize);
+        document.getElementById('fontSizeSlider').value = savedFontSize;
+
+        // Event listeners
+        document.getElementById('themeBtn').onclick = () => {
+            const isDark = !document.body.classList.contains('dark');
+            applyTheme(isDark);
+        };
+
+        document.getElementById('fontSizeSlider').addEventListener('input', (e) => {
+            applyFontSize(parseInt(e.target.value));
+        });
+
+        // Google Translate TTS
+        function speakChinese(text) {
+            if (!text) return;
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-CN&client=gtx`;
+            const audio = new Audio(url);
+            audio.play().catch(e => console.log('Audio play error:', e));
+        }
+
+        // Main App
+        const app = {
+            decks: {},
+            currentDeck: null,
+            currentCardIndex: 0,
+            cardRevealed: false,
+            csvData: [],
+
+            init() {
+                this.loadData();
+                this.setupEventListeners();
+                this.renderDecks();
+                this.updateStudyView();
+            },
+
+            setupEventListeners() {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        e.target.classList.add('active');
+                        document.getElementById(e.target.getAttribute('data-tab')).classList.add('active');
+                    });
+                });
+
+                const dropArea = document.getElementById('dropArea');
+                dropArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropArea.classList.add('dragover');
+                });
+                dropArea.addEventListener('dragleave', () => {
+                    dropArea.classList.remove('dragover');
+                });
+                dropArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropArea.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        document.getElementById('csvFile').files = e.dataTransfer.files;
+                    }
+                });
+
+                document.getElementById('csvFile').addEventListener('change', () => this.parseCSVFile());
+                document.getElementById('flashcard').addEventListener('click', () => {
+                    this.cardRevealed = !this.cardRevealed;
+                    this.updateCard();
+                });
+            },
+
+            parseCSVFile() {
+                const file = document.getElementById('csvFile').files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.csvData = e.target.result.trim().split('\n').filter(line => line.trim());
+                    this.showAlert('✓ Loaded ' + (this.csvData.length - 1) + ' cards', 'success');
+                };
+                reader.readAsText(file);
+            },
+
+            parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const nextChar = line[i + 1];
+                    if (char === '"') {
+                        if (inQuotes && nextChar === '"') {
+                            current += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            },
+
+            importCSVToDecks() {
+                if (this.csvData.length < 2) {
+                    this.showAlert('❌ Invalid CSV', 'error');
+                    return;
+                }
+
+                const headers = this.csvData[0].split(',').map(h => h.trim().toLowerCase());
+                const chineseIdx = headers.indexOf('chinese');
+                const englishIdx = headers.indexOf('english');
+                const pinyinIdx = headers.indexOf('pinyin');
+                const posIdx = headers.indexOf('pos');
+                const exampleIdx = headers.indexOf('example');
+
+                if (chineseIdx === -1 || englishIdx === -1) {
+                    this.showAlert('❌ CSV must have "chinese" (1) and "english" (4) columns. Format: chinese,pinyin,pos,english,example', 'error');
+                    return;
+                }
+
+                const deckName = prompt('Deck name:', 'New Deck');
+                if (!deckName) return;
+
+                if (this.decks[deckName]) {
+                    if (!confirm(`Deck "${deckName}" already exists. Add cards to it?`)) return;
+                } else {
+                    this.decks[deckName] = { name: deckName, cards: [], created: Date.now() };
+                }
+
+                let imported = 0;
+                for (let i = 1; i < this.csvData.length; i++) {
+                    const parts = this.parseCSVLine(this.csvData[i]);
+                    const chinese = parts[chineseIdx] ? parts[chineseIdx].trim() : '';
+                    const english = parts[englishIdx] ? parts[englishIdx].trim() : '';
+
+                    if (chinese && english) {
+                        const card = {
+                            id: Math.random().toString(36).substr(2, 9),
+                            chinese: chinese,
+                            english: english,
+                            pinyin: pinyinIdx !== -1 && parts[pinyinIdx] ? parts[pinyinIdx].trim() : '',
+                            pos: posIdx !== -1 && parts[posIdx] ? parts[posIdx].trim() : '',
+                            example: exampleIdx !== -1 && parts[exampleIdx] ? parts[exampleIdx].trim() : '',
+                            interval: 1,
+                            nextReview: Date.now(),
+                            reps: 0,
+                            easeFactor: 2.5
+                        };
+                        this.decks[deckName].cards.push(card);
+                        imported++;
+                    }
+                }
+
+                if (imported === 0) {
+                    this.showAlert('❌ No valid cards found', 'error');
+                    return;
+                }
+
+                this.saveData();
+                this.renderDecks();
+                this.showAlert(`✓ Imported ${imported} cards to "${deckName}"`, 'success');
+                this.resetImport();
+            },
+
+            updateStudyView() {
+                const deck = this.currentDeck ? this.decks[this.currentDeck] : null;
+                const studyArea = document.getElementById('studyArea');
+                const emptyState = document.getElementById('emptyState');
+
+                if (!deck || deck.cards.length === 0) {
+                    studyArea.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                studyArea.style.display = 'block';
+                emptyState.style.display = 'none';
+
+                document.getElementById('currentDeckName').textContent = deck.name;
+                document.getElementById('cardCount').textContent = deck.cards.length;
+                const ready = deck.cards.filter(c => c.nextReview <= Date.now()).length;
+                document.getElementById('readyCount').textContent = ready;
+
+                this.updateCard();
+            },
+
+            updateCard() {
+                const deck = this.decks[this.currentDeck];
+                if (!deck || deck.cards.length === 0) return;
+
+                const card = deck.cards[this.currentCardIndex];
+                const progress = ((this.currentCardIndex + 1) / deck.cards.length) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+
+                document.getElementById('cardContent').textContent = card.chinese;
+                document.getElementById('cardPos').textContent = card.pos ? `(${card.pos})` : '';
+                document.getElementById('cardPinyin').textContent = card.pinyin ? `📢 ${card.pinyin}` : '';
+                document.getElementById('cardEnglish').textContent = card.english;
+                document.getElementById('cardExample').textContent = card.example || '';
+
+                const fc = document.getElementById('flashcard');
+                if (this.cardRevealed) {
+                    fc.classList.add('show');
+                } else {
+                    fc.classList.remove('show');
+                }
+            },
+
+            answerCard(quality) {
+                const deck = this.decks[this.currentDeck];
+                const card = deck.cards[this.currentCardIndex];
+
+                const q = quality === 'again' ? 1 : quality === 'hard' ? 2 : quality === 'good' ? 3 : 4;
+                const interval = card.interval || 1;
+                const easeFactor = card.easeFactor || 2.5;
+
+                let newEase = easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+                if (newEase < 1.3) newEase = 1.3;
+
+                let newInterval;
+                if (q < 3) {
+                    newInterval = 1;
+                } else {
+                    newInterval = card.reps === 0 ? 1 : card.reps === 1 ? 3 : Math.round(interval * easeFactor);
+                }
+
+                card.reps = q >= 3 ? (card.reps || 0) + 1 : 1;
+                card.interval = newInterval;
+                card.easeFactor = newEase;
+                card.nextReview = Date.now() + newInterval * 24 * 60 * 60 * 1000;
+
+                this.saveData();
+                this.nextCard();
+            },
+
+            nextCard() {
+                const deck = this.decks[this.currentDeck];
+                this.currentCardIndex = (this.currentCardIndex + 1) % deck.cards.length;
+                this.cardRevealed = false;
+                this.updateCard();
+            },
+
+            changeDeck() {
+                const deckList = document.getElementById('deckList');
+                deckList.innerHTML = '';
+                Object.values(this.decks).forEach(deck => {
+                    const ready = deck.cards.filter(c => c.nextReview <= Date.now()).length;
+                    const btn = document.createElement('button');
+                    btn.className = 'primary';
+                    btn.style.marginBottom = '8px';
+                    btn.style.width = '100%';
+                    btn.textContent = `${deck.name} (${ready}/${deck.cards.length} ready)`;
+                    btn.onclick = () => {
+                        this.currentDeck = deck.name;
+                        this.currentCardIndex = 0;
+                        this.cardRevealed = false;
+                        this.updateStudyView();
+                        this.closeDeckModal();
+                    };
+                    deckList.appendChild(btn);
+                });
+                document.getElementById('deckModal').classList.add('show');
+            },
+
+            closeDeckModal() {
+                document.getElementById('deckModal').classList.remove('show');
+            },
+
+            resetProgress() {
+                if (!confirm('Reset learning progress for this deck?')) return;
+                const deck = this.decks[this.currentDeck];
+                deck.cards.forEach(card => {
+                    card.interval = 1;
+                    card.nextReview = Date.now();
+                    card.reps = 0;
+                    card.easeFactor = 2.5;
+                });
+                this.currentCardIndex = 0;
+                this.cardRevealed = false;
+                this.saveData();
+                this.updateStudyView();
+                this.showAlert('✓ Progress reset', 'success');
+            },
+
+            renderDecks() {
+                const grid = document.getElementById('decksGrid');
+                grid.innerHTML = '';
+                Object.values(this.decks).forEach(deck => {
+                    const ready = deck.cards.filter(c => c.nextReview <= Date.now()).length;
+                    const html = `
+                        <div class="deck-card">
+                            <div class="deck-title">${deck.name}</div>
+                            <div class="deck-info">📊 ${deck.cards.length} cards</div>
+                            <div class="deck-info">✓ ${ready} ready</div>
+                            <div class="deck-actions">
+                                <button class="primary" onclick="app.loadDeck('${deck.name}')">Learn</button>
+                                <button class="danger" onclick="app.deleteDeck('${deck.name}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += html;
+                });
+            },
+
+            loadDeck(deckName) {
+                this.currentDeck = deckName;
+                this.currentCardIndex = 0;
+                this.cardRevealed = false;
+                document.querySelectorAll('.tab-btn')[0].click();
+                this.updateStudyView();
+            },
+
+            deleteDeck(deckName) {
+                if (confirm(`Delete deck "${deckName}" and all cards?`)) {
+                    delete this.decks[deckName];
+                    if (this.currentDeck === deckName) this.currentDeck = null;
+                    this.saveData();
+                    this.renderDecks();
+                    this.updateStudyView();
+                    this.showAlert('✓ Deck deleted', 'success');
+                }
+            },
+
+            resetImport() {
+                document.getElementById('csvFile').value = '';
+                this.csvData = [];
+            },
+
+            saveData() {
+                localStorage.setItem('flashcardDecks', JSON.stringify(this.decks));
+            },
+
+            loadData() {
+                const stored = localStorage.getItem('flashcardDecks');
+                if (stored) this.decks = JSON.parse(stored);
+            },
+
+            clearAllData() {
+                if (confirm('Delete all data? This cannot be undone.')) {
+                    this.decks = {};
+                    this.currentDeck = null;
+                    this.saveData();
+                    this.renderDecks();
+                    this.updateStudyView();
+                    this.showAlert('✓ All data deleted', 'success');
+                }
+            },
+
+            exportAllData() {
+                const json = JSON.stringify(this.decks, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `flashcard-backup-${Date.now()}.json`;
+                a.click();
+                this.showAlert('✓ Data exported', 'success');
+            },
+
+            showAlert(message, type) {
+                const alertEl = type === 'success' ? document.getElementById('alertSuccess') : document.getElementById('alertError');
+                alertEl.textContent = message;
+                alertEl.classList.add('show');
+                setTimeout(() => alertEl.classList.remove('show'), 3000);
+            }
+        };
+
+        function importCSV() { app.importCSVToDecks(); }
+        function resetImport() { app.resetImport(); }
+        function changeDeck() { app.changeDeck(); }
+        function closeDeckModal() { app.closeDeckModal(); }
+        function resetProgress() { app.resetProgress(); }
+        function answerCard(quality) { app.answerCard(quality); }
+        function exportAllData() { app.exportAllData(); }
+        function clearAllData() { app.clearAllData(); }
+
+        // Speak button event
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'speakBtn') {
+                const text = document.getElementById('cardContent').textContent;
+                speakChinese(text);
+            }
+        });
+
+        // Load sample data
+        const sampleDeck = {
+            name: 'Basic Chinese',
+            cards: [
+                { id: '1', chinese: '你好', pinyin: 'nǐ hǎo', pos: 'Greeting', english: 'Hello', example: '你好，我是小王。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '2', chinese: '谢谢', pinyin: 'xièxie', pos: 'Verb', english: 'Thank you', example: '谢谢你的帮助。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '3', chinese: '对不起', pinyin: 'duìbù qǐ', pos: 'Phrase', english: 'Sorry', example: '对不起，我迟到了。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '4', chinese: '学习', pinyin: 'xuéxí', pos: 'Verb', english: 'Study', example: '我每天都在学习汉语。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '5', chinese: '工作', pinyin: 'gōngzuò', pos: 'Noun', english: 'Work', example: '我在公司工作。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '6', chinese: '朋友', pinyin: 'péngyou', pos: 'Noun', english: 'Friend', example: '他是我最好的朋友。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '7', chinese: '喜欢', pinyin: 'xǐhuān', pos: 'Verb', english: 'Like', example: '我喜欢喝咖啡。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '8', chinese: '今天', pinyin: 'jīntiān', pos: 'Noun', english: 'Today', example: '今天天气很好。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '9', chinese: '家', pinyin: 'jiā', pos: 'Noun', english: 'Home', example: '我回家去了。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+                { id: '10', chinese: '书', pinyin: 'shū', pos: 'Noun', english: 'Book', example: '这是一本很有趣的书。', interval: 1, nextReview: Date.now(), reps: 0, easeFactor: 2.5 },
+            ],
+            created: Date.now()
+        };
+
+        if (!app.decks['Basic Chinese']) {
+            app.decks['Basic Chinese'] = sampleDeck;
+            app.saveData();
+        }
+
+        app.init();
+    </script>
+</body>
+</html>
