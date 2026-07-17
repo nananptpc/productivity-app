@@ -1,0 +1,2859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teaching · Schedule</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg: #fff0f6;
+            --text: #3f3037;
+            --card: #fffafb;
+            --shadow: 0 6px 22px rgba(229, 103, 139, 0.18);
+            --border: #f3b8c8;
+            --accent: #ee7fa1;
+            --accent2: #ffc1d1;
+            --font: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            --radius: 8px;
+            --transition: 0.3s ease;
+            --completed-opacity: 0.4;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --shadow: 0 4px 16px rgba(0,0,0,0.4);
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 14px;
+            overflow-x: hidden;
+            transition: background var(--transition), color var(--transition);
+        }
+        .table-wrap::-webkit-scrollbar,
+        .dropdown-body.open::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+        .table-wrap::-webkit-scrollbar-thumb,
+        .dropdown-body.open::-webkit-scrollbar-thumb {
+            background: var(--accent2);
+            border: 2px solid var(--bg);
+            border-radius: 999px;
+        }
+        * {
+            font-family: var(--font);
+        }
+        .container {
+            max-width: 1320px;
+            width: 100%;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            transition: background var(--transition);
+        }
+        header h1 {
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .header-actions button,
+        .header-actions a {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            cursor: pointer;
+            transition: background var(--transition), transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .header-actions button:hover,
+        .header-actions a:hover {
+            background: var(--accent);
+            transform: scale(1.02);
+        }
+        .theme-toggle {
+            background: transparent;
+            border: 2px solid var(--accent);
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-family: var(--font);
+            cursor: pointer;
+            color: var(--text);
+            transition: 0.3s;
+        }
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: minmax(210px, 250px) minmax(0, 1fr);
+            gap: 16px;
+            align-items: start;
+            min-width: 0;
+        }
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .calendar-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 4px;
+            flex-wrap: nowrap;
+        }
+        .calendar-header button {
+            padding: 2px 10px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .calendar-header button:hover {
+            background: var(--accent2);
+        }
+        .calendar-header .month-label {
+            font-weight: bold;
+            font-size: 16px;
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .calendar-grid .day-name {
+            text-align: center;
+            font-size: 10px;
+            opacity: 0.6;
+            padding: 2px 0;
+        }
+        .calendar-grid .day-cell {
+            text-align: center;
+            padding: 4px 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+            border: 2px solid transparent;
+            min-height: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .calendar-grid .day-cell:hover {
+            background: var(--accent2);
+        }
+        .calendar-grid .day-cell.today {
+            border-color: var(--accent);
+            background: var(--accent2);
+        }
+        .calendar-grid .day-cell.selected {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .calendar-grid .day-cell.other-month {
+            opacity: 0.3;
+        }
+        .calendar-grid .day-cell .day-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-top: 1px;
+        }
+
+        .day-lessons-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .day-lessons-section .day-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .day-lessons-section .day-lesson-item {
+            font-size: 13px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+        }
+        .day-lessons-section .day-lesson-item .cls-code {
+            font-weight: bold;
+        }
+        .day-lessons-section .day-lesson-item .lesson-notes {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        .day-lessons-section .day-lesson-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .day-lessons-section .day-lesson-actions button {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 11px;
+            padding: 2px 8px;
+        }
+        .day-lessons-section .no-lessons {
+            font-size: 13px;
+            opacity: 0.6;
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .daily-tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .daily-task-item {
+            font-size: 13px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+        .daily-task-item:hover {
+            border-color: var(--accent);
+        }
+        .daily-task-item input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .daily-task-item.done {
+            opacity: 0.5;
+        }
+        .daily-task-item .task-title {
+            flex: 1;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        .daily-task-item.done .task-title {
+            text-decoration: line-through;
+        }
+        .daily-tasks-empty {
+            text-align: center;
+            color: #999;
+            padding: 16px 0;
+            font-size: 13px;
+        }
+
+        .middle-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .section {
+            background: var(--card);
+            padding: 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        .section h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .form-row {
+            align-items: start;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+            min-width: 0;
+        }
+        .form-row input,
+        .form-row select {
+            flex: 1 1 160px;
+            padding: 7px 12px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            min-width: 0;
+            transition: border 0.3s;
+        }
+        .form-row #lessonClass {
+            flex-basis: 190px;
+        }
+        .form-row #lessonName {
+            flex: 2 1 240px;
+        }
+        .form-row #lessonDate,
+        .form-row #lessonUnder18 {
+            flex-basis: 160px;
+        }
+        .form-row #lessonOtherLinks[type="hidden"] {
+            display: none;
+        }
+        .form-row input:focus,
+        .form-row select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-row button {
+            flex: 0 0 auto;
+            padding: 7px 18px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .form-row button:hover {
+            opacity: 0.85;
+        }
+        .form-row textarea {
+            flex: 1 1 100%;
+            padding: 7px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            min-height: 74px;
+            resize: vertical;
+            transition: border 0.3s;
+        }
+        .form-row textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .edit-cancel-btn {
+            display: none;
+            background: var(--accent2) !important;
+            color: var(--text) !important;
+        }
+        .edit-cancel-btn.show {
+            display: inline-block;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: center;
+            min-width: 0;
+        }
+        .filter-bar .bulk-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+        .filter-bar .bulk-actions button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .filter-bar .bulk-actions button:hover {
+            background: var(--accent);
+        }
+        .filter-bar .bulk-actions .danger {
+            background: #e74c6f;
+            color: #fff;
+        }
+        .filter-bar .bulk-actions .danger:hover {
+            background: #c0392b;
+        }
+        .filter-bar .bulk-actions .success {
+            background: #2ecc71;
+            color: #fff;
+        }
+
+        .table-wrap {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            max-height: min(52vh, 560px);
+            max-width: 100%;
+            resize: vertical;
+            min-height: 260px;
+            width: 100%;
+            overflow: auto;
+            overscroll-behavior: contain;
+        }
+        table {
+            min-width: 100%;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+        th,
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            min-width: 0;
+            overflow: hidden;
+            overflow-wrap: anywhere;
+            vertical-align: top;
+        }
+        th:first-child,
+        td:first-child {
+            width: 42px;
+            min-width: 42px;
+        }
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: var(--lesson-col-class, 96px);
+        }
+        th:nth-child(3),
+        td:nth-child(3) {
+            width: var(--lesson-col-lesson, 220px);
+        }
+        th:nth-child(4),
+        td:nth-child(4) {
+            width: var(--lesson-col-date, 104px);
+        }
+        th:nth-child(5),
+        td:nth-child(5) {
+            width: var(--lesson-col-status, 104px);
+        }
+        th:nth-child(6),
+        td:nth-child(6) {
+            width: var(--lesson-col-checks, 190px);
+        }
+        th:nth-child(7),
+        td:nth-child(7) {
+            width: var(--lesson-col-links, 112px);
+        }
+        th:nth-child(8),
+        td:nth-child(8) {
+            width: var(--lesson-col-note, 180px);
+        }
+        th:last-child,
+        td:last-child {
+            width: 82px;
+            min-width: 82px;
+        }
+        th {
+            background: var(--bg);
+            color: var(--text);
+            font-weight: 800;
+            opacity: 0.95;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            white-space: nowrap;
+        }
+        th.resizable {
+            position: sticky;
+        }
+        .col-resizer {
+            bottom: 0;
+            cursor: col-resize;
+            position: absolute;
+            right: -3px;
+            top: 0;
+            width: 8px;
+            z-index: 4;
+        }
+        .col-resizer:hover {
+            background: color-mix(in srgb, var(--accent), transparent 55%);
+        }
+        .row-resizable {
+            min-height: 34px;
+            overflow: visible;
+            resize: none;
+        }
+        td .del {
+            color: #e74c6f;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        td input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 13px;
+            height: 13px;
+            min-width: 13px;
+            padding: 0;
+            cursor: pointer;
+        }
+        td .lesson-notes {
+            color: var(--text);
+            font-size: 12px;
+            opacity: 0.9;
+            display: block;
+            max-width: 460px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.5;
+        }
+        .lesson-detail-preview {
+            align-items: center;
+            display: flex;
+            gap: 8px;
+            max-width: 240px;
+        }
+        .lesson-detail-snippet {
+            color: var(--text);
+            display: inline-block;
+            font-size: 12px;
+            max-width: 128px;
+            opacity: 0.75;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .lesson-detail-empty {
+            color: var(--text);
+            font-size: 12px;
+            opacity: 0.45;
+        }
+        .see-more-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 11px;
+            padding: 3px 8px;
+            white-space: nowrap;
+        }
+        .see-more-btn:hover {
+            background: var(--accent2);
+            color: var(--text);
+        }
+        .detail-modal {
+            align-items: center;
+            background: rgba(63, 48, 55, 0.35);
+            display: none;
+            inset: 0;
+            justify-content: center;
+            padding: 20px;
+            position: fixed;
+            z-index: 999;
+        }
+        .detail-modal.show {
+            display: flex;
+        }
+        .detail-modal-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            max-height: 72vh;
+            overflow: auto;
+            padding: 18px;
+            width: min(620px, 100%);
+        }
+        .detail-modal-head {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .detail-modal-head h3 {
+            margin: 0;
+        }
+        .detail-modal-body {
+            font-size: 13px;
+            line-height: 1.55;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+        .lesson-check-row {
+            align-items: center;
+            display: flex;
+            flex: 1 1 100%;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+        }
+        .lesson-check-row label,
+        .lesson-check-badge {
+            align-items: center;
+            color: var(--text);
+            display: inline-flex;
+            font-size: 12px;
+            gap: 6px;
+            line-height: 1.2;
+            opacity: 0.96;
+            white-space: nowrap;
+        }
+        .lesson-check-row input[type="checkbox"],
+        .lesson-mini-check {
+            accent-color: var(--accent);
+            width: 12px;
+            height: 12px;
+            min-width: 12px;
+            padding: 0;
+        }
+        .lesson-mini-check {
+            flex: 0 0 auto;
+        }
+        .conditional-check.hidden {
+            display: none;
+        }
+        #lessonTableBody td {
+            vertical-align: top;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+        #lessonTableBody td:nth-child(3),
+        #lessonTableBody td:nth-child(6) {
+            min-width: 0;
+        }
+        #lessonTableBody td:last-child {
+            white-space: nowrap;
+            overflow-wrap: normal;
+        }
+        #lessonTableBody td:last-child button {
+            white-space: nowrap;
+            display: inline-block;
+            line-height: 1.2;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .dropdown-wrapper {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: background var(--transition);
+            min-width: 0;
+            max-width: 100%;
+        }
+        .dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: 0.3s;
+            user-select: none;
+        }
+        .dropdown-header:hover {
+            background: var(--accent2);
+        }
+        .dropdown-header .title {
+            font-size: 17px;
+            font-weight: bold;
+        }
+        .dropdown-header .arrow {
+            font-size: 16px;
+            transition: transform 0.3s;
+            opacity: 0.5;
+        }
+        .dropdown-header .arrow.open {
+            transform: rotate(180deg);
+        }
+        .dropdown-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        .dropdown-body.open {
+            max-height: calc(100vh - 170px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .dropdown-body-inner {
+            padding: 0 18px 18px 18px;
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .class-link-preview {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 12px;
+            margin: -4px 0 12px;
+            opacity: 0.8;
+        }
+        .class-link-preview a {
+            color: var(--accent);
+            text-decoration: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 3px 8px;
+            background: var(--bg);
+        }
+        .class-link-preview a:hover {
+            border-color: var(--accent);
+        }
+
+        .lesson-subsection {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--card), var(--accent2) 16%);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .lesson-subsection summary {
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 800;
+            list-style: none;
+            padding: 9px 12px;
+        }
+        .lesson-subsection summary::-webkit-details-marker {
+            display: none;
+        }
+        .lesson-subsection summary::after {
+            content: 'v';
+            float: right;
+            font-size: 11px;
+            opacity: 0.55;
+        }
+        .lesson-subsection:not([open]) summary::after {
+            content: '>';
+        }
+        .lesson-subsection-body {
+            padding: 0 12px 12px;
+        }
+        .lesson-general-info {
+            color: var(--text);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .lesson-info-grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        }
+        .lesson-info-grid span {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+            padding: 7px 9px;
+        }
+        .lesson-info-grid strong {
+            display: block;
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .class-form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .class-form-row input {
+            padding: 5px 10px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+            flex: 1 1 96px;
+            min-width: 0;
+            transition: border 0.3s;
+        }
+        .class-form-row input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .class-form-row button {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .class-form-row button:hover {
+            opacity: 0.85;
+        }
+
+        .class-bulk-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .class-bulk-actions button {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .class-bulk-actions button:hover {
+            background: var(--accent);
+        }
+        .class-bulk-actions .danger {
+            background: #e74c6f;
+            color: #fff;
+        }
+        .class-bulk-actions .danger:hover {
+            background: #c0392b;
+        }
+
+        .class-list {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .class-item {
+            background: var(--bg);
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            margin-bottom: 6px;
+            cursor: pointer;
+            display: grid;
+            gap: 6px;
+            grid-template-columns: minmax(0, 1fr) auto auto auto;
+            transition: 0.3s;
+            position: relative;
+        }
+        .class-item:hover {
+            border-color: var(--accent);
+            transform: translateX(2px);
+        }
+        .class-item.active {
+            border-color: var(--accent);
+            background: var(--accent2);
+        }
+        .class-item .class-code {
+            color: var(--text);
+            font-weight: bold;
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+        .class-item .class-meta {
+            display: none;
+        }
+        .class-item .class-links {
+            display: none;
+        }
+        .class-item .class-links a {
+            color: var(--accent);
+            text-decoration: none;
+            margin-right: 6px;
+        }
+        .class-item .class-links a:hover {
+            text-decoration: underline;
+        }
+        .class-item .del {
+            position: static;
+            justify-self: end;
+            color: #e74c6f;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .class-item .class-check-wrapper {
+            justify-self: end;
+            margin-top: 0;
+        }
+        .class-item input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 12px;
+            height: 12px;
+            cursor: pointer;
+        }
+        .class-edit-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+            min-height: 28px;
+            padding: 5px 8px;
+        }
+
+        .left-panel .dropdown-wrapper {
+            box-shadow: var(--shadow);
+        }
+        .left-panel .dropdown-header {
+            padding: 10px 14px;
+        }
+        .left-panel .dropdown-header .title {
+            font-size: 14px;
+        }
+        .left-panel .dropdown-body.open {
+            max-height: 360px;
+        }
+        .left-panel .dropdown-body-inner {
+            padding: 0 12px 12px;
+        }
+
+        /* TODO */
+        .todo-form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .todo-form-row input,
+        .todo-form-row select {
+            padding: 6px 12px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            flex: 1 1 100px;
+            transition: border 0.3s;
+        }
+        .todo-form-row input:focus,
+        .todo-form-row select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .todo-form-row button {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .todo-form-row button:hover {
+            opacity: 0.85;
+        }
+        .todo-form-row .custom-class-input {
+            display: none;
+            flex: 1 1 100px;
+        }
+        .todo-form-row .custom-class-input.show {
+            display: block;
+        }
+        .todo-form-row .shortcut-hint {
+            font-size: 10px;
+            opacity: 0.4;
+            padding: 4px 8px;
+            font-family: var(--font);
+            border: 1px dashed var(--border);
+            border-radius: 20px;
+        }
+
+        .todo-bulk-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .todo-bulk-actions button {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .todo-bulk-actions button:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        #todoSelectBtn {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #todoSelectBtn:hover {
+            opacity: 0.85;
+        }
+        #todoBulkOptions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        #todoBulkOptions button {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 40px;
+            background: var(--accent2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #todoBulkOptions button:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        #todoBulkOptions .danger {
+            background: #e74c6f;
+            color: #fff;
+        }
+        #todoBulkOptions .danger:hover {
+            background: #c0392b;
+        }
+        .todo-bulk-actions .success {
+            background: #2ecc71;
+            color: #fff;
+        }
+        .todo-bulk-actions .success:hover {
+            background: #27ae60;
+        }
+
+        .todo-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--bg);
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            margin-bottom: 6px;
+            transition: 0.2s;
+        }
+        .todo-item:hover {
+            border-color: var(--accent);
+        }
+        .todo-item.done {
+            opacity: var(--completed-opacity);
+            border-color: var(--border);
+        }
+        .todo-item input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .todo-item .todo-content {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .todo-item .todo-content .todo-title {
+            font-size: 14px;
+        }
+        .todo-item .todo-content .todo-title.done {
+            text-decoration: line-through;
+        }
+        .todo-item .todo-content .todo-class {
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: var(--accent2);
+            opacity: 0.7;
+        }
+        .todo-item .todo-content .todo-date {
+            font-size: 11px;
+            opacity: 0.5;
+        }
+        .todo-item .todo-content .todo-due {
+            font-size: 11px;
+            font-weight: 800;
+            opacity: 0.8;
+        }
+        .todo-item .todo-del {
+            color: #e74c6f;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+            padding: 0 4px;
+        }
+
+        .todo-empty {
+            text-align: center;
+            padding: 20px;
+            opacity: 0.5;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .form-row input,
+            .form-row select {
+                width: 100%;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-bar .bulk-actions {
+                margin-left: 0;
+            }
+            table {
+                font-size: 12px;
+            }
+            th,
+            td {
+                padding: 6px 8px;
+            }
+            .class-form-row,
+            .todo-form-row {
+                flex-direction: column;
+            }
+            .class-form-row input,
+            .todo-form-row input {
+                flex: 1 1 auto;
+            }
+            .todo-item {
+                flex-wrap: wrap;
+            }
+            .todo-item .todo-content {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="./ui-cleanup.css" />
+</head>
+<body>
+    <div class="container">
+
+        <header>
+            <h1>📚 Teaching</h1>
+            <div class="header-actions">
+                <input type="file" id="importCSV" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" onchange="importCSV(event)" />
+                <a href="./payroll.html">💵 Payroll</a>
+                <a href="./formatter.html">🧾 Formatter</a>
+                <a href="../index.html">🏠 Home</a>
+                <a href="../settings.html">⚙️ Settings</a>
+                <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+                <details class="actions-menu">
+                    <summary>More</summary>
+                    <div class="actions-menu-list">
+                        <button onclick="exportICS()">📅 Export Apple Calendar</button>
+                        <button onclick="document.getElementById('importCSV').click()">📤 Import CSV/TSV</button>
+                    </div>
+                </details>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- LEFT: Calendar + Day Lessons -->
+            <div class="left-panel">
+                <div class="calendar-section">
+                    <div class="calendar-header">
+                        <button onclick="changeMonth(-1)">◀</button>
+                        <span class="month-label" id="monthLabel"></span>
+                        <button onclick="changeMonth(1)">▶</button>
+                        <button onclick="goToToday()" style="font-size:11px;padding:2px 10px;">Today</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+
+                <div class="day-lessons-section" id="dayLessons">
+                    <div class="day-title">📅 Select a date</div>
+                    <div class="no-lessons">Click on a day to see lessons</div>
+                </div>
+
+                <div class="dropdown-wrapper">
+                    <div class="dropdown-header" onclick="toggleClasses()">
+                        <span class="title">📖 Classes</span>
+                        <span class="arrow open" id="classesArrow">▼</span>
+                    </div>
+                    <div class="dropdown-body open" id="classesBody">
+                        <div class="dropdown-body-inner">
+                            <div class="class-form-row">
+                                <input type="text" id="classCode" placeholder="Class code" />
+                                <input type="text" id="classTime" placeholder="Time" />
+                                <input type="text" id="classSalaryRate" inputmode="numeric" placeholder="Salary rate" />
+                                <input type="text" id="classCanva" placeholder="Canva" />
+                                <input type="text" id="classShub" placeholder="SHUB" />
+                                <button id="classSubmitBtn" onclick="saveClass()">➕ Add</button>
+                                <button id="classCancelEditBtn" class="edit-cancel-btn" onclick="cancelClassEdit()">Cancel</button>
+                            </div>
+                            <div class="class-bulk-actions">
+                                <span style="font-size:11px;opacity:0.7;">
+                                    <input type="checkbox" id="selectAllClasses" onchange="toggleAllClasses()" /> Select all
+                                </span>
+                                <button class="danger" onclick="bulkDeleteClasses()">🗑 Delete</button>
+                                <button onclick="bulkExportClasses()">📥 Export</button>
+                            </div>
+                            <div class="class-list" id="classList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DAILY TASKS -->
+                <div class="dropdown-wrapper">
+                    <div class="dropdown-header" onclick="toggleDailyTasks()">
+                        <span class="title">📋 Daily Tasks</span>
+                        <span class="arrow open" id="dailyTasksArrow">▼</span>
+                    </div>
+                    <div class="dropdown-body open" id="dailyTasksBody">
+                        <div class="dropdown-body-inner">
+                            <div class="daily-tasks-list" id="dailyTasksList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIDDLE: Lessons -->
+            <div class="middle-panel">
+                <div class="dropdown-wrapper" id="lessonSection">
+                    <div class="dropdown-header" onclick="toggleLessons()">
+                        <span class="title">📝 Lessons <span id="selectedClassLabel">(choose a class)</span></span>
+                        <span class="arrow open" id="lessonsArrow">▼</span>
+                    </div>
+                    <div class="dropdown-body open" id="lessonsBody">
+                        <div class="dropdown-body-inner">
+                            <details class="lesson-subsection" open>
+                                <summary>General</summary>
+                                <div class="lesson-subsection-body">
+                                    <div class="lesson-general-info" id="lessonGeneralInfo">Choose a class to see class info.</div>
+                                </div>
+                            </details>
+                            <details class="lesson-subsection" open>
+                                <summary>Detail</summary>
+                                <div class="lesson-subsection-body">
+                                    <div class="form-row">
+                                        <select id="lessonClass" onchange="selectLessonClass(this.value)">
+                                            <option value="">Choose class first</option>
+                                        </select>
+                                        <input type="text" id="lessonName" placeholder="Lesson name" />
+                                        <input type="text" id="lessonDate" placeholder="Date (dd/mm/yyyy)" />
+                                        <select id="lessonUnder18" onchange="updateLessonZaloVisibility()">
+                                            <option value="no">Under 18? No</option>
+                                            <option value="yes">Under 18? Yes</option>
+                                        </select>
+                                        <input type="hidden" id="lessonOtherLinks" value="" />
+                                        <button id="lessonSubmitBtn" onclick="addLesson()">➕ Add</button>
+                                        <button id="lessonCancelEditBtn" class="edit-cancel-btn" onclick="cancelLessonEdit()">Cancel</button>
+                                        <textarea id="lessonNote" placeholder="Detail"></textarea>
+                                        <div class="lesson-check-row">
+                                            <label><input type="checkbox" id="lessonAttendance" /> Attendance</label>
+                                            <label><input type="checkbox" id="lessonVideoUploaded" /> Video uploaded</label>
+                                            <label><input type="checkbox" id="lessonHomeworkUploaded" /> Homework uploaded</label>
+                                            <label><input type="checkbox" id="lessonShubHomework" /> SHUB homework</label>
+                                            <label><input type="checkbox" id="lessonWorksheetHomework" /> Worksheet homework</label>
+                                            <label><input type="checkbox" id="lessonOtherHomework" /> Other homework</label>
+                                            <label><input type="checkbox" id="lessonZaloClass" /> Zalo class group</label>
+                                            <label class="conditional-check hidden" id="lessonZaloParentWrap"><input type="checkbox" id="lessonZaloParent" /> Zalo parent group</label>
+                                        </div>
+                                    </div>
+                                    <div class="filter-bar">
+                                        <select id="lessonTimeFilter" onchange="renderLessons()">
+                                            <option value="all">All time</option>
+                                            <option value="custom">Custom range</option>
+                                        </select>
+                                        <input type="date" id="lessonFromDate" onchange="renderLessons()" title="From date" />
+                                        <input type="date" id="lessonToDate" onchange="renderLessons()" title="To date" />
+                                        <span style="font-size:13px;opacity:0.7;">
+                                            <input type="checkbox" id="selectAllLessons" onchange="toggleAllLessons(this)" /> Select all
+                                        </span>
+                                        <div class="bulk-actions">
+                                            <button class="danger" onclick="bulkDeleteLessons()">🗑 Delete selected</button>
+                                            <button class="success" onclick="bulkExportLessons()">📥 Export selected</button>
+                                            <button onclick="bulkExportLessonsICS()">📅 Export ICS</button>
+                                        </div>
+                                    </div>
+                                    <div class="table-wrap">
+                                        <table id="lessonTable">
+                                            <thead><tr>
+                                                <th><input type="checkbox" id="selectAllLessonsHead" onchange="toggleAllLessons(this)" /></th>
+                                                <th class="resizable" data-col="class">Class<span class="col-resizer" data-col="class"></span></th>
+                                                <th class="resizable" data-col="lesson">Lesson<span class="col-resizer" data-col="lesson"></span></th>
+                                                <th class="resizable" data-col="date">Date<span class="col-resizer" data-col="date"></span></th>
+                                                <th class="resizable" data-col="status">Status<span class="col-resizer" data-col="status"></span></th>
+                                                <th class="resizable" data-col="checks">Checks<span class="col-resizer" data-col="checks"></span></th>
+                                                <th class="resizable" data-col="links">Links<span class="col-resizer" data-col="links"></span></th>
+                                                <th class="resizable" data-col="note">Detail<span class="col-resizer" data-col="note"></span></th>
+                                                <th></th>
+                                            </tr></thead>
+                                            <tbody id="lessonTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TO-DO LIST -->
+                <div class="dropdown-wrapper">
+                    <div class="dropdown-header" onclick="toggleTodos()">
+                        <span class="title">✅ To-Do List</span>
+                        <span class="arrow open" id="todosArrow">▼</span>
+                    </div>
+                    <div class="dropdown-body open" id="todosBody">
+                        <div class="dropdown-body-inner">
+                            <div class="todo-form-row">
+                                <input type="text" id="todoTitle" placeholder="Task title" style="flex:2;" />
+                                <select id="todoClass" style="flex:1;" onchange="toggleCustomClass()">
+                                    <option value="">None</option>
+                                </select>
+                                <input type="text" id="todoCustomClass" placeholder="Custom class" class="custom-class-input" style="flex:1;" />
+                                <input type="date" id="todoAssignedDate" title="Assigned date" style="flex:0.8;" />
+                                <input type="date" id="todoDueDate" title="Due date" style="flex:0.8;" />
+                                <button type="button" onclick="addTodo()">➕ Add</button>
+                                <span class="shortcut-hint">⌘+Enter</span>
+                            </div>
+                            <div class="todo-bulk-actions">
+                                <button id="todoSelectBtn" onclick="toggleTodoSelectMode()">Select</button>
+                                <div id="todoBulkOptions" style="display:none;gap:8px;flex-wrap:wrap;">
+                                    <button onclick="toggleAllTodos()">Select All</button>
+                                    <button class="danger" onclick="bulkDeleteTodos()">🗑 Delete All</button>
+                                    <button onclick="bulkExportTodos()">📥 Export All</button>
+                                </div>
+                            </div>
+                            <div class="todo-list" id="todoList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="detail-modal" id="lessonDetailModal" onclick="closeLessonDetail()">
+        <div class="detail-modal-card" onclick="event.stopPropagation()">
+            <div class="detail-modal-head">
+                <h3 id="lessonDetailTitle">Lesson detail</h3>
+                <button class="see-more-btn" onclick="closeLessonDetail()">Close</button>
+            </div>
+            <div class="detail-modal-body" id="lessonDetailBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // THEME
+        // ============================================================
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('teachingTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('teachingTheme') === 'dark') document.body.classList.add('dark');
+
+        // ============================================================
+        // DATA
+        // ============================================================
+        function getData() {
+            try {
+                return normalizeData(JSON.parse(localStorage.getItem('teachingData')));
+            } catch { return { classes: [], lessons: [], todos: [] }; }
+        }
+
+        function normalizeData(data) {
+            return {
+                classes: Array.isArray(data?.classes) ? data.classes.map(c => ({
+                    ...c,
+                    salaryRate: parseMoney(c.salaryRate ?? c.rate ?? c.fee ?? 0)
+                })) : [],
+                lessons: Array.isArray(data?.lessons) ? data.lessons.map(l => ({
+                    ...l,
+                    otherLinks: l.otherLinks || l.notes || '',
+                    note: l.note || '',
+                    completed: l.completed === true || l.completed === 'true' || l.completed === '1' || l.completed === 'yes',
+                    attendanceChecked: l.attendanceChecked === true || l.attendanceChecked === 'true' || l.attendanceChecked === '1' || l.attendanceChecked === 'yes',
+                    videoUploaded: l.videoUploaded === true || l.videoUploaded === 'true' || l.videoUploaded === '1' || l.videoUploaded === 'yes' || l.lessonUploaded === true || l.lessonUploaded === 'true' || l.lessonUploaded === '1' || l.lessonUploaded === 'yes',
+                    homeworkUploaded: l.homeworkUploaded === true || l.homeworkUploaded === 'true' || l.homeworkUploaded === '1' || l.homeworkUploaded === 'yes',
+                    shubHomeworkUploaded: l.shubHomeworkUploaded === true || l.shubHomeworkUploaded === 'true' || l.shubHomeworkUploaded === '1' || l.shubHomeworkUploaded === 'yes' || l.shubHomework === true || l.shubHomework === 'true' || l.shubHomework === '1' || l.shubHomework === 'yes',
+                    worksheetHomeworkUploaded: l.worksheetHomeworkUploaded === true || l.worksheetHomeworkUploaded === 'true' || l.worksheetHomeworkUploaded === '1' || l.worksheetHomeworkUploaded === 'yes' || l.worksheetHomework === true || l.worksheetHomework === 'true' || l.worksheetHomework === '1' || l.worksheetHomework === 'yes',
+                    otherHomeworkUploaded: l.otherHomeworkUploaded === true || l.otherHomeworkUploaded === 'true' || l.otherHomeworkUploaded === '1' || l.otherHomeworkUploaded === 'yes' || l.otherHomework === true || l.otherHomework === 'true' || l.otherHomework === '1' || l.otherHomework === 'yes',
+                    under18: l.under18 === true || l.under18 === 'true' || l.under18 === '1' || l.under18 === 'yes' || l.zaloParentNotified === true || l.zaloParentNotified === 'true' || l.zaloParentNotified === '1' || l.zaloParentNotified === 'yes',
+                    zaloClassNotified: l.zaloClassNotified === true || l.zaloClassNotified === 'true' || l.zaloClassNotified === '1' || l.zaloClassNotified === 'yes',
+                    zaloParentNotified: l.zaloParentNotified === true || l.zaloParentNotified === 'true' || l.zaloParentNotified === '1' || l.zaloParentNotified === 'yes',
+                    fee: Number(l.fee) || 200000
+                })) : [],
+                todos: Array.isArray(data?.todos) ? data.todos.map(t => ({
+                    ...t,
+                    assignedDate: t.assignedDate || t.date || '',
+                    dueDate: t.dueDate || t.date || '',
+                    date: t.dueDate || t.date || t.assignedDate || '',
+                    done: t.done === true || t.done === 'true' || t.done === '1' || t.done === 'yes'
+                })) : []
+            };
+        }
+
+        function saveData(d) {
+            const normalized = normalizeData(d);
+            localStorage.setItem('teachingData', JSON.stringify(normalized));
+            syncCompletedLessonsToPayroll(normalized);
+        }
+
+        function normalizeLessonDateForPayroll(value) {
+            const text = String(value || '').trim();
+            const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (match) return `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        }
+
+        function parseMoney(value) {
+            const clean = String(value || '').replace(/[^\d.-]/g, '');
+            return Number(clean) || 0;
+        }
+
+        function formatMoney(value) {
+            return `${Math.round(Number(value) || 0).toLocaleString('en-US')} VND`;
+        }
+
+        function syncCompletedLessonsToPayroll(teachingData = getData()) {
+            let payrollRows;
+            try {
+                payrollRows = JSON.parse(localStorage.getItem('teachingPayroll_v1')) || [];
+            } catch {
+                payrollRows = [];
+            }
+            payrollRows = Array.isArray(payrollRows) ? payrollRows : [];
+            const classMap = Object.fromEntries(teachingData.classes.map(item => [item.id, item]));
+            const completedLessonIds = new Set(teachingData.lessons.filter(lesson => lesson.completed).map(lesson => lesson.id));
+
+            payrollRows = payrollRows.filter(row => {
+                if (!row.sourceLessonId || !row.autoManaged) return true;
+                if (completedLessonIds.has(row.sourceLessonId)) return true;
+                return row.payStatus === 'Paid' || row.received === 'Yes';
+            });
+
+            teachingData.lessons.filter(lesson => lesson.completed).forEach(lesson => {
+                const cls = classMap[lesson.classId];
+                const existing = payrollRows.find(row => row.sourceLessonId === lesson.id);
+                const mapped = {
+                    sourceLessonId: lesson.id,
+                    autoManaged: true,
+                    date: normalizeLessonDateForPayroll(lesson.date),
+                    className: cls?.code || '',
+                    detail: lesson.name || '',
+                    fee: parseMoney(cls?.salaryRate) || parseMoney(lesson.fee) || 200000,
+                    lessonStatus: 'Completed',
+                    note: lesson.note || ''
+                };
+                if (existing) {
+                    Object.assign(existing, mapped);
+                    existing.payStatus = existing.payStatus || 'Unpaid';
+                    existing.received = existing.received || 'No';
+                } else {
+                    payrollRows.push({
+                        id: Date.now() + '_' + Math.random().toString(16).slice(2),
+                        ...mapped,
+                        payStatus: 'Unpaid',
+                        received: 'No'
+                    });
+                }
+            });
+            localStorage.setItem('teachingPayroll_v1', JSON.stringify(payrollRows));
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function escapeAttr(value) {
+            return escapeHTML(value);
+        }
+
+        function formatDateParts(day, month, year) {
+            return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+        }
+
+        function parseLessonDate(date) {
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return null;
+            const [day, month, year] = date.split('/').map(Number);
+            const parsed = new Date(year, month - 1, day);
+            if (
+                parsed.getFullYear() !== year ||
+                parsed.getMonth() !== month - 1 ||
+                parsed.getDate() !== day
+            ) return null;
+            return parsed;
+        }
+
+        function dateInputToDisplay(value) {
+            if (!value) return '';
+            const [year, month, day] = value.split('-').map(Number);
+            if (!year || !month || !day) return '';
+            return formatDateParts(day, month, year);
+        }
+
+        function safeLink(url) {
+            let trimmed = String(url ?? '').trim();
+            if (!trimmed) return '';
+            if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) && trimmed.includes('.')) {
+                trimmed = `https://${trimmed}`;
+            }
+            try {
+                const parsed = new URL(trimmed, window.location.href);
+                if (!['http:', 'https:'].includes(parsed.protocol)) return '';
+                return parsed.href;
+            } catch {
+                return '';
+            }
+        }
+
+        function escapeICS(value) {
+            return String(value ?? '')
+                .replace(/\\/g, '\\\\')
+                .replace(/\n/g, '\\n')
+                .replace(/,/g, '\\,')
+                .replace(/;/g, '\\;');
+        }
+
+        function formatICSDateTime(date) {
+            return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
+        }
+
+        function parseClassTime(time) {
+            const match = String(time || '').match(/(\d{1,2})(?:(?::|h)(\d{2}))?\s*[-–—]\s*(\d{1,2})(?:(?::|h)(\d{2}))?/i);
+            if (!match) {
+                return { startHour: 14, startMin: 0, endHour: 16, endMin: 0 };
+            }
+
+            const startHour = Number(match[1]);
+            const startMin = Number(match[2] || 0);
+            const endHour = Number(match[3]);
+            const endMin = Number(match[4] || 0);
+
+            if (
+                startHour < 0 || startHour > 23 ||
+                endHour < 0 || endHour > 23 ||
+                startMin < 0 || startMin > 59 ||
+                endMin < 0 || endMin > 59
+            ) {
+                return { startHour: 14, startMin: 0, endHour: 16, endMin: 0 };
+            }
+
+            return { startHour, startMin, endHour, endMin };
+        }
+
+        function parseCSV(text) {
+            const firstLine = String(text || '').split(/\r?\n/)[0] || '';
+            if (firstLine.includes('\t')) {
+                return String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim()).map(line => line.split('\t').map(cell => cell.trim()));
+            }
+            const rows = [];
+            let row = [];
+            let cell = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const next = text[i + 1];
+
+                if (char === '"' && inQuotes && next === '"') {
+                    cell += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    row.push(cell);
+                    cell = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell);
+                    if (row.some(value => value.trim())) rows.push(row);
+                    row = [];
+                    cell = '';
+                } else {
+                    cell += char;
+                }
+            }
+
+            row.push(cell);
+            if (row.some(value => value.trim())) rows.push(row);
+            return rows;
+        }
+
+        function syncTeachingTodosToPlanner() {
+            const teaching = getData();
+            let planner;
+            try {
+                planner = JSON.parse(localStorage.getItem('plannerData')) || { tasks: [] };
+            } catch {
+                planner = { tasks: [] };
+            }
+            planner.tasks = Array.isArray(planner.tasks) ? planner.tasks : [];
+
+            const originalTeachingTodos = teaching.todos.filter(t => !t.linkedPlannerTaskId);
+            const teachingIds = new Set(originalTeachingTodos.map(t => t.id));
+            planner.tasks = planner.tasks.filter(t => !t.linkedTeachingTodoId || teachingIds.has(t.linkedTeachingTodoId));
+
+            originalTeachingTodos.forEach(todo => {
+                const existing = planner.tasks.find(t => t.linkedTeachingTodoId === todo.id);
+                const mapped = {
+                    id: existing?.id || `teaching_${todo.id}`,
+                    linkedTeachingTodoId: todo.id,
+                    title: todo.title,
+                    category: todo.classLabel || 'Teaching',
+                    status: todo.done ? 'done' : 'todo',
+                    date: todo.dueDate || todo.date || todo.assignedDate || '',
+                    startDate: todo.dueDate || todo.date || todo.assignedDate || '',
+                    endDate: todo.dueDate || todo.date || todo.assignedDate || '',
+                    assignedDate: todo.assignedDate || todo.date || '',
+                    dueDate: todo.dueDate || todo.date || '',
+                    desc: `From Teaching to-do${todo.assignedDate ? `\nAssigned: ${todo.assignedDate}` : ''}${todo.dueDate ? `\nDue: ${todo.dueDate}` : ''}`
+                };
+                if (existing) Object.assign(existing, mapped);
+                else planner.tasks.push(mapped);
+            });
+
+            localStorage.setItem('plannerData', JSON.stringify(planner));
+        }
+
+        let selectedClassId = null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedDate = null;
+        let classesOpen = true;
+        let lessonsOpen = true;
+        let todosOpen = true;
+        let dailyTasksOpen = true;
+        let editingClassId = null;
+        let editingLessonId = null;
+        let todoSelectMode = false;
+        let lessonColumnSizes = JSON.parse(localStorage.getItem('teachingLessonColumnSizes_v1') || '{}');
+        const lessonColumnLimits = {
+            class: [78, 150],
+            lesson: [150, 340],
+            date: [90, 140],
+            status: [86, 140],
+            checks: [150, 280],
+            links: [88, 160],
+            note: [120, 300]
+        };
+
+        function clampLessonColumn(key, value) {
+            const [min, max] = lessonColumnLimits[key] || [70, 260];
+            return Math.max(min, Math.min(max, Number(value) || min));
+        }
+
+        // ============================================================
+        // CLASSES
+        // ============================================================
+        function toggleClasses() {
+            classesOpen = !classesOpen;
+            document.getElementById('classesBody').classList.toggle('open');
+            document.getElementById('classesArrow').classList.toggle('open');
+        }
+
+        function toggleLessons() {
+            lessonsOpen = !lessonsOpen;
+            document.getElementById('lessonsBody').classList.toggle('open');
+            document.getElementById('lessonsArrow').classList.toggle('open');
+        }
+
+        function toggleTodos() {
+            todosOpen = !todosOpen;
+            document.getElementById('todosBody').classList.toggle('open');
+            document.getElementById('todosArrow').classList.toggle('open');
+        }
+
+        function toggleDailyTasks() {
+            dailyTasksOpen = !dailyTasksOpen;
+            document.getElementById('dailyTasksBody').classList.toggle('open');
+            document.getElementById('dailyTasksArrow').classList.toggle('open');
+        }
+
+        function renderDailyTasks() {
+            const data = getData();
+            const container = document.getElementById('dailyTasksList');
+
+            // Convert selectedDate (dd/mm/yyyy) to YYYY-MM-DD format for comparison
+            let dateToShow = selectedDate;
+            if (dateToShow && dateToShow.includes('/')) {
+                const [d, m, y] = dateToShow.split('/');
+                dateToShow = `${y}-${m}-${d}`;
+            }
+
+            const todaysTasks = data.todos.filter(t => {
+                const dueDate = t.dueDate || t.date;
+                return dueDate === dateToShow;
+            });
+
+            if (!todaysTasks.length) {
+                container.innerHTML = '<div class="daily-tasks-empty">No tasks for this day</div>';
+                return;
+            }
+
+            container.innerHTML = todaysTasks.map(task => `
+                <div class="daily-task-item ${task.done ? 'done' : ''}">
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTodoStatus('${task.id}')" />
+                    <div class="task-title">${escapeHTML(task.title)}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectLessonClass(id) {
+            selectedClassId = id || null;
+            updateLessonClassLinks();
+            renderAll();
+        }
+
+        function updateLessonClassLinks() {
+            const data = getData();
+            const cls = data.classes.find(c => c.id === selectedClassId);
+            const container = document.getElementById('lessonGeneralInfo');
+            if (!container) return;
+            if (!cls) {
+                container.textContent = 'Choose a class to see class info.';
+                return;
+            }
+            const links = [];
+            const canva = safeLink(cls.canva);
+            const shub = safeLink(cls.shub);
+            if (canva) links.push(`<a href="${escapeAttr(canva)}" target="_blank" rel="noopener">Canva</a>`);
+            if (shub) links.push(`<a href="${escapeAttr(shub)}" target="_blank" rel="noopener">SHUB</a>`);
+            container.innerHTML = `
+                <div class="lesson-info-grid">
+                    <span><strong>Class</strong>${escapeHTML(cls.code || 'Untitled class')}</span>
+                    <span><strong>Time</strong>${escapeHTML(cls.time || 'Not set')}</span>
+                    <span><strong>Salary</strong>${cls.salaryRate ? escapeHTML(formatMoney(cls.salaryRate)) : 'Not set'}</span>
+                    <span><strong>Links</strong>${links.length ? links.join(' ') : 'No links saved'}</span>
+                </div>
+            `;
+        }
+
+        function toggleCustomClass() {
+            const val = document.getElementById('todoClass').value;
+            const customInput = document.getElementById('todoCustomClass');
+            if (val === 'custom') {
+                customInput.classList.add('show');
+                customInput.focus();
+            } else {
+                customInput.classList.remove('show');
+            }
+        }
+
+        function saveClass() {
+            const code = document.getElementById('classCode').value.trim();
+            const time = document.getElementById('classTime').value.trim();
+            const salaryRate = parseMoney(document.getElementById('classSalaryRate').value);
+            const canva = document.getElementById('classCanva').value.trim();
+            const shub = document.getElementById('classShub').value.trim();
+            if (!code) return alert('Please enter class code');
+            const data = getData();
+            if (editingClassId) {
+                const cls = data.classes.find(item => item.id === editingClassId);
+                if (!cls) return cancelClassEdit();
+                Object.assign(cls, { code, time, salaryRate, canva, shub });
+                selectedClassId = cls.id;
+            } else {
+                const id = Date.now() + '_cls';
+                data.classes.push({ id, code, time, salaryRate, canva, shub });
+                selectedClassId = id;
+            }
+            saveData(data);
+            resetClassForm();
+            renderAll();
+        }
+
+        function resetClassForm() {
+            editingClassId = null;
+            document.getElementById('classCode').value = '';
+            document.getElementById('classTime').value = '';
+            document.getElementById('classSalaryRate').value = '';
+            document.getElementById('classCanva').value = '';
+            document.getElementById('classShub').value = '';
+            document.getElementById('classSubmitBtn').textContent = '➕ Add';
+            document.getElementById('classCancelEditBtn').classList.remove('show');
+        }
+
+        function cancelClassEdit() {
+            resetClassForm();
+            renderAll();
+        }
+
+        function editClass(id) {
+            const data = getData();
+            const cls = data.classes.find(item => item.id === id);
+            if (!cls) return;
+            editingClassId = id;
+            selectedClassId = id;
+            document.getElementById('classCode').value = cls.code || '';
+            document.getElementById('classTime').value = cls.time || '';
+            document.getElementById('classSalaryRate').value = cls.salaryRate ? String(Math.round(Number(cls.salaryRate))).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
+            document.getElementById('classCanva').value = cls.canva || '';
+            document.getElementById('classShub').value = cls.shub || '';
+            document.getElementById('classSubmitBtn').textContent = '💾 Save';
+            document.getElementById('classCancelEditBtn').classList.add('show');
+            document.getElementById('classesBody').classList.add('open');
+            document.getElementById('classesArrow').classList.add('open');
+            renderClasses();
+            document.getElementById('classCode').focus();
+        }
+
+        function deleteClass(id) {
+            if (!confirm('Delete this class?')) return;
+            const data = getData();
+            data.classes = data.classes.filter(c => c.id !== id);
+            data.lessons = data.lessons.filter(l => l.classId !== id);
+            data.todos = data.todos.filter(t => t.classId !== id);
+            saveData(data);
+            if (selectedClassId === id) selectedClassId = null;
+            if (editingClassId === id) resetClassForm();
+            renderAll();
+        }
+
+        function selectClass(id) {
+            selectedClassId = id;
+            renderAll();
+        }
+
+        function renderClasses() {
+            const data = getData();
+            const container = document.getElementById('classList');
+            container.innerHTML = data.classes.map(c => `
+                <div class="class-item ${selectedClassId === c.id ? 'active' : ''}" onclick="selectClass('${c.id}')">
+                    <div class="class-code">${escapeHTML(c.code || 'Untitled class')}</div>
+                    <button type="button" class="class-edit-btn" onclick="event.stopPropagation();editClass('${c.id}')">Change</button>
+                    <span class="del" onclick="event.stopPropagation();deleteClass('${c.id}')">x</span>
+                    <div class="class-check-wrapper">
+                        <input type="checkbox" class="class-check" value="${c.id}" onclick="event.stopPropagation();" />
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('selectAllClasses').checked = false;
+
+            const label = document.getElementById('selectedClassLabel');
+            const cls = data.classes.find(c => c.id === selectedClassId);
+            label.textContent = cls ? `- ${cls.code}` : '(choose a class)';
+
+            const lessonClass = document.getElementById('lessonClass');
+            const currentLessonClass = selectedClassId || lessonClass.value;
+            lessonClass.innerHTML = `<option value="">Choose class first</option>` +
+                data.classes.map(c => `<option value="${c.id}">${escapeHTML(c.code)}</option>`).join('');
+            lessonClass.value = [...lessonClass.options].some(option => option.value === currentLessonClass) ? currentLessonClass : '';
+            selectedClassId = lessonClass.value || null;
+            updateLessonClassLinks();
+
+            // Update todo class options
+            const todoClass = document.getElementById('todoClass');
+            const currentVal = todoClass.value;
+            const opts = data.classes.map(c => `<option value="${c.id}">${escapeHTML(c.code)}</option>`).join('');
+            todoClass.innerHTML = `<option value="">None</option>` + opts + `<option value="custom">✏️ Custom...</option>`;
+            todoClass.value = [...todoClass.options].some(option => option.value === currentVal) ? currentVal : '';
+            if (currentVal !== 'custom') {
+                document.getElementById('todoCustomClass').classList.remove('show');
+            }
+        }
+
+        // ============================================================
+        // BULK CLASS ACTIONS
+        // ============================================================
+        function toggleAllClasses() {
+            const checked = document.getElementById('selectAllClasses').checked;
+            document.querySelectorAll('.class-check').forEach(cb => cb.checked = checked);
+        }
+
+        function getSelectedClassIds() {
+            return Array.from(document.querySelectorAll('.class-check:checked')).map(cb => cb.value);
+        }
+
+        function getSelectedClasses() {
+            const data = getData();
+            const ids = getSelectedClassIds();
+            return data.classes.filter(c => ids.includes(c.id));
+        }
+
+        function bulkDeleteClasses() {
+            const ids = getSelectedClassIds();
+            if (!ids.length) return alert('Select at least one class');
+            if (!confirm(`Delete ${ids.length} class(es) and all their lessons?`)) return;
+            const data = getData();
+            data.classes = data.classes.filter(c => !ids.includes(c.id));
+            data.lessons = data.lessons.filter(l => !ids.includes(l.classId));
+            data.todos = data.todos.filter(t => !ids.includes(t.classId));
+            if (selectedClassId && ids.includes(selectedClassId)) selectedClassId = null;
+            saveData(data);
+            renderAll();
+        }
+
+        function bulkExportClasses() {
+            const list = getSelectedClasses();
+            if (!list.length) return alert('Select at least one class');
+            const headers = ['id', 'code', 'time', 'salaryRate', 'canva', 'shub'];
+            const rows = list.map(c => headers.map(h => `"${(c[h] || '').toString().replace(/"/g, '""')}"`).join(','));
+            downloadCSV(headers.join(',') + '\n' + rows.join('\n'), 'classes');
+        }
+
+        // ============================================================
+        // LESSONS
+        // ============================================================
+        function updateLessonZaloVisibility() {
+            const under18 = document.getElementById('lessonUnder18')?.value === 'yes';
+            const parentWrap = document.getElementById('lessonZaloParentWrap');
+            const parentCheck = document.getElementById('lessonZaloParent');
+            if (!parentWrap || !parentCheck) return;
+            parentWrap.classList.toggle('hidden', !under18);
+            if (!under18) parentCheck.checked = false;
+        }
+
+        function addLesson() {
+            if (!selectedClassId) return alert('Please select a class first');
+            const name = document.getElementById('lessonName').value.trim();
+            const date = document.getElementById('lessonDate').value.trim();
+            const otherLinks = document.getElementById('lessonOtherLinks').value.trim();
+            const note = document.getElementById('lessonNote').value.trim();
+            const under18 = document.getElementById('lessonUnder18').value === 'yes';
+            const attendanceChecked = document.getElementById('lessonAttendance').checked;
+            const videoUploaded = document.getElementById('lessonVideoUploaded').checked;
+            const homeworkUploaded = document.getElementById('lessonHomeworkUploaded').checked;
+            const shubHomeworkUploaded = document.getElementById('lessonShubHomework').checked;
+            const worksheetHomeworkUploaded = document.getElementById('lessonWorksheetHomework').checked;
+            const otherHomeworkUploaded = document.getElementById('lessonOtherHomework').checked;
+            const zaloClassNotified = document.getElementById('lessonZaloClass').checked;
+            const zaloParentNotified = under18 && document.getElementById('lessonZaloParent').checked;
+            if (!name || !date) return alert('Please fill in lesson name and date');
+            if (!parseLessonDate(date)) return alert('Date must be a valid date in dd/mm/yyyy format');
+            const data = getData();
+            if (editingLessonId) {
+                const lesson = data.lessons.find(l => l.id === editingLessonId);
+                if (!lesson) return cancelLessonEdit();
+                lesson.classId = selectedClassId;
+                lesson.name = name;
+                lesson.date = date;
+                lesson.otherLinks = otherLinks;
+                lesson.note = note;
+                lesson.under18 = under18;
+                lesson.attendanceChecked = attendanceChecked;
+                lesson.videoUploaded = videoUploaded;
+                lesson.homeworkUploaded = homeworkUploaded;
+                lesson.shubHomeworkUploaded = shubHomeworkUploaded;
+                lesson.worksheetHomeworkUploaded = worksheetHomeworkUploaded;
+                lesson.otherHomeworkUploaded = otherHomeworkUploaded;
+                lesson.zaloClassNotified = zaloClassNotified;
+                lesson.zaloParentNotified = zaloParentNotified;
+            } else {
+                data.lessons.push({ id: Date.now() + '_lsn', classId: selectedClassId, name, date, otherLinks, note, under18, attendanceChecked, videoUploaded, homeworkUploaded, shubHomeworkUploaded, worksheetHomeworkUploaded, otherHomeworkUploaded, zaloClassNotified, zaloParentNotified });
+            }
+            saveData(data);
+            resetLessonForm();
+            renderAll();
+        }
+
+        function resetLessonForm() {
+            editingLessonId = null;
+            document.getElementById('lessonName').value = '';
+            document.getElementById('lessonDate').value = '';
+            document.getElementById('lessonOtherLinks').value = '';
+            document.getElementById('lessonNote').value = '';
+            document.getElementById('lessonUnder18').value = 'no';
+            document.getElementById('lessonAttendance').checked = false;
+            document.getElementById('lessonVideoUploaded').checked = false;
+            document.getElementById('lessonHomeworkUploaded').checked = false;
+            document.getElementById('lessonShubHomework').checked = false;
+            document.getElementById('lessonWorksheetHomework').checked = false;
+            document.getElementById('lessonOtherHomework').checked = false;
+            document.getElementById('lessonZaloClass').checked = false;
+            document.getElementById('lessonZaloParent').checked = false;
+            updateLessonZaloVisibility();
+            document.getElementById('lessonSubmitBtn').textContent = '➕ Add';
+            document.getElementById('lessonCancelEditBtn').classList.remove('show');
+        }
+
+        function editLesson(id) {
+            const data = getData();
+            const lesson = data.lessons.find(l => l.id === id);
+            if (!lesson) return;
+            editingLessonId = id;
+            selectedClassId = lesson.classId;
+            renderClasses();
+            document.getElementById('lessonName').value = lesson.name || '';
+            document.getElementById('lessonDate').value = lesson.date || '';
+            document.getElementById('lessonOtherLinks').value = lesson.otherLinks || '';
+            document.getElementById('lessonNote').value = lesson.note || '';
+            document.getElementById('lessonUnder18').value = lesson.under18 ? 'yes' : 'no';
+            updateLessonZaloVisibility();
+            document.getElementById('lessonAttendance').checked = !!lesson.attendanceChecked;
+            document.getElementById('lessonVideoUploaded').checked = !!lesson.videoUploaded;
+            document.getElementById('lessonHomeworkUploaded').checked = !!lesson.homeworkUploaded;
+            document.getElementById('lessonShubHomework').checked = !!lesson.shubHomeworkUploaded;
+            document.getElementById('lessonWorksheetHomework').checked = !!lesson.worksheetHomeworkUploaded;
+            document.getElementById('lessonOtherHomework').checked = !!lesson.otherHomeworkUploaded;
+            document.getElementById('lessonZaloClass').checked = !!lesson.zaloClassNotified;
+            document.getElementById('lessonZaloParent').checked = !!lesson.zaloParentNotified;
+            document.getElementById('lessonSubmitBtn').textContent = '💾 Save';
+            document.getElementById('lessonCancelEditBtn').classList.add('show');
+            document.getElementById('lessonsBody').classList.add('open');
+            document.getElementById('lessonsArrow').classList.add('open');
+            document.getElementById('lessonName').focus();
+        }
+
+        function cancelLessonEdit() {
+            resetLessonForm();
+            renderAll();
+        }
+
+        function deleteLesson(id) {
+            if (!confirm('Delete this lesson?')) return;
+            const data = getData();
+            data.lessons = data.lessons.filter(l => l.id !== id);
+            saveData(data);
+            renderAll();
+        }
+
+        function toggleLessonCompleted(id) {
+            const data = getData();
+            const lesson = data.lessons.find(l => l.id === id);
+            if (!lesson) return;
+            lesson.completed = !lesson.completed;
+            saveData(data);
+            renderAll();
+        }
+
+        function toggleLessonCheck(id, field) {
+            const data = getData();
+            const lesson = data.lessons.find(l => l.id === id);
+            if (!lesson || !['attendanceChecked', 'videoUploaded', 'homeworkUploaded', 'shubHomeworkUploaded', 'worksheetHomeworkUploaded', 'otherHomeworkUploaded', 'zaloClassNotified', 'zaloParentNotified'].includes(field)) return;
+            if (field === 'zaloParentNotified' && !lesson.under18) return;
+            lesson[field] = !lesson[field];
+            saveData(data);
+            renderAll();
+        }
+
+        function shortLessonDetail(value, limit = 44) {
+            const text = String(value || '').replace(/\s+/g, ' ').trim();
+            if (!text) return '';
+            return text.length > limit ? `${text.slice(0, limit).trim()}...` : text;
+        }
+
+        function renderLessonDetailCell(lesson) {
+            const note = String(lesson.note || '').trim();
+            if (!note) return '<span class="lesson-detail-empty">No detail</span>';
+            return `
+                <div class="lesson-detail-preview">
+                    <span class="lesson-detail-snippet">${escapeHTML(shortLessonDetail(note))}</span>
+                    <button class="see-more-btn" onclick="showLessonDetail('${escapeAttr(lesson.id)}')">See more</button>
+                </div>
+            `;
+        }
+
+        function showLessonDetail(id) {
+            const lesson = getData().lessons.find(l => l.id === id);
+            if (!lesson) return;
+            document.getElementById('lessonDetailTitle').textContent = lesson.name || 'Lesson detail';
+            document.getElementById('lessonDetailBody').textContent = lesson.note || 'No detail';
+            document.getElementById('lessonDetailModal').classList.add('show');
+        }
+
+        function closeLessonDetail() {
+            document.getElementById('lessonDetailModal')?.classList.remove('show');
+        }
+
+        function renderLessons() {
+            const data = getData();
+            const clsMap = Object.fromEntries(data.classes.map(c => [c.id, c]));
+            const list = filterLessonsByTime(data.lessons.filter(l => l.classId === selectedClassId));
+            const tbody = document.getElementById('lessonTableBody');
+            applyLessonColumnSizes();
+            tbody.innerHTML = list.map(l => {
+                const cls = clsMap[l.classId];
+                const links = [];
+                const canva = safeLink(cls?.canva);
+                const shub = safeLink(cls?.shub);
+                if (canva) links.push(`<a href="${escapeAttr(canva)}" target="_blank" rel="noopener">Canva</a>`);
+                if (shub) links.push(`<a href="${escapeAttr(shub)}" target="_blank" rel="noopener">SHUB</a>`);
+                const otherLinks = l.otherLinks || l.notes || '';
+                if (otherLinks) links.push(`<span>${escapeHTML(otherLinks)}</span>`);
+                return `
+                    <tr>
+                        <td><input type="checkbox" class="lesson-check" value="${l.id}" /></td>
+                        <td><div class="row-resizable">${cls ? escapeHTML(cls.code) : 'Unknown'}</div></td>
+                        <td><div class="row-resizable">${escapeHTML(l.name)}</div></td>
+                        <td><div class="row-resizable">${escapeHTML(l.date)}</div></td>
+                        <td><div class="row-resizable"><button onclick="toggleLessonCompleted('${l.id}')" style="border:1px solid ${l.completed ? '#1f9d55' : 'var(--border)'};border-radius:6px;background:${l.completed ? '#d9f2df' : 'var(--bg)'};color:${l.completed ? '#176b36' : 'var(--text)'};cursor:pointer;padding:2px 8px;">${l.completed ? 'Done' : 'Mark done'}</button></div></td>
+                        <td><div class="row-resizable">
+                            <label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.attendanceChecked ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'attendanceChecked')" /> Attendance</label>
+                            <label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.videoUploaded ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'videoUploaded')" /> Video</label>
+                            <label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.homeworkUploaded ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'homeworkUploaded')" /> Homework</label>
+                            <label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.shubHomeworkUploaded ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'shubHomeworkUploaded')" /> SHUB homework</label>
+                            <label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.worksheetHomeworkUploaded ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'worksheetHomeworkUploaded')" /> Worksheet</label>
+                            <label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.otherHomeworkUploaded ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'otherHomeworkUploaded')" /> Other homework</label>
+                            <label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.zaloClassNotified ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'zaloClassNotified')" /> Zalo class</label>
+                            ${l.under18 ? `<label class="lesson-check-badge"><input type="checkbox" class="lesson-mini-check" ${l.zaloParentNotified ? 'checked' : ''} onchange="toggleLessonCheck('${l.id}', 'zaloParentNotified')" /> Zalo parent</label>` : ''}
+                        </div></td>
+                        <td><div class="row-resizable"><span class="lesson-notes">${links.join(' ')}</span></div></td>
+                        <td><div class="row-resizable">${renderLessonDetailCell(l)}</div></td>
+                        <td><button onclick="editLesson('${l.id}')" style="border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);cursor:pointer;padding:2px 8px;">Change</button> <span class="del" onclick="deleteLesson('${l.id}')">✕</span></td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('selectAllLessons').checked = false;
+            document.getElementById('selectAllLessonsHead').checked = false;
+            const tableWrap = document.querySelector('#lessonTable')?.closest('.table-wrap');
+            if (tableWrap) tableWrap.scrollLeft = 0;
+        }
+
+        function lessonDateToISO(value) {
+            const text = String(value || '').trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+            const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            return match ? `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}` : '';
+        }
+
+        function filterLessonsByTime(list) {
+            const mode = document.getElementById('lessonTimeFilter')?.value || 'all';
+            if (mode !== 'custom') return list;
+            const from = document.getElementById('lessonFromDate')?.value || '';
+            const to = document.getElementById('lessonToDate')?.value || '';
+            return list.filter(lesson => {
+                const date = lessonDateToISO(lesson.date);
+                return (!from || date >= from) && (!to || date <= to);
+            });
+        }
+
+        function applyLessonColumnSizes() {
+            Object.entries(lessonColumnSizes || {}).forEach(([key, value]) => {
+                const width = clampLessonColumn(key, value);
+                lessonColumnSizes[key] = Math.round(width);
+                document.documentElement.style.setProperty(`--lesson-col-${key}`, `${width}px`);
+            });
+            localStorage.setItem('teachingLessonColumnSizes_v1', JSON.stringify(lessonColumnSizes));
+        }
+
+        function initLessonColumnResize() {
+            applyLessonColumnSizes();
+            document.querySelectorAll('.col-resizer').forEach(handle => {
+                handle.addEventListener('mousedown', event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const key = handle.dataset.col;
+                    const th = handle.closest('th');
+                    const startX = event.clientX;
+                    const startWidth = th.getBoundingClientRect().width;
+                    function move(moveEvent) {
+                        const width = clampLessonColumn(key, startWidth + moveEvent.clientX - startX);
+                        lessonColumnSizes[key] = Math.round(width);
+                        document.documentElement.style.setProperty(`--lesson-col-${key}`, `${width}px`);
+                    }
+                    function stop() {
+                        localStorage.setItem('teachingLessonColumnSizes_v1', JSON.stringify(lessonColumnSizes));
+                        document.removeEventListener('mousemove', move);
+                        document.removeEventListener('mouseup', stop);
+                    }
+                    document.addEventListener('mousemove', move);
+                    document.addEventListener('mouseup', stop);
+                });
+            });
+        }
+
+        // ============================================================
+        // BULK LESSON ACTIONS
+        // ============================================================
+        function toggleAllLessons(source) {
+            const checked = source ? source.checked : document.getElementById('selectAllLessons').checked;
+            document.querySelectorAll('.lesson-check').forEach(cb => cb.checked = checked);
+            document.getElementById('selectAllLessons').checked = checked;
+            document.getElementById('selectAllLessonsHead').checked = checked;
+        }
+
+        function getSelectedLessonIds() {
+            return Array.from(document.querySelectorAll('.lesson-check:checked')).map(cb => cb.value);
+        }
+
+        function getSelectedLessons() {
+            const data = getData();
+            const ids = getSelectedLessonIds();
+            return data.lessons.filter(l => ids.includes(l.id));
+        }
+
+        function bulkDeleteLessons() {
+            const ids = getSelectedLessonIds();
+            if (!ids.length) return alert('Select at least one lesson');
+            if (!confirm(`Delete ${ids.length} lesson(s)?`)) return;
+            const data = getData();
+            data.lessons = data.lessons.filter(l => !ids.includes(l.id));
+            saveData(data);
+            renderAll();
+        }
+
+        function bulkExportLessons() {
+            const list = getSelectedLessons();
+            if (!list.length) return alert('Select at least one lesson');
+            const headers = ['id', 'classId', 'name', 'date', 'otherLinks', 'note', 'under18', 'attendanceChecked', 'videoUploaded', 'homeworkUploaded', 'shubHomeworkUploaded', 'worksheetHomeworkUploaded', 'otherHomeworkUploaded', 'zaloClassNotified', 'zaloParentNotified'];
+            const rows = list.map(l => headers.map(h => `"${(l[h] ?? '').toString().replace(/"/g, '""')}"`).join(','));
+            downloadCSV(headers.join(',') + '\n' + rows.join('\n'), 'lessons');
+        }
+
+        function bulkExportLessonsICS() {
+            const list = getSelectedLessons();
+            if (!list.length) return alert('Select at least one lesson');
+            const data = getData();
+            const clsMap = Object.fromEntries(data.classes.map(c => [c.id, c]));
+            exportICSData(list, clsMap);
+        }
+
+        // ============================================================
+        // EXPORT ICS
+        // ============================================================
+        function exportICS() {
+            const data = getData();
+            const clsMap = Object.fromEntries(data.classes.map(c => [c.id, c]));
+            const lessons = data.lessons.filter(l => clsMap[l.classId]);
+            if (!lessons.length) return alert('No lessons to export');
+            exportICSData(lessons, clsMap);
+        }
+
+        function exportICSData(lessons, clsMap) {
+            const nowStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Teaching Calendar//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
+            let eventCount = 0;
+
+            lessons.forEach(l => {
+                const cls = clsMap[l.classId];
+                if (!cls) return;
+
+                const dateObj = parseLessonDate(l.date);
+                if (!dateObj) return;
+
+                const { startHour, startMin, endHour, endMin } = parseClassTime(cls.time);
+
+                const startDate = new Date(dateObj);
+                startDate.setHours(startHour, startMin, 0, 0);
+                const endDate = new Date(dateObj);
+                endDate.setHours(endHour, endMin, 0, 0);
+
+                if (endDate <= startDate) {
+                    endDate.setTime(startDate.getTime() + 90 * 60 * 1000);
+                }
+
+                const summary = `${cls.code} - ${l.name}`;
+                const desc = `Class: ${cls.code}\nTime: ${cls.time || ''}\nOther links: ${l.otherLinks || l.notes || ''}\nNote: ${l.note || ''}\nCanva: ${cls.canva || ''}\nSHUB: ${cls.shub || ''}`;
+
+                ics += `BEGIN:VEVENT\r\n`;
+                ics += `UID:${escapeICS(l.id || `${cls.id}-${l.name}-${l.date}`)}@teaching\r\n`;
+                ics += `DTSTAMP:${nowStamp}\r\n`;
+                ics += `SUMMARY:${escapeICS(summary)}\r\n`;
+                ics += `DTSTART:${formatICSDateTime(startDate)}\r\n`;
+                ics += `DTEND:${formatICSDateTime(endDate)}\r\n`;
+                ics += `DESCRIPTION:${escapeICS(desc)}\r\n`;
+                ics += `END:VEVENT\r\n`;
+                eventCount++;
+            });
+
+            ics += 'END:VCALENDAR\r\n';
+            if (!eventCount) return alert('No valid lessons with dates were found to export.');
+
+            const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `teaching_${new Date().toISOString().slice(0,10)}.ics`;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+                URL.revokeObjectURL(link.href);
+                link.remove();
+            }, 0);
+        }
+
+        // ============================================================
+        // CALENDAR
+        // ============================================================
+        function changeMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth > 11) { currentMonth = 0;
+                currentYear++; }
+            if (currentMonth < 0) { currentMonth = 11;
+                currentYear--; }
+            renderCalendar();
+        }
+
+        function goToToday() {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            selectedDate = todayStr;
+            renderCalendar();
+            updateDayLessons(todayStr);
+        }
+
+        function renderCalendar() {
+            const data = getData();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            document.getElementById('monthLabel').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            const grid = document.getElementById('calendarGrid');
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            let html = dayNames.map(d => `<div class="day-name">${d}</div>`).join('');
+
+            const today = new Date();
+            const todayStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+
+            const startOffset = firstDay;
+            const prevMonthIndex = currentMonth === 0 ? 11 : currentMonth - 1;
+            const prevMonthNumber = prevMonthIndex + 1;
+            const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+            for (let i = startOffset - 1; i >= 0; i--) {
+                const d = daysInPrevMonth - i;
+                const dateStr = formatDateParts(d, prevMonthNumber, prevYear);
+                html += `<div class="day-cell other-month" data-date="${dateStr}" onclick="selectDate('${dateStr}', ${prevMonthIndex}, ${prevYear})">${d}</div>`;
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = formatDateParts(d, currentMonth + 1, currentYear);
+                const isToday = dateStr === todayStr ? 'today' : '';
+                const isSelected = dateStr === selectedDate ? 'selected' : '';
+
+                const count = data.lessons.filter(l => l.date === dateStr).length;
+                const dotHtml = count > 0 ? `<span class="day-dot"></span>` : '';
+
+                html += `<div class="day-cell ${isToday} ${isSelected}" data-date="${dateStr}" onclick="selectDate('${dateStr}')">
+                        ${d}
+                        ${dotHtml}
+                    </div>`;
+            }
+
+            const remaining = (7 - ((startOffset + daysInMonth) % 7)) % 7;
+            const nextMonthIndex = currentMonth === 11 ? 0 : currentMonth + 1;
+            const nextMonthNumber = nextMonthIndex + 1;
+            const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+            for (let d = 1; d <= remaining; d++) {
+                const dateStr = formatDateParts(d, nextMonthNumber, nextYear);
+                html += `<div class="day-cell other-month" data-date="${dateStr}" onclick="selectDate('${dateStr}', ${nextMonthIndex}, ${nextYear})">${d}</div>`;
+            }
+
+            grid.innerHTML = html;
+
+            if (selectedDate) {
+                updateDayLessons(selectedDate);
+            }
+        }
+
+        function selectDate(dateStr, monthIndex = currentMonth, year = currentYear) {
+            selectedDate = dateStr;
+            currentMonth = monthIndex;
+            currentYear = year;
+            renderCalendar();
+            updateDayLessons(dateStr);
+            renderDailyTasks();
+        }
+
+        function updateDayLessons(dateStr) {
+            const data = getData();
+            const container = document.getElementById('dayLessons');
+
+            const [d, m, y] = dateStr.split('/').map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+            const lessons = data.lessons.filter(l => l.date === dateStr);
+            const clsMap = Object.fromEntries(data.classes.map(c => [c.id, c]));
+
+            let html = `<div class="day-title">📅 ${dayNames[dateObj.getDay()]}, ${dateStr}</div>`;
+
+            if (lessons.length === 0) {
+                html += `<div class="no-lessons">No lessons on this day</div>`;
+            } else {
+                lessons.forEach(l => {
+                    const cls = clsMap[l.classId];
+                    const details = l.otherLinks || l.notes || '';
+                    html += `<div class="day-lesson-item">
+                            <div><span class="cls-code">${cls ? escapeHTML(cls.code) : 'Unknown'}</span> - ${escapeHTML(l.name)}</div>
+                            <div class="lesson-notes">${l.completed ? 'Payroll status: Done' : 'Payroll status: Not done'}</div>
+                            <div class="lesson-notes">Attendance: ${l.attendanceChecked ? 'Done' : 'Not yet'} · Video: ${l.videoUploaded ? 'Done' : 'Not yet'} · Homework: ${l.homeworkUploaded ? 'Done' : 'Not yet'} · SHUB: ${l.shubHomeworkUploaded ? 'Done' : 'Not yet'} · Worksheet: ${l.worksheetHomeworkUploaded ? 'Done' : 'Not yet'} · Other homework: ${l.otherHomeworkUploaded ? 'Done' : 'Not yet'} · Zalo class: ${l.zaloClassNotified ? 'Done' : 'Not yet'}${l.under18 ? ` · Zalo parent: ${l.zaloParentNotified ? 'Done' : 'Not yet'}` : ''}</div>
+                            ${details ? `<div class="lesson-notes">🔗 ${escapeHTML(details)}</div>` : ''}
+                            ${l.note ? `<div class="lesson-notes">📝 ${escapeHTML(l.note)}</div>` : ''}
+                            <div class="day-lesson-actions"><button onclick="toggleLessonCompleted('${l.id}')">${l.completed ? 'Undo done' : 'Mark done'}</button><button onclick="editLesson('${l.id}')">Change</button></div>
+                        </div>`;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        // TO-DO TASKS - with checkbox, ENTER+CMD fixed
+        // ============================================================
+        function addTodo() {
+            const title = document.getElementById('todoTitle').value.trim();
+            const classId = document.getElementById('todoClass').value;
+            const customClass = document.getElementById('todoCustomClass').value.trim();
+            const assignedDate = document.getElementById('todoAssignedDate').value;
+            const dueDate = document.getElementById('todoDueDate').value || assignedDate;
+
+            if (!title) {
+                alert('Please enter a task title.');
+                document.getElementById('todoTitle').focus();
+                return;
+            }
+
+            let classLabel = '';
+            if (classId === 'custom' && customClass) {
+                classLabel = customClass;
+            } else if (classId === 'custom') {
+                alert('Please enter a custom class name, or choose None.');
+                document.getElementById('todoCustomClass').focus();
+                return;
+            } else if (classId && classId !== 'custom') {
+                const data = getData();
+                const cls = data.classes.find(c => c.id === classId);
+                classLabel = cls ? cls.code : '';
+            }
+
+            const data = getData();
+            const newTodo = {
+                id: Date.now() + '_todo',
+                title: title,
+                classId: classId === 'custom' ? null : classId,
+                classLabel: classLabel,
+                assignedDate: assignedDate || null,
+                dueDate: dueDate || null,
+                date: dueDate || assignedDate || null,
+                done: false
+            };
+
+            data.todos.push(newTodo);
+            saveData(data);
+            syncTeachingTodosToPlanner();
+
+            // Clear form
+            document.getElementById('todoTitle').value = '';
+            document.getElementById('todoCustomClass').value = '';
+            document.getElementById('todoAssignedDate').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('todoDueDate').value = '';
+
+            renderAll();
+            document.getElementById('todoTitle').focus();
+        }
+
+        // Keyboard shortcut: Cmd+Enter / Ctrl+Enter
+        document.addEventListener('keydown', function(e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active && ['todoTitle', 'todoClass', 'todoCustomClass', 'todoAssignedDate', 'todoDueDate'].includes(active.id)) {
+                    e.preventDefault();
+                    addTodo();
+                }
+            }
+        });
+
+        function deleteTodo(id) {
+            if (!confirm('Delete this task?')) return;
+            const data = getData();
+            data.todos = data.todos.filter(t => t.id !== id);
+            saveData(data);
+            syncTeachingTodosToPlanner();
+            renderAll();
+        }
+
+        function toggleTodoStatus(id) {
+            const data = getData();
+            const todo = data.todos.find(t => t.id === id);
+            if (todo) {
+                todo.done = !todo.done;
+                saveData(data);
+                syncTeachingTodosToPlanner();
+                renderAll();
+            }
+        }
+
+        function renderTodos() {
+            const data = getData();
+            const container = document.getElementById('todoList');
+
+            const sorted = [...data.todos].sort((a, b) => {
+                if (a.done === b.done) return 0;
+                return a.done ? 1 : -1;
+            });
+
+            let html = '';
+
+            sorted.forEach(t => {
+                const isDone = Boolean(t.done);
+                const assignedDate = t.assignedDate || t.date || '';
+                const dueDate = t.dueDate || t.date || assignedDate;
+                const displayAssignedDate = dateInputToDisplay(assignedDate) || assignedDate;
+                const displayDueDate = dateInputToDisplay(dueDate) || dueDate;
+                const isInSelectMode = window.todoSelectMode || false;
+
+                html += `<div class="todo-item ${isDone ? 'done' : ''}">
+                        <input type="checkbox" class="todo-check" value="${t.id}" ${isInSelectMode ? '' : (isDone ? 'checked' : '')} onchange="handleTodoCheckChange('${t.id}')" aria-label="${isInSelectMode ? 'Select task' : 'Mark task done'}" />
+                        <div class="todo-content">
+                            <span class="todo-title ${isDone ? 'done' : ''}">${escapeHTML(t.title)}</span>
+                            ${t.classLabel ? `<span class="todo-class">${escapeHTML(t.classLabel)}</span>` : ''}
+                            ${displayAssignedDate ? `<span class="todo-date">Giao ${escapeHTML(displayAssignedDate)}</span>` : ''}
+                            ${displayDueDate ? `<span class="todo-due">Cần ${escapeHTML(displayDueDate)}</span>` : ''}
+                        </div>
+                        <span class="todo-del" onclick="deleteTodo('${t.id}')">✕</span>
+                    </div>`;
+            });
+
+            if (!html) {
+                html = `<div class="todo-empty">No tasks yet. Add one above!</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        // TODO SELECT MODE
+        // ============================================================
+        function toggleTodoSelectMode() {
+            todoSelectMode = !todoSelectMode;
+            const btn = document.getElementById('todoSelectBtn');
+            const bulkOptions = document.getElementById('todoBulkOptions');
+
+            if (todoSelectMode) {
+                btn.textContent = 'Done';
+                btn.style.background = 'var(--accent)';
+                btn.style.color = '#fff';
+                bulkOptions.style.display = 'flex';
+            } else {
+                btn.textContent = 'Select';
+                btn.style.background = '';
+                btn.style.color = '';
+                bulkOptions.style.display = 'none';
+            }
+
+            renderTodos();
+        }
+
+        function handleTodoCheckChange(id) {
+            if (todoSelectMode) {
+                // In select mode, checkbox just toggles selection
+                return;
+            } else {
+                // In normal mode, checkbox toggles completion
+                toggleTodoStatus(id);
+            }
+        }
+
+        // ============================================================
+        // BULK TODO ACTIONS
+        // ============================================================
+        function toggleAllTodos() {
+            const allChecks = document.querySelectorAll('.todo-check');
+            const shouldCheck = !Array.from(allChecks).every(cb => cb.checked);
+            allChecks.forEach(cb => {
+                cb.checked = shouldCheck;
+            });
+        }
+
+        function getSelectedTodoIds() {
+            return Array.from(document.querySelectorAll('.todo-check:checked')).map(cb => cb.value);
+        }
+
+        function getSelectedTodos() {
+            const data = getData();
+            const ids = getSelectedTodoIds();
+            return data.todos.filter(t => ids.includes(t.id));
+        }
+
+        function bulkDeleteTodos() {
+            const ids = getSelectedTodoIds();
+            if (!ids.length) return alert('Select at least one task');
+            if (!confirm(`Delete ${ids.length} task(s)?`)) return;
+            const data = getData();
+            data.todos = data.todos.filter(t => !ids.includes(t.id));
+            saveData(data);
+            syncTeachingTodosToPlanner();
+            todoSelectMode = false;
+            renderAll();
+        }
+
+        function bulkExportTodos() {
+            const list = getSelectedTodos();
+            if (!list.length) return alert('Select at least one task');
+            const headers = ['id', 'title', 'classLabel', 'assignedDate', 'dueDate', 'date', 'done'];
+            const rows = list.map(t => headers.map(h => `"${(t[h] || '').toString().replace(/"/g, '""')}"`).join(','));
+            downloadCSV(headers.join(',') + '\n' + rows.join('\n'), 'todos');
+            todoSelectMode = false;
+            renderAll();
+        }
+
+        // ============================================================
+        // IMPORT CSV
+        // ============================================================
+        function importCSV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const text = ev.target.result;
+                    const rows = parseCSV(text);
+                    if (!rows.length) {
+                        alert('CSV file is empty.');
+                        return;
+                    }
+                    const data = getData();
+                    let imported = 0;
+
+                    const header = rows[0].join(',').toLowerCase();
+                    if (header.includes('code')) {
+                        const headers = rows[0].map(h => h.trim());
+                        for (let i = 1; i < rows.length; i++) {
+                            const vals = rows[i].map(v => v.trim());
+                            const cls = {};
+                            headers.forEach((h, idx) => cls[h] = vals[idx] || '');
+                            if (cls.id && cls.code) {
+                                if (!data.classes.some(c => c.id === cls.id)) {
+                                    data.classes.push(cls);
+                                    imported++;
+                                }
+                            }
+                        }
+                    } else if (header.includes('classid') && header.includes('name')) {
+                        const headers = rows[0].map(h => h.trim());
+                        for (let i = 1; i < rows.length; i++) {
+                            const vals = rows[i].map(v => v.trim());
+                            const lesson = {};
+                            headers.forEach((h, idx) => lesson[h] = vals[idx] || '');
+                            lesson.otherLinks = lesson.otherLinks || lesson.notes || '';
+                            lesson.note = lesson.note || '';
+                            lesson.attendanceChecked = lesson.attendanceChecked === 'true' || lesson.attendanceChecked === '1' || lesson.attendanceChecked === 'yes';
+                            lesson.videoUploaded = lesson.videoUploaded === 'true' || lesson.videoUploaded === '1' || lesson.videoUploaded === 'yes' || lesson.lessonUploaded === 'true' || lesson.lessonUploaded === '1' || lesson.lessonUploaded === 'yes';
+                            lesson.homeworkUploaded = lesson.homeworkUploaded === 'true' || lesson.homeworkUploaded === '1' || lesson.homeworkUploaded === 'yes';
+                            lesson.shubHomeworkUploaded = lesson.shubHomeworkUploaded === 'true' || lesson.shubHomeworkUploaded === '1' || lesson.shubHomeworkUploaded === 'yes' || lesson.shubHomework === 'true' || lesson.shubHomework === '1' || lesson.shubHomework === 'yes';
+                            lesson.worksheetHomeworkUploaded = lesson.worksheetHomeworkUploaded === 'true' || lesson.worksheetHomeworkUploaded === '1' || lesson.worksheetHomeworkUploaded === 'yes' || lesson.worksheetHomework === 'true' || lesson.worksheetHomework === '1' || lesson.worksheetHomework === 'yes';
+                            lesson.otherHomeworkUploaded = lesson.otherHomeworkUploaded === 'true' || lesson.otherHomeworkUploaded === '1' || lesson.otherHomeworkUploaded === 'yes' || lesson.otherHomework === 'true' || lesson.otherHomework === '1' || lesson.otherHomework === 'yes';
+                            lesson.under18 = lesson.under18 === 'true' || lesson.under18 === '1' || lesson.under18 === 'yes' || lesson.zaloParentNotified === 'true' || lesson.zaloParentNotified === '1' || lesson.zaloParentNotified === 'yes';
+                            lesson.zaloClassNotified = lesson.zaloClassNotified === 'true' || lesson.zaloClassNotified === '1' || lesson.zaloClassNotified === 'yes';
+                            lesson.zaloParentNotified = lesson.under18 && (lesson.zaloParentNotified === 'true' || lesson.zaloParentNotified === '1' || lesson.zaloParentNotified === 'yes');
+                            if (lesson.id && lesson.classId && lesson.name) {
+                                if (!data.lessons.some(l => l.id === lesson.id)) {
+                                    data.lessons.push(lesson);
+                                    imported++;
+                                }
+                            }
+                        }
+                    } else if (header.includes('title') && header.includes('classlabel')) {
+                        const headers = rows[0].map(h => h.trim());
+                        for (let i = 1; i < rows.length; i++) {
+                            const vals = rows[i].map(v => v.trim());
+                            const todo = {};
+                            headers.forEach((h, idx) => todo[h] = vals[idx] || '');
+                            todo.done = todo.done === 'true' || todo.done === '1';
+                            todo.assignedDate = todo.assignedDate || todo.date || '';
+                            todo.dueDate = todo.dueDate || todo.date || todo.assignedDate || '';
+                            todo.date = todo.dueDate || todo.date || todo.assignedDate || '';
+                            if (todo.id && todo.title) {
+                                if (!data.todos.some(t => t.id === todo.id)) {
+                                    data.todos.push(todo);
+                                    imported++;
+                                }
+                            }
+                        }
+                    } else {
+                        alert('Unknown CSV format.');
+                        return;
+                    }
+
+                    saveData(data);
+                    renderAll();
+                    alert(`Imported ${imported} item(s) successfully!`);
+                } catch (err) {
+                    alert('Import error: ' + err.message);
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            e.target.value = '';
+        }
+
+        // ============================================================
+        // UTILITY
+        // ============================================================
+        function downloadCSV(csv, name) {
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${name}_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        // ============================================================
+        // RENDER ALL
+        // ============================================================
+        function renderAll() {
+            renderClasses();
+            renderLessons();
+            renderTodos();
+            renderDailyTasks();
+            renderCalendar();
+
+            if (!selectedClassId) {
+                const data = getData();
+                if (data.classes.length) {
+                    selectedClassId = data.classes[0].id;
+                    renderClasses();
+                    renderLessons();
+                }
+            }
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            selectedDate = todayStr;
+            renderAll();
+            initLessonColumnResize();
+            updateDayLessons(todayStr);
+
+            document.getElementById('todoAssignedDate').value = now.toISOString().slice(0, 10);
+            document.getElementById('todoDueDate').value = '';
+
+            document.getElementById('classesBody').classList.add('open');
+            document.getElementById('classesArrow').classList.add('open');
+            document.getElementById('lessonsBody').classList.add('open');
+            document.getElementById('lessonsArrow').classList.add('open');
+            document.getElementById('todosBody').classList.add('open');
+            document.getElementById('todosArrow').classList.add('open');
+
+            document.getElementById('todoTitle').focus();
+        });
+    </script>
+</body>
+</html>
