@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productivity App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.2);
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --font: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            --radius: 8px;
+            --transition: 0.3s ease;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --shadow: 0 4px 16px rgba(0,0,0,0.4);
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 16px;
+            transition: background var(--transition), color var(--transition);
+        }
+        * {
+            font-family: var(--font);
+        }
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: var(--card);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+        .nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .nav a,
+        .nav button,
+        .quick-add button {
+            border: none;
+            border-radius: var(--radius);
+            background: var(--accent2);
+            color: var(--text);
+            cursor: pointer;
+            display: inline-block;
+            font-size: 14px;
+            padding: 8px 14px;
+            text-decoration: none;
+            transition: background var(--transition), transform 0.2s;
+        }
+        .nav a:hover,
+        .nav button:hover,
+        .quick-add button:hover {
+            background: var(--accent);
+            transform: translateY(-1px);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 280px;
+            gap: 16px;
+            align-items: start;
+        }
+        @media (max-width: 820px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: var(--card);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+        .card h2,
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        .quick-add {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(120px, 0.7fr) minmax(120px, 0.7fr) auto;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .quick-add input,
+        .quick-add select {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 14px;
+            min-width: 0;
+            padding: 8px 12px;
+        }
+        .quick-add input:focus,
+        .quick-add select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        @media (max-width: 700px) {
+            .quick-add {
+                grid-template-columns: 1fr;
+            }
+        }
+        .task-list {
+            display: grid;
+            gap: 8px;
+        }
+        .task-row {
+            display: grid;
+            grid-template-columns: 18px minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: start;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg);
+            padding: 10px;
+        }
+        .task-row input {
+            margin-top: 2px;
+            accent-color: var(--accent);
+        }
+        .task-main {
+            min-width: 0;
+        }
+        .task-title {
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+        .task-title.done {
+            opacity: 0.45;
+            text-decoration: line-through;
+        }
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+            margin-top: 4px;
+            opacity: 0.75;
+        }
+        .badge {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2px 7px;
+            background: var(--card);
+        }
+        .empty {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            opacity: 0.55;
+            padding: 24px;
+            text-align: center;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .stat {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+        }
+        .stat strong {
+            display: block;
+            font-size: 24px;
+        }
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .module-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 12px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .module-card:hover {
+            background: var(--accent2);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .module-card strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .module-card span {
+            display: block;
+            font-size: 12px;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+        @media (max-width: 700px) {
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="./pages/ui-cleanup.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Planner</h1>
+            <div class="nav">
+                <a href="./pages/planner.html">Planner</a>
+                <a href="./pages/teaching.html">Teaching</a>
+                <a href="./pages/payroll.html">Payroll</a>
+                <a href="./pages/chinese-culture/index.html">Chinese Culture</a>
+                <a href="./pages/daily-log.html">Daily Log</a>
+                <a href="./pages/flashcard.html">Flashcard</a>
+                <button onclick="toggleTheme()">🌓 Theme</button>
+                <details class="actions-menu">
+                    <summary>More</summary>
+                    <div class="actions-menu-list">
+                        <a href="./pages/formatter.html">Formatter</a>
+                        <a href="./pages/finance.html">Finance</a>
+                        <a href="./pages/marked-links.html">Links</a>
+                        <a href="./pages/knowledge.html">Knowledge</a>
+                        <a href="./settings.html">Settings</a>
+                    </div>
+                </details>
+            </div>
+        </header>
+
+        <div class="grid">
+            <main class="card">
+                <h2>Modules</h2>
+                <div class="module-grid">
+                    <a class="module-card" href="./pages/planner.html">
+                        <strong>📋 Planner</strong>
+                        <span>Tasks, calendar, dashboard</span>
+                    </a>
+                    <a class="module-card" href="./pages/teaching.html">
+                        <strong>📚 Teaching</strong>
+                        <span>Classes, lessons, to-dos</span>
+                    </a>
+                    <a class="module-card" href="./pages/payroll.html">
+                        <strong>💵 Teaching Payroll</strong>
+                        <span>Attendance and salary totals</span>
+                    </a>
+                    <a class="module-card" href="./pages/formatter.html">
+                        <strong>🧾 Format Studio</strong>
+                        <span>Paste text into docs or sheets</span>
+                    </a>
+                    <a class="module-card" href="./pages/chinese-culture/index.html">
+                        <strong>🌸 Chinese Culture</strong>
+                        <span>Text, vocabulary, quiz, TTS</span>
+                    </a>
+                    <a class="module-card" href="./pages/daily-log.html">
+                        <strong>📖 Daily Log</strong>
+                        <span>Daily notes and stories</span>
+                    </a>
+                    <a class="module-card" href="./pages/finance.html">
+                        <strong>💰 Finance</strong>
+                        <span>Transactions and balance</span>
+                    </a>
+                    <a class="module-card" href="./pages/flashcard.html">
+                        <strong>🎴 Flashcard</strong>
+                        <span>Study cards and spaced repetition</span>
+                    </a>
+                    <a class="module-card" href="./pages/marked-links.html">
+                        <strong>🔖 Marked Links</strong>
+                        <span>Save useful resources</span>
+                    </a>
+                    <a class="module-card" href="./pages/knowledge.html">
+                        <strong>💡 Knowledge Bank</strong>
+                        <span>Thoughts, references, story seeds</span>
+                    </a>
+                    <a class="module-card" href="./settings.html">
+                        <strong>⚙️ Settings</strong>
+                        <span>Import, export, categories</span>
+                    </a>
+                </div>
+
+                <h2>Today</h2>
+                <div class="quick-add">
+                    <input id="taskTitle" type="text" placeholder="Task" />
+                    <select id="taskCategory">
+                        <option value="Work">💼 Work</option>
+                        <option value="Study">📚 Study</option>
+                        <option value="Personal">🌿 Personal</option>
+                        <option value="Finance">💰 Finance</option>
+                    </select>
+                    <select id="taskStatus">
+                        <option value="todo">⏳ To-do</option>
+                        <option value="doing">🔄 Doing</option>
+                        <option value="done">✅ Done</option>
+                        <option value="cancel">❌ Cancel</option>
+                    </select>
+                    <button onclick="addTask()">➕ Add</button>
+                </div>
+                <div class="task-list" id="taskList"></div>
+            </main>
+
+            <aside class="card">
+                <h3>Summary</h3>
+                <div class="stats">
+                    <div class="stat"><strong id="totalStat">0</strong>Total</div>
+                    <div class="stat"><strong id="todayStat">0</strong>Today</div>
+                    <div class="stat"><strong id="todoStat">0</strong>To-do</div>
+                    <div class="stat"><strong id="doneStat">0</strong>Done</div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('homeTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('homeTheme') === 'dark') document.body.classList.add('dark');
+
+        function todayDate() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function getPlanner() {
+            try {
+                const data = JSON.parse(localStorage.getItem('plannerData')) || { tasks: [] };
+                return { ...data, tasks: Array.isArray(data.tasks) ? data.tasks : [] };
+            } catch {
+                return { tasks: [] };
+            }
+        }
+
+        function savePlanner(data) {
+            localStorage.setItem('plannerData', JSON.stringify({ ...data, tasks: data.tasks || [] }));
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function addTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            if (!title) return;
+            const data = getPlanner();
+            data.tasks.push({
+                id: Date.now() + '_task',
+                title,
+                category: document.getElementById('taskCategory').value,
+                status: document.getElementById('taskStatus').value,
+                desc: 'From homepage',
+                date: todayDate()
+            });
+            savePlanner(data);
+            document.getElementById('taskTitle').value = '';
+            render();
+        }
+
+        function toggleTask(id) {
+            const data = getPlanner();
+            const task = data.tasks.find(t => t.id === id);
+            if (task) task.status = task.status === 'done' ? 'todo' : 'done';
+            savePlanner(data);
+            render();
+        }
+
+        function render() {
+            const data = getPlanner();
+            const today = todayDate();
+            const todayTasks = data.tasks.filter(t => t.date === today).sort((a, b) => String(a.status).localeCompare(String(b.status)));
+            document.getElementById('taskList').innerHTML = todayTasks.length ? todayTasks.map(t => {
+                const done = t.status === 'done' || t.status === 'cancel';
+                return `<div class="task-row">
+                    <input type="checkbox" ${done ? 'checked' : ''} onchange="toggleTask('${t.id}')" />
+                    <div class="task-main">
+                        <div class="task-title ${done ? 'done' : ''}">${escapeHTML(t.title)}</div>
+                        <div class="task-meta">
+                            <span class="badge">${escapeHTML(t.category || 'Other')}</span>
+                            <span class="badge">${escapeHTML(t.status || 'todo')}</span>
+                        </div>
+                    </div>
+                    <a class="badge" href="./pages/planner.html">Open</a>
+                </div>`;
+            }).join('') : '<div class="empty">No planner tasks today</div>';
+
+            document.getElementById('totalStat').textContent = data.tasks.length;
+            document.getElementById('todayStat').textContent = todayTasks.length;
+            document.getElementById('todoStat').textContent = data.tasks.filter(t => t.status === 'todo').length;
+            document.getElementById('doneStat').textContent = data.tasks.filter(t => t.status === 'done').length;
+        }
+
+        document.getElementById('taskTitle').addEventListener('keydown', event => {
+            if (event.key === 'Enter') addTask();
+        });
+        render();
+    </script>
+</body>
+</html>

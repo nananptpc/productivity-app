@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chinese Culture Study Studio</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container">
+    <nav class="app-nav">
+        <a href="../../index.html">🏠 Home</a>
+        <a href="../planner.html">📋 Planner</a>
+        <a href="../teaching.html">📚 Teaching</a>
+        <a href="../daily-log.html">📖 Daily Log</a>
+        <details class="app-nav-menu">
+            <summary>More</summary>
+            <div class="app-nav-menu-list">
+                <a href="../finance.html">💰 Finance</a>
+                <a href="../flashcard.html">🎴 Flashcard</a>
+                <a href="../formatter.html">🧾 Formatter</a>
+                <a href="../marked-links.html">🔖 Links</a>
+                <a href="../knowledge.html">💡 Knowledge</a>
+                <a href="../../settings.html">⚙️ Settings</a>
+            </div>
+        </details>
+    </nav>
+
+    <div class="header-row">
+        <div>
+            <h1>🌸 Chinese Culture Study Studio</h1>
+            <div class="subtitle">Paste Chinese text, translate gradually, save vocabulary, generate quizzes, and listen aloud.</div>
+        </div>
+        <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
+    </div>
+
+    <div class="mode-switcher card">
+        <button class="mode-btn active" data-mode="study">Study Mode</button>
+        <button class="mode-btn" data-mode="reading">Reading Mode</button>
+        <button class="mode-btn" data-mode="focus">Focus Mode</button>
+        <button class="btn-primary" id="openReaderBtn" type="button">Open Reader</button>
+    </div>
+
+    <div class="card">
+        <h2>Study Groups</h2>
+        <div class="builder-row compact">
+            <label class="small-control">Active group
+                <select id="cultureGroupSelect"></select>
+            </label>
+            <input type="text" id="cultureGroupInput" placeholder="New book / course / project group" />
+            <button id="addCultureGroupBtn" class="btn-secondary" type="button">Add Group</button>
+            <button id="renameCultureGroupBtn" class="btn-secondary" type="button">Rename</button>
+            <button id="deleteCultureGroupBtn" class="btn-secondary" type="button">Delete</button>
+        </div>
+        <div class="builder-hint">Use groups when studying several books or courses at the same time. New lessons and chapter logs are saved under the active group.</div>
+    </div>
+
+    <div class="how-to card">
+        <h2>How to use</h2>
+        <div class="how-grid">
+            <div><strong>1. Paste</strong><span>Paste Chinese text into Quick Lesson Builder.</span></div>
+            <div><strong>2. Build</strong><span>Click Build Lesson to split it into study blocks.</span></div>
+            <div><strong>3. Translate</strong><span>Auto-fill Vietnamese or English, then edit anything you want.</span></div>
+            <div><strong>4. Study</strong><span>Add vocabulary, generate a quiz, and use Read Chinese for listening.</span></div>
+        </div>
+    </div>
+
+    <div class="lesson-builder card">
+        <h2>✨ Quick Lesson Builder</h2>
+        <div class="builder-row">
+            <input type="text" id="lessonTitleInput" placeholder="Lesson title" />
+            <button id="buildLessonBtn" class="btn-primary">Build Lesson</button>
+            <button id="sendPlannerBtn" class="btn-secondary">Send to Planner</button>
+        </div>
+        <textarea id="rawChineseInput" placeholder="Paste Chinese text here. The app will split it into study blocks."></textarea>
+        <div id="buildStatus" class="build-status">Paste Chinese text, then click Build Lesson.</div>
+        <div id="lessonPreview" class="lesson-preview"></div>
+        <div id="lessonRepairPanel" class="lesson-repair-panel">
+            <h3>Edit Built Lesson</h3>
+            <textarea id="lessonRepairInput" placeholder="Edit one block per line. Blank lines create larger paragraph blocks."></textarea>
+            <div class="lesson-repair-actions">
+                <button id="applyLessonRepairBtn" class="btn-primary" type="button">Apply Edits</button>
+                <button id="deleteEmptyBlocksBtn" class="btn-secondary" type="button">Remove Empty Blocks</button>
+                <button id="closeLessonRepairBtn" class="btn-secondary" type="button">Close</button>
+            </div>
+        </div>
+        <div class="builder-row compact">
+            <button id="speakAllBtn" class="btn-secondary">🔊 Read Chinese</button>
+            <button id="stopSpeakBtn" class="btn-secondary">⏹ Stop</button>
+            <label class="small-control">Voice
+                <select id="voiceSelect">
+                    <option value="">Auto</option>
+                </select>
+            </label>
+            <label class="small-control">Speed
+                <select id="speechRate">
+                    <option value="1" selected>1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                </select>
+            </label>
+            <label class="small-control">Style
+                <select id="speechMode">
+                    <option value="continuous">Continuous</option>
+                    <option value="sentence" selected>Sentence by sentence</option>
+                    <option value="repeat">Repeat each sentence</option>
+                    <option value="shadow">Shadowing drill</option>
+                </select>
+            </label>
+            <label class="small-control">Pitch
+                <select id="speechPitch">
+                    <option value="0.85">Low</option>
+                    <option value="1" selected>Natural</option>
+                    <option value="1.15">Bright</option>
+                </select>
+            </label>
+            <button id="exportLessonCsvBtn" class="btn-secondary">📥 Export Lesson CSV</button>
+        </div>
+        <div class="builder-row compact">
+            <label class="small-control">Engine
+                <select id="translationEngine">
+                    <option value="gemini" selected>Gemini</option>
+                    <option value="browser">Browser</option>
+                    <option value="online">Online fallback</option>
+                </select>
+            </label>
+            <label class="small-control">Translate to
+                <select id="translationTarget">
+                    <option value="vi" selected>Vietnamese</option>
+                    <option value="en">English</option>
+                </select>
+            </label>
+            <button id="translateAllBtn" class="btn-secondary">Auto translate lesson</button>
+            <button id="copyGeminiPromptBtn" class="btn-secondary">Copy Gemini prompt</button>
+        </div>
+        <div class="gemini-settings">
+            <div class="api-key-field">
+                <input type="password" id="geminiApiKey" placeholder="Gemini API key, saved only in this browser" autocomplete="off" spellcheck="false" />
+                <button id="toggleGeminiKeyBtn" class="btn-secondary" type="button">Show</button>
+            </div>
+            <select id="geminiModel">
+                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+            </select>
+            <button id="saveGeminiKeyBtn" class="btn-secondary">Save Gemini</button>
+            <button id="clearGeminiKeyBtn" class="btn-secondary">Clear</button>
+            <a class="btn-secondary gemini-key-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get API key</a>
+        </div>
+        <div class="builder-hint">Gemini Plus web login cannot be called directly by a static page. For direct translation, save a Gemini API key here; otherwise copy the Gemini prompt and paste it into Gemini.</div>
+    </div>
+
+    <div class="vocab-builder card">
+        <h2>📚 Vocabulary</h2>
+        <div class="builder-row">
+            <input type="text" id="termZhInput" placeholder="Chinese word / phrase" />
+            <input type="text" id="termPinyinInput" placeholder="Pinyin" />
+            <input type="text" id="termViInput" placeholder="Meaning / translation" />
+            <button id="addVocabBtn" class="btn-primary">Add</button>
+        </div>
+        <div class="builder-row compact">
+            <button id="useSelectionVocabBtn" class="btn-secondary">Use Selected Chinese</button>
+            <button id="generateQuizBtn" class="btn-secondary">📝 Generate Quiz</button>
+            <button id="exportTermsCsvBtn" class="btn-secondary">📥 Export Terms CSV</button>
+        </div>
+    </div>
+
+    <details class="csv-details">
+        <summary>Advanced CSV import</summary>
+        <div class="import-grid">
+        <div class="import-box">
+            <label for="csvDocInput">📄 1. Import lesson material (data.csv)</label>
+            <input type="file" id="csvDocInput" accept=".csv,.tsv,text/csv,text/tab-separated-values" />
+            <span id="docStatus">Not loaded</span>
+            <div class="import-hint">
+                <strong>Column structure:</strong><br />
+                • A: type (h / p) · B: zhongwen · C: tiengviet
+            </div>
+        </div>
+        <div class="import-box">
+            <label for="csvTermInput">📚 2. Import vocabulary (terms.csv)</label>
+            <input type="file" id="csvTermInput" accept=".csv,.tsv,text/csv,text/tab-separated-values" />
+            <span id="termStatus">Not loaded</span>
+            <div class="import-hint">
+                <strong>Column structure:</strong><br />
+                • A: zhongwen · B: meaning · C: pinyin
+            </div>
+        </div>
+        <div class="import-box">
+            <label for="csvQuizInput">📝 3. Import quiz (quiz.csv)</label>
+            <input type="file" id="csvQuizInput" accept=".csv,.tsv,text/csv,text/tab-separated-values" />
+            <span id="quizStatus">Not loaded</span>
+            <div class="import-hint">
+                <strong>Column structure:</strong><br />
+                • A: Chinese question · B..E: options A..D<br />
+                • F: correct answer number (0..3) · G: hint / translation
+            </div>
+        </div>
+        </div>
+    </details>
+
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-original">📄 Lesson Text</button>
+        <button class="tab-btn" data-tab="tab-terms">📚 Vocabulary</button>
+        <button class="tab-btn" data-tab="tab-quiz">📝 Quiz Practice</button>
+        <button class="tab-btn" data-tab="tab-notes">✍️ Notes</button>
+        <button class="tab-btn" data-tab="tab-ctcsol">🌸 CTCSOL Knowledge</button>
+    </div>
+
+    <div id="tab-original" class="tab-content active" style="position: relative;">
+        <div class="card">
+            <div class="reading-toolbar" aria-label="Reading settings">
+                <strong>Paper Reading</strong>
+                <label>Font
+                    <select id="readerFontSize">
+                        <option value="16">16</option>
+                        <option value="18" selected>18</option>
+                        <option value="20">20</option>
+                        <option value="22">22</option>
+                        <option value="24">24</option>
+                    </select>
+                </label>
+                <label>Line
+                    <select id="readerLineHeight">
+                        <option value="1.5">1.5</option>
+                        <option value="1.8" selected>1.8</option>
+                        <option value="2.1">2.1</option>
+                        <option value="2.4">2.4</option>
+                    </select>
+                </label>
+                <label>Width
+                    <select id="readerWidth">
+                        <option value="narrow">Narrow</option>
+                        <option value="comfort" selected>Comfort</option>
+                        <option value="full">Full</option>
+                    </select>
+                </label>
+                <label>Theme
+                    <select id="readerTheme">
+                        <option value="pink" selected>Pink paper</option>
+                        <option value="cream">Cream</option>
+                        <option value="white">White</option>
+                        <option value="night">Night</option>
+                    </select>
+                </label>
+                <label>Layout
+                    <select id="readerLayout">
+                        <option value="bilingual" selected>Bilingual</option>
+                        <option value="paper">Paper</option>
+                    </select>
+                </label>
+                <button id="readerResetBtn" class="btn-secondary" type="button">Reset</button>
+            </div>
+            <div class="card-header-tip">💡 Tip: highlight any phrase or sentence below to create a quick note.</div>
+            <div id="originalContainer" class="bilingual-container">
+                <p class="empty-message">📭 No lesson yet. Paste Chinese text above and click Build Lesson.</p>
+            </div>
+        </div>
+        
+        <div class="note-popup" id="notePopup" style="display: none;">
+            <div class="popup-header">
+                <span>🖊️ Quick Note</span>
+                <button class="popup-close-btn" id="closePopupBtn">✕</button>
+            </div>
+            <div class="selected-text-preview" id="selectedTextPreview">“Selected text...”</div>
+            
+            <div class="color-options" id="colorOptions">
+                <span class="active" data-color="yellow" style="background:#fff1a1;" title="Yellow"></span>
+                <span data-color="green" style="background:#c3ebd0;" title="Green"></span>
+                <span data-color="blue" style="background:#cce3f7;" title="Blue"></span>
+                <span data-color="pink" style="background:#f7cbd6;" title="Pink"></span>
+            </div>
+            <textarea id="noteContent" placeholder="Write a comment, teacher note, or study reminder..."></textarea>
+            <div class="popup-actions">
+                <button class="btn-cancel" id="cancelPopupBtn">Cancel</button>
+                <button class="btn-save" id="saveNoteBtn">💾 Save note</button>
+            </div>
+            <div class="block-info" id="selectedBlockInfo">Block: --</div>
+        </div>
+    </div>
+
+    <div id="tab-terms" class="tab-content">
+        <div id="termsContainer">
+            <p class="empty-message">📭 No vocabulary yet. Add words above or import terms.csv.</p>
+        </div>
+    </div>
+
+    <div id="tab-quiz" class="tab-content">
+        <div class="quiz-layout">
+            <div class="quiz-main">
+                <div class="quiz-source-panel">
+                    <div class="quiz-source-card">
+                        <h3>1. Generated quiz from vocabulary</h3>
+                        <p>Use the vocabulary you added above to create quick meaning-check questions.</p>
+                        <button id="generateQuizFromVocabBtn" class="btn-primary">Generate Vocabulary Quiz</button>
+                    </div>
+                    <div class="quiz-source-card">
+                        <h3>2. MCQ from quiz.csv</h3>
+                        <p>Upload a prepared multiple-choice quiz file with question, A-D options, correct answer, and hint.</p>
+                        <button id="uploadQuizCsvBtn" class="btn-secondary">Upload quiz.csv</button>
+                    </div>
+                </div>
+                <div id="quizSourceStatus" class="quiz-source-status">No active quiz yet.</div>
+
+                <div class="quiz-toolbar">
+                    <div class="quiz-progress-wrapper">
+                        Practice set: <span id="quizProgress" class="badge">✅ 0/10</span>
+                    </div>
+                    <div class="quiz-actions-btns">
+                        <button id="shuffleBtn" class="btn-secondary">🔀 New 10</button>
+                        <button id="resetQuizBtn" class="btn-secondary">🔄 Reset</button>
+                    </div>
+                </div>
+
+                <div id="quizSectionNav" class="quiz-sec-nav"></div>
+
+                <div id="quizContainer">
+                    <p class="empty-message">📭 No quiz yet. Add vocabulary, then click Generate Quiz.</p>
+                </div>
+
+                <div class="quiz-submit-bar">
+                    <button id="checkAnswersBtn" class="btn-primary">📊 Check Answers</button>
+                </div>
+
+                <div id="answer-section" class="answer-section" style="display: none;">
+                    <h3>📊 Detailed Results</h3>
+                    <div id="answers-list"></div>
+                </div>
+            </div>
+
+            <div class="quiz-sidebar">
+                <div class="card">
+                    <div class="chart-header">
+                        <h3>📈 Last 5 Scores</h3>
+                        <button id="resetStatsBtn" class="btn-text-danger" title="Clear score history">🗑️</button>
+                    </div>
+                    <div id="avgScoreDisplay" class="avg-score">📊 Average: 0/100</div>
+                    <div class="chart-container" id="chartRows"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-notes" class="tab-content">
+        <div class="card">
+            <div class="notes-filter-bar">
+                <div class="view-modes">
+                    <button class="view-btn active" data-view="grid">📱 Grid</button>
+                    <button class="view-btn" data-view="list">📃 List</button>
+                    <button class="view-btn" data-view="original">📄 Text Focus</button>
+                    <button class="view-btn" data-view="detailed">🔍 Detailed</button>
+                </div>
+            </div>
+
+            <div class="bulk-actions-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0; padding: 0.8rem; background: #fffbfb; border: 1px solid #f2dae0; border-radius: 8px;">
+                <div class="bulk-left" style="display: flex; gap: 0.5rem;">
+                    <button id="selectAllNotes" class="btn-secondary" style="font-size: 0.88rem; padding: 0.4rem 0.8rem;">✅ Select all</button>
+                    <button id="deleteSelectedNotes" class="btn-danger" style="font-size: 0.88rem; padding: 0.4rem 0.8rem; background: #bd4f60; color: white; border: none; border-radius: 4px; cursor: pointer;" disabled>🗑️ Delete selected (0)</button>
+                </div>
+                <div class="bulk-right" style="display: flex; gap: 0.5rem;">
+                    <button id="groupByBlock" class="btn-secondary" style="font-size: 0.88rem; padding: 0.4rem 0.8rem;">📍 Group by block</button>
+                    <button id="exportNotesCSV" class="btn-primary" style="font-size: 0.88rem; padding: 0.4rem 0.8rem; background: #4d2d35; color: white;">📤 Export notes CSV</button>
+                </div>
+            </div>
+
+            <div id="notesList" class="notes-grid-container">
+                <p class="empty-message">📭 No saved notes yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CTCSOL KNOWLEDGE TAB - MERGED FROM ctcsol-knowledge.html      -->
+    <!-- ============================================================ -->
+    <div id="tab-ctcsol" class="tab-content ctcsol-tab">
+        <input id="ctcsol-importFile" type="file" accept=".csv,.tsv,.txt,.json,application/json,text/csv,text/tab-separated-values" style="display:none" />
+
+        <div class="ctcsol-layout">
+            <!-- MAIN COLUMN -->
+            <section class="ctcsol-stack">
+                <!-- Manage Data Panel -->
+                <details class="ctcsol-card ctcsol-add-panel" id="ctcsol-formPanel">
+                    <summary><h2 id="ctcsol-formTitle" style="margin:0;">Manage CTCSOL Data</h2></summary>
+                    <div class="ctcsol-form-body">
+                        <!-- Import / Export -->
+                        <details class="ctcsol-mini-panel">
+                            <summary><strong>Import / Export</strong></summary>
+                            <div class="ctcsol-mini-body">
+                                <div class="ctcsol-file-actions" style="border-bottom:0;margin-bottom:0;padding-bottom:0;">
+                                    <button id="ctcsol-importBtn">Import CSV/TSV/JSON</button>
+                                    <button id="ctcsol-exportCsvBtn">Export CSV</button>
+                                    <button id="ctcsol-exportXlsBtn">Export XLS</button>
+                                    <button id="ctcsol-exportJsonBtn">Export JSON</button>
+                                    <button class="ctcsol-danger" id="ctcsol-resetBtn">Reset Sample</button>
+                                </div>
+                                <p class="ctcsol-meta">Import sẽ tự bỏ qua dòng trùng theo Tiếng Trung.</p>
+                            </div>
+                        </details>
+
+                        <!-- Data Table -->
+                        <details class="ctcsol-mini-panel">
+                            <summary><strong>Data Table</strong></summary>
+                            <div class="ctcsol-mini-body">
+                                <div class="ctcsol-controls" style="margin-bottom:10px;">
+                                    <input id="ctcsol-tableSearchInput" placeholder="Lọc bảng dữ liệu..." />
+                                </div>
+                                <div class="ctcsol-table-wrap">
+                                    <table class="ctcsol-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tiếng Trung</th>
+                                                <th>Tiếng Việt</th>
+                                                <th>Tiếng Anh</th>
+                                                <th>Topic</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ctcsol-dataTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- Form fields -->
+                        <div class="ctcsol-language-controls">
+                            <label>Tiếng Trung
+                                <input id="ctcsol-zhInput" placeholder="母语规则负迁移" />
+                            </label>
+                            <label>Tiếng Việt
+                                <input id="ctcsol-viInput" placeholder="Sai lệch quy tắc tiếng mẹ đẻ" />
+                            </label>
+                            <label>Tiếng Anh
+                                <input id="ctcsol-enInput" placeholder="L1 rule negative transfer" />
+                            </label>
+                        </div>
+                        <div class="ctcsol-meta-controls">
+                            <label>Topic
+                                <input id="ctcsol-topicInput" placeholder="Transfer, Theory, Culture..." />
+                            </label>
+                        </div>
+                        <div class="ctcsol-note-controls">
+                            <label>Giải thích
+                                <textarea id="ctcsol-explainInput" placeholder="Người học áp dụng sai quy tắc..."></textarea>
+                            </label>
+                            <label>Ví dụ
+                                <textarea id="ctcsol-exampleInput" placeholder="Ví dụ minh họa..."></textarea>
+                            </label>
+                        </div>
+                        <div class="ctcsol-actions" style="margin-top:10px;">
+                            <button class="ctcsol-primary" id="ctcsol-saveBtn">Save Term</button>
+                            <button id="ctcsol-cancelEditBtn" style="display:none;">Cancel</button>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Study Bar -->
+                <div class="ctcsol-study-bar">
+                    <div class="ctcsol-controls">
+                        <input id="ctcsol-searchInput" placeholder="Tìm tiếng Trung, Việt, Anh, giải thích..." />
+                        <select id="ctcsol-categoryFilter">
+                            <option value="All">All topics</option>
+                        </select>
+                    </div>
+                    <div class="ctcsol-study-stats">
+                        <span><strong id="ctcsol-totalStat">0</strong> terms</span>
+                        <span><strong id="ctcsol-topicStat">0</strong> topics</span>
+                        <span><strong id="ctcsol-visibleStat">0</strong> showing</span>
+                        <span><strong id="ctcsol-dueStat">0</strong> due</span>
+                    </div>
+                </div>
+
+                <!-- Terminology Cards -->
+                <details class="ctcsol-card ctcsol-toggle-panel" open>
+                    <summary><h2 style="margin:0;">Terminology Cards</h2></summary>
+                    <div class="ctcsol-form-body">
+                        <div class="ctcsol-chips" id="ctcsol-quickChips" style="margin-bottom:12px;"></div>
+                        <div class="ctcsol-term-grid" id="ctcsol-termGrid"></div>
+                    </div>
+                </details>
+            </section>
+
+            <!-- RIGHT SIDEBAR -->
+            <aside class="ctcsol-detail-card ctcsol-stack">
+                <!-- Detail Panel -->
+                <details class="ctcsol-card ctcsol-toggle-panel" open>
+                    <summary><h2 style="margin:0;">Detail</h2></summary>
+                    <div class="ctcsol-form-body">
+                        <div class="ctcsol-detail-title">
+                            <div class="ctcsol-zh" id="ctcsol-detailZh">Chọn một thuật ngữ</div>
+                            <div class="ctcsol-vi" id="ctcsol-detailVi">Bấm vào card bên trái để xem chi tiết.</div>
+                            <div class="ctcsol-en" id="ctcsol-detailEn"></div>
+                        </div>
+                        <div class="ctcsol-detail-section">
+                            <div class="ctcsol-label">Giải thích</div>
+                            <div id="ctcsol-detailExplain">Select a term to see details.</div>
+                        </div>
+                        <div class="ctcsol-detail-section">
+                            <div class="ctcsol-label">Ví dụ</div>
+                            <div id="ctcsol-detailExample">Examples will appear here.</div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Flashcard Panel -->
+                <details class="ctcsol-card ctcsol-toggle-panel" open>
+                    <summary><h2 style="margin:0;">Flashcard</h2></summary>
+                    <div class="ctcsol-form-body">
+                        <div class="ctcsol-flashcard" id="ctcsol-flashcard">
+                            <div class="ctcsol-zh" id="ctcsol-flashPrompt">母语规则负迁移</div>
+                            <div class="ctcsol-meta" id="ctcsol-flashMeta">Chinese → Vietnamese + English</div>
+                            <div class="ctcsol-review-line" id="ctcsol-reviewMeta">Not reviewed yet</div>
+                            <div class="ctcsol-flash-answer" id="ctcsol-flashAnswer"></div>
+                            <div class="ctcsol-rating-actions" id="ctcsol-ratingActions">
+                                <button data-quality="1">Again</button>
+                                <button data-quality="3">Hard</button>
+                                <button data-quality="4">Good</button>
+                                <button data-quality="5">Easy</button>
+                            </div>
+                        </div>
+                        <div class="ctcsol-actions" style="margin-top:10px;">
+                            <button class="ctcsol-primary" id="ctcsol-showAnswerBtn">Show Answer</button>
+                            <button id="ctcsol-nextBtn">Next Due</button>
+                            <button id="ctcsol-fullscreenBtn">Fullscreen</button>
+                        </div>
+                    </div>
+                </details>
+            </aside>
+        </div>
+
+        <!-- Fullscreen Flashcard Study (hidden by default) -->
+        <div class="ctcsol-fullscreen" id="ctcsol-fullscreenStudy" aria-hidden="true">
+            <div class="ctcsol-fullscreen-top">
+                <div>
+                    <h2 style="margin:0;">Flashcard Study</h2>
+                    <div class="ctcsol-review-line" id="ctcsol-fsReviewMeta">Not reviewed yet</div>
+                </div>
+                <button id="ctcsol-closeFullscreenBtn">Close</button>
+            </div>
+            <div class="ctcsol-fullscreen-card">
+                <div>
+                    <div class="ctcsol-meta" id="ctcsol-fsFlashMeta">Topic</div>
+                    <div class="ctcsol-fullscreen-prompt">
+                        <div class="ctcsol-zh" id="ctcsol-fsFlashPrompt">母语规则负迁移</div>
+                    </div>
+                </div>
+                <div class="ctcsol-fullscreen-answer" id="ctcsol-fsFlashAnswer"></div>
+                <div class="ctcsol-rating-actions" id="ctcsol-fsRatingActions">
+                    <button data-quality="1">Again</button>
+                    <button data-quality="3">Hard</button>
+                    <button data-quality="4">Good</button>
+                    <button data-quality="5">Easy</button>
+                </div>
+                <div class="ctcsol-fullscreen-actions">
+                    <button class="ctcsol-primary" id="ctcsol-fsShowAnswerBtn">Show Answer</button>
+                    <button id="ctcsol-fsNextBtn">Next Due</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END CTCSOL TAB -->
+
+    <div class="footer-clear-zone">
+        <button id="clearAllCacheBtn" class="btn-danger-outline">⚠️ Clear all saved study data</button>
+    </div>
+</div>
+
+<button class="sidebar-toggle-btn" id="sidebarToggleBtn">📚 CHAPTER LOG</button>
+
+<div class="progress-sidebar" id="progressSidebar">
+    <h3>📚 Chapter Log</h3>
+    <div class="sidebar-sub">Imported and built lessons become chapters for quick review.</div>
+    <div id="chapterLogList" class="sidebar-list chapter-log-list"></div>
+    <div class="sidebar-sec-title">📄 Lesson files</div>
+    <div id="historyDocsList" class="sidebar-list"></div>
+    <div class="sidebar-sec-title">📚 Vocabulary</div>
+    <div id="historyTermsList" class="sidebar-list"></div>
+    <div class="sidebar-sec-title">📝 Quizzes</div>
+    <div id="historyQuizList" class="sidebar-list"></div>
+</div>
+
+<div class="reader-overlay" id="readerOverlay" aria-hidden="true">
+    <div class="reader-topbar">
+        <div>
+            <strong id="readerTitle">Reading Mode</strong>
+            <span id="readerPageInfo">Page 1</span>
+        </div>
+        <div class="reader-top-actions">
+            <button id="readerSpeakBtn" class="reader-round-btn" title="Read page">🔊</button>
+            <button id="readerCloseBtn" class="reader-round-btn" title="Close">✕</button>
+        </div>
+    </div>
+    <main class="reader-book" id="readerBook"></main>
+    <div class="reader-mark-toolbar" id="readerMarkToolbar" aria-hidden="true">
+        <div class="reader-mark-title">Text tools</div>
+        <div class="reader-mark-controls">
+            <label>Style
+                <select id="readerMarkStyle">
+                    <option value="normal">Normal</option>
+                    <option value="heading">Heading</option>
+                </select>
+            </label>
+            <label>Size
+                <select id="readerMarkSize">
+                    <option value="">Default</option>
+                    <option value="1.1em">Large</option>
+                    <option value="1.25em">Title</option>
+                </select>
+            </label>
+            <button type="button" id="readerBoldBtn">B</button>
+            <button type="button" id="readerItalicBtn"><em>I</em></button>
+            <button type="button" id="readerUnderlineBtn"><u>U</u></button>
+            <label>Text
+                <select id="readerFontColor">
+                    <option value="">Default</option>
+                    <option value="#f7edf0">Light</option>
+                    <option value="#f7cbd6">Pink</option>
+                    <option value="#cfe8ff">Blue</option>
+                    <option value="#fff2b8">Warm</option>
+                </select>
+            </label>
+            <label>Highlight
+                <select id="readerHighlightColor">
+                    <option value="#6f5f1d">Gold</option>
+                    <option value="#613c49">Rose</option>
+                    <option value="#334d63">Blue</option>
+                    <option value="#365a43">Green</option>
+                    <option value="transparent">None</option>
+                </select>
+            </label>
+        </div>
+        <textarea id="readerMarkNote" placeholder="Optional note..."></textarea>
+        <div class="reader-mark-actions">
+            <button type="button" id="readerSaveMarkBtn">Save Note</button>
+            <button type="button" id="readerCancelMarkBtn">Cancel</button>
+            <button type="button" id="readerClearPageMarksBtn">Clear Page Marks</button>
+        </div>
+    </div>
+    <button id="readerPrevBtn" class="reader-page-btn reader-prev">‹ Previous</button>
+    <button id="readerNextBtn" class="reader-page-btn reader-next">Next ›</button>
+    <div class="reader-side-tools">
+        <button class="reader-round-btn" id="readerToolMenu" title="Menu">☰</button>
+        <button class="reader-round-btn" id="readerFontPlus" title="Larger text">A+</button>
+        <button class="reader-round-btn" id="readerFontMinus" title="Smaller text">A-</button>
+        <button class="reader-round-btn" id="readerThemeCycle" title="Theme">☼</button>
+        <button class="reader-round-btn" id="readerClearMarksBtn" title="Clear page marks">Clear</button>
+        <button class="reader-round-btn" id="readerExitFocus" title="Back to study">↩</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

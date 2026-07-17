@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teaching Payroll - Productivity App</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #fff5f7;
+            --text: #4a3f44;
+            --card: #ffffff;
+            --border: #f8d7e0;
+            --accent: #f7a1b5;
+            --accent2: #fbc4d0;
+            --purple: #8c86e8;
+            --row: #f0eefd;
+            --green: #c9efbf;
+            --green-text: #176b36;
+            --red: #ffd4d1;
+            --red-text: #a83229;
+            --yellow: #fff0b8;
+            --yellow-text: #7a5a00;
+            --shadow: 0 4px 16px rgba(232, 162, 182, 0.18);
+            --font: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            --radius: 8px;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --purple: #7770d8;
+            --row: #3a3447;
+            --shadow: 0 4px 18px rgba(0,0,0,0.35);
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        button, input, select, textarea { font-family: inherit; }
+        .container { max-width: 1500px; margin: 0 auto; }
+        header, .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+        header {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        h1 { font-size: 28px; }
+        .hint {
+            color: color-mix(in srgb, var(--text), transparent 32%);
+            font-size: 13px;
+            line-height: 1.45;
+            margin-top: 4px;
+        }
+        .nav, .toolbar, .summary, .row-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .bulk-tools {
+            align-items: center;
+            background: color-mix(in srgb, var(--accent2), white 45%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+        }
+        .bulk-tools select {
+            min-width: 150px;
+            width: auto;
+        }
+        .bulk-tools .bulk-count {
+            color: color-mix(in srgb, var(--text), transparent 28%);
+            font-size: 13px;
+            font-weight: 800;
+            margin-right: 4px;
+        }
+        .nav a, button {
+            background: var(--accent2);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px 13px;
+            text-decoration: none;
+        }
+        button.primary { background: var(--accent); color: white; font-weight: 800; }
+        button.danger { background: #ef5b7a; color: white; }
+        input, select, textarea {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            min-width: 0;
+            padding: 8px 10px;
+        }
+        textarea { resize: vertical; }
+        .toolbar {
+            align-items: end;
+            margin-bottom: 14px;
+        }
+        .field {
+            display: grid;
+            flex: 1 1 140px;
+            gap: 5px;
+        }
+        .field.wide { flex-basis: 260px; }
+        .field.small { flex: 0 1 110px; }
+        .field label {
+            color: color-mix(in srgb, var(--text), transparent 25%);
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .summary {
+            margin-bottom: 14px;
+        }
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            flex: 1 1 180px;
+            padding: 12px;
+        }
+        .summary-card span {
+            color: color-mix(in srgb, var(--text), transparent 35%);
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .summary-card strong {
+            font-size: 22px;
+        }
+        .sheet-card {
+            overflow: hidden;
+            padding: 0;
+        }
+        .sheet-scroll {
+            max-height: calc(100vh - 310px);
+            min-height: 320px;
+            max-width: 100%;
+            width: 100%;
+            resize: both;
+            overflow: auto;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 1180px;
+            width: max-content;
+        }
+        thead th {
+            background: var(--purple);
+            color: white;
+            font-size: 15px;
+            padding: 9px 8px;
+            position: sticky;
+            text-align: left;
+            top: 0;
+            z-index: 2;
+        }
+        tbody tr:nth-child(even) { background: var(--row); }
+        td {
+            border-bottom: 1px solid color-mix(in srgb, var(--border), transparent 25%);
+            padding: 5px;
+            vertical-align: top;
+            min-width: 90px;
+            max-width: 320px;
+            overflow: auto;
+            resize: both;
+            overflow-wrap: anywhere;
+        }
+        td.row-number {
+            color: color-mix(in srgb, var(--text), transparent 35%);
+            font-weight: 800;
+            text-align: center;
+            width: 42px;
+        }
+        th.select-cell,
+        td.select-cell {
+            min-width: 38px;
+            text-align: center;
+            width: 38px;
+        }
+        .group-row {
+            background: color-mix(in srgb, var(--accent2), white 18%) !important;
+            color: var(--text);
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            padding: 9px 12px;
+        }
+        select[multiple] {
+            min-height: 92px;
+            padding: 6px;
+        }
+        select[multiple] option {
+            border-radius: 6px;
+            padding: 5px 6px;
+        }
+        .parent-card {
+            margin-bottom: 14px;
+        }
+        .parent-card h2 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+        .parent-head {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 0;
+        }
+        .parent-toggle-title {
+            align-items: center;
+            display: flex;
+            gap: 10px;
+        }
+        .parent-toggle-icon {
+            background: var(--accent2);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            display: inline-grid;
+            height: 32px;
+            place-items: center;
+            width: 32px;
+        }
+        details.parent-dropdown[open] .parent-toggle-icon {
+            transform: rotate(90deg);
+        }
+        .parent-meta {
+            color: color-mix(in srgb, var(--text), transparent 30%);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .parent-filter {
+            align-items: end;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 12px;
+        }
+        .parent-total {
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 12px;
+        }
+        .parent-total strong {
+            color: #ef5b7a;
+            font-size: 22px;
+        }
+        .parent-student {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-top: 10px;
+            padding: 12px;
+        }
+        .parent-student summary {
+            align-items: center;
+            cursor: pointer;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            list-style: none;
+        }
+        .parent-student summary::-webkit-details-marker { display: none; }
+        .parent-student summary strong {
+            color: var(--text);
+            font-size: 18px;
+        }
+        .parent-student summary span:last-child {
+            color: #ef5b7a;
+            font-weight: 800;
+        }
+        .parent-student[open] summary {
+            margin-bottom: 8px;
+        }
+        .parent-lessons {
+            display: grid;
+            gap: 6px;
+        }
+        .parent-lesson {
+            background: var(--card);
+            border: 1px solid color-mix(in srgb, var(--border), transparent 18%);
+            border-radius: 6px;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: 112px 1fr 118px;
+            padding: 8px;
+        }
+        .parent-lesson strong {
+            color: #ef5b7a;
+            text-align: right;
+        }
+        details.parent-dropdown > summary {
+            cursor: pointer;
+            list-style: none;
+            user-select: none;
+        }
+        details.parent-dropdown > summary::-webkit-details-marker { display: none; }
+        .row-actions.compact button {
+            padding: 5px 8px;
+        }
+        td input, td select, td textarea {
+            border: 0;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 110px;
+            width: 100%;
+        }
+        td input[type="checkbox"],
+        th input[type="checkbox"] {
+            accent-color: var(--accent);
+            height: 13px;
+            min-width: 13px;
+            padding: 0;
+            width: 13px;
+        }
+        td textarea {
+            min-height: 42px;
+            resize: both;
+        }
+        .pill-select {
+            border-radius: 999px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .status-completed, .pay-paid, .received-yes { background: var(--green); color: var(--green-text); }
+        .status-planned, .pay-partial { background: var(--yellow); color: var(--yellow-text); }
+        .status-cancelled, .pay-unpaid, .received-no { background: var(--red); color: var(--red-text); }
+        .empty {
+            color: color-mix(in srgb, var(--text), transparent 35%);
+            padding: 26px;
+            text-align: center;
+        }
+        .footer-tools {
+            align-items: center;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            padding: 10px 12px;
+        }
+        @media (max-width: 760px) {
+            body { padding: 10px; }
+            .sheet-scroll { max-height: none; }
+        }
+        @media print {
+            body { background: white; color: #222; padding: 0; }
+            header, section.card:first-of-type, .summary, .sheet-card { display: none !important; }
+            .container { max-width: none; }
+            .parent-card {
+                border: 0;
+                box-shadow: none;
+                margin: 0;
+                padding: 18px;
+            }
+            .parent-head button { display: none; }
+            .parent-lesson { break-inside: avoid; }
+        }
+    </style>
+    <link rel="stylesheet" href="./ui-cleanup.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>💵 Teaching Payroll</h1>
+                <p class="hint">A lightweight sheet for attendance, lesson fees, tuition status, and monthly salary totals.</p>
+            </div>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="./teaching.html">Teaching</a>
+                <a href="./planner.html">Planner</a>
+                <button id="themeBtn">Theme</button>
+                <details class="actions-menu">
+                    <summary>More</summary>
+                    <div class="actions-menu-list">
+                        <a href="./finance.html">Finance</a>
+                        <a href="../settings.html">Settings</a>
+                    </div>
+                </details>
+            </nav>
+        </header>
+
+        <section class="card">
+            <div class="toolbar">
+                <div class="field small">
+                    <label>Date</label>
+                    <input type="date" id="dateInput" />
+                </div>
+                <div class="field">
+                    <label>Class</label>
+                    <input list="classOptions" id="classInput" placeholder="Class code" />
+                    <datalist id="classOptions"></datalist>
+                </div>
+                <div class="field wide">
+                    <label>Detail</label>
+                    <input id="detailInput" placeholder="Lesson topic / attendance note" />
+                </div>
+                <div class="field small">
+                    <label>Fee</label>
+                    <input id="feeInput" inputmode="numeric" placeholder="200,000" />
+                </div>
+                <div class="field small">
+                    <label>Lesson</label>
+                    <select id="lessonStatusInput">
+                        <option>Completed</option>
+                        <option>Planned</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+                <div class="field small">
+                    <label>Tuition</label>
+                    <select id="payStatusInput">
+                        <option>Unpaid</option>
+                        <option>Paid</option>
+                        <option>Partial</option>
+                    </select>
+                </div>
+                <div class="field small">
+                    <label>Received</label>
+                    <select id="receivedInput">
+                        <option>No</option>
+                        <option>Yes</option>
+                    </select>
+                </div>
+                <button class="primary" id="addBtn">Add Row</button>
+            </div>
+
+            <div class="toolbar">
+                <div class="field small">
+                    <label>Time</label>
+                    <select id="timeRangeFilter">
+                        <option value="month">Selected month</option>
+                        <option value="all">All time</option>
+                        <option value="custom">Custom range</option>
+                    </select>
+                </div>
+                <div class="field small">
+                    <label>Month</label>
+                    <input type="month" id="monthFilter" />
+                </div>
+                <div class="field small">
+                    <label>Class code</label>
+                    <select id="classFilter">
+                        <option value="All">All classes</option>
+                    </select>
+                </div>
+                <div class="field small">
+                    <label>From</label>
+                    <input type="date" id="fromDateFilter" />
+                </div>
+                <div class="field small">
+                    <label>To</label>
+                    <input type="date" id="toDateFilter" />
+                </div>
+                <div class="field small">
+                    <label>Status</label>
+                    <select id="statusFilter">
+                        <option>All</option>
+                        <option>Completed</option>
+                        <option>Planned</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+                <div class="field small">
+                    <label>Tuition</label>
+                    <select id="paymentFilter">
+                        <option>All</option>
+                        <option>Paid</option>
+                        <option>Unpaid</option>
+                        <option>Partial</option>
+                    </select>
+                </div>
+                <div class="field wide">
+                    <label>Search</label>
+                    <input id="searchInput" placeholder="Search class, detail, note..." />
+                </div>
+                <div class="field small">
+                    <label>Group by</label>
+                    <select id="groupByInput">
+                        <option value="none">None</option>
+                        <option value="class">Class</option>
+                        <option value="month">Month</option>
+                        <option value="payment">Payment</option>
+                    </select>
+                </div>
+                <button id="todayBtn">Today</button>
+                <button id="resetFiltersBtn" type="button">Reset Filters</button>
+                <button id="importLessonsBtn">Sync Completed Lessons</button>
+            </div>
+            <div class="toolbar">
+                <div class="field small">
+                    <label>Move column</label>
+                    <select id="columnMoveSelect"></select>
+                </div>
+                <button id="moveColumnLeftBtn" type="button">Move Left</button>
+                <button id="moveColumnRightBtn" type="button">Move Right</button>
+            </div>
+        </section>
+
+        <section class="summary" aria-label="Payroll summary">
+            <div class="summary-card"><span>Completed salary</span><strong id="totalEarned">0 VND</strong></div>
+            <div class="summary-card"><span>Received</span><strong id="totalReceived">0 VND</strong></div>
+            <div class="summary-card"><span>Outstanding</span><strong id="totalOutstanding">0 VND</strong></div>
+            <div class="summary-card"><span>Lessons</span><strong id="lessonCount">0</strong></div>
+        </section>
+
+        <section class="card parent-card" aria-label="Parent summary">
+            <details class="parent-dropdown">
+                <summary>
+                    <div class="parent-head">
+                        <div class="parent-toggle-title">
+                            <span class="parent-toggle-icon">›</span>
+                            <div>
+                                <h2>Parent Summary</h2>
+                                <p class="parent-meta">Click to open one class for a clean parent screenshot.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="event.preventDefault(); window.print()">Print / Screenshot</button>
+                    </div>
+                </summary>
+                <div class="parent-filter">
+                    <div class="field small">
+                        <label>Parent class</label>
+                        <select id="parentClassFilter"></select>
+                    </div>
+                </div>
+                <div id="parentSummary"></div>
+            </details>
+        </section>
+
+        <section class="card sheet-card">
+            <div class="sheet-scroll">
+                <table>
+                    <thead><tr id="payrollHead"></tr></thead>
+                    <tbody id="sheetBody"></tbody>
+                </table>
+            </div>
+            <div class="footer-tools">
+                <details class="compact-panel">
+                    <summary>Bulk actions <span class="bulk-count" id="bulkSelectedCount">0 selected</span></summary>
+                    <div class="compact-panel-body bulk-tools" aria-label="Bulk payroll actions">
+                        <select id="bulkPayStatus">
+                            <option value="">Set tuition status</option>
+                            <option value="Unpaid">Unpaid</option>
+                            <option value="Partial">Partial paid</option>
+                            <option value="Paid">Paid</option>
+                        </select>
+                        <button type="button" id="bulkApplyPayBtn">Apply Tuition</button>
+                        <select id="bulkReceivedStatus">
+                            <option value="">Set received</option>
+                            <option value="No">Receive: No</option>
+                            <option value="Yes">Received</option>
+                        </select>
+                        <button type="button" id="bulkApplyReceivedBtn">Apply Received</button>
+                        <button type="button" id="clearSelectionBtn">Clear Selection</button>
+                    </div>
+                </details>
+                <div class="row-actions">
+                    <button id="addBlankBtn">Add Blank Row</button>
+                    <details class="actions-menu">
+                        <summary>Export / Import</summary>
+                        <div class="actions-menu-list">
+                            <button id="exportBtn">Export Filtered CSV</button>
+                            <button id="exportTsvBtn">Export Filtered TSV</button>
+                            <button id="exportParentBtn">Export Parent CSV</button>
+                            <button id="exportParentTsvBtn">Export Parent TSV</button>
+                            <button id="exportAllBtn">Export All CSV</button>
+                            <button id="exportAllTsvBtn">Export All TSV</button>
+                            <button onclick="document.getElementById('importCSV').click()">Import CSV/TSV</button>
+                        </div>
+                    </details>
+                    <input type="file" id="importCSV" accept=".csv,.tsv,text/csv,text/tab-separated-values" style="display:none" />
+                </div>
+                <button class="danger" id="clearBtn">Clear All</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const storeKey = 'teachingPayroll_v1';
+        let rows = normalizeRows(JSON.parse(localStorage.getItem(storeKey) || '[]'));
+        const $ = id => document.getElementById(id);
+        const payrollColumns = {
+            select: { label: 'Select', width: '38px' },
+            no: { label: 'n.o', width: '46px' },
+            date: { label: 'Date', width: '135px' },
+            className: { label: 'Class', width: '150px' },
+            detail: { label: 'Detail', width: '290px' },
+            fee: { label: 'Fee', width: '130px' },
+            lessonStatus: { label: 'Lesson Status', width: '145px' },
+            payStatus: { label: 'Tuition Status', width: '145px' },
+            received: { label: 'Received', width: '110px' },
+            note: { label: 'Note', width: '260px' },
+            actions: { label: '', width: '128px' }
+        };
+        let columnOrder = JSON.parse(localStorage.getItem('payrollColumnOrder_v1') || 'null') || ['select', 'no', 'date', 'className', 'detail', 'fee', 'lessonStatus', 'payStatus', 'received', 'note', 'actions'];
+        let selectedRowIds = new Set();
+
+        document.body.classList.toggle('dark', localStorage.getItem('appTheme') === 'dark');
+        $('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('appTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        function todayISO() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function currentMonthISO() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function parseMoney(value) {
+            const clean = String(value || '').replace(/[^\d.-]/g, '');
+            return Number(clean) || 0;
+        }
+
+        function normalizeStatus(value, fallback, allowed) {
+            const clean = String(value || '').trim().toLowerCase();
+            const found = allowed.find(item => item.toLowerCase() === clean);
+            return found || fallback;
+        }
+
+        function normalizeRows(list) {
+            return (Array.isArray(list) ? list : []).map((row, index) => ({
+                id: row.id || Date.now() + '_' + index,
+                order: Number.isFinite(Number(row.order)) ? Number(row.order) : index,
+                sourceLessonId: row.sourceLessonId || '',
+                autoManaged: Boolean(row.autoManaged),
+                date: normalizeLessonDate(row.date),
+                className: row.className || row.class || '',
+                studentName: row.studentName || row.student || '',
+                detail: row.detail || row.lesson || row.name || '',
+                fee: parseMoney(row.fee || row.amount || 0),
+                lessonStatus: normalizeStatus(row.lessonStatus || row.status, 'Completed', ['Completed', 'Planned', 'Cancelled']),
+                payStatus: normalizeStatus(row.payStatus || row.tuitionStatus || row.payment, 'Unpaid', ['Paid', 'Unpaid', 'Partial']),
+                received: normalizeStatus(row.received, 'No', ['Yes', 'No']),
+                note: row.note || ''
+            }));
+        }
+
+        function formatMoney(value) {
+            return `${Math.round(Number(value) || 0).toLocaleString('en-US')} VND`;
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[char]));
+        }
+
+        function save() {
+            rows = normalizeRows(rows);
+            rows.forEach((row, index) => { row.order = Number.isFinite(Number(row.order)) ? Number(row.order) : index; });
+            localStorage.setItem(storeKey, JSON.stringify(rows));
+            render();
+        }
+
+        function getTeachingData() {
+            try {
+                const data = JSON.parse(localStorage.getItem('teachingData')) || {};
+                return {
+                    classes: Array.isArray(data.classes) ? data.classes : [],
+                    lessons: Array.isArray(data.lessons) ? data.lessons : []
+                };
+            } catch {
+                return { classes: [], lessons: [] };
+            }
+        }
+
+        function syncCompletedTeachingLessons() {
+            const data = getTeachingData();
+            if (!data.lessons.length) return 0;
+            const classMap = Object.fromEntries(data.classes.map(item => [item.id, item]));
+            const completedIds = new Set(data.lessons.filter(lesson => lesson.completed).map(lesson => lesson.id));
+            let changed = 0;
+
+            rows = rows.filter(row => {
+                if (!row.sourceLessonId || !row.autoManaged) return true;
+                if (completedIds.has(row.sourceLessonId)) return true;
+                const keep = row.payStatus === 'Paid' || row.received === 'Yes';
+                if (!keep) changed++;
+                return keep;
+            });
+
+            data.lessons.filter(lesson => lesson.completed).forEach(lesson => {
+                const cls = classMap[lesson.classId];
+                const existing = rows.find(row => row.sourceLessonId === lesson.id);
+                const mapped = {
+                    sourceLessonId: lesson.id,
+                    autoManaged: true,
+                    date: normalizeLessonDate(lesson.date),
+                    className: cls?.code || '',
+                    studentName: lesson.studentName || lesson.student || '',
+                    detail: lesson.name || '',
+                    fee: parseMoney(cls?.salaryRate ?? cls?.rate ?? cls?.fee) || parseMoney(lesson.fee) || 200000,
+                    lessonStatus: 'Completed',
+                    note: lesson.note || ''
+                };
+                if (existing) {
+                    Object.assign(existing, mapped);
+                } else {
+                    rows.push({
+                        id: Date.now() + '_' + Math.random().toString(16).slice(2),
+                        order: rows.length,
+                        ...mapped,
+                        payStatus: 'Unpaid',
+                        received: 'No'
+                    });
+                    changed++;
+                }
+            });
+
+            if (changed) localStorage.setItem(storeKey, JSON.stringify(rows));
+            return changed;
+        }
+
+        function refreshClassOptions() {
+            const data = getTeachingData();
+            const names = new Set(data.classes.map(item => item.code).filter(Boolean));
+            rows.forEach(row => { if (row.className) names.add(row.className); });
+            $('classOptions').innerHTML = [...names].sort().map(name => `<option value="${escapeHTML(name)}"></option>`).join('');
+            const currentClassFilter = $('classFilter').value;
+            $('classFilter').innerHTML = '<option value="All">All classes</option>' + [...names].sort().map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('');
+            $('classFilter').value = ['All', ...names].includes(currentClassFilter) ? currentClassFilter : 'All';
+        }
+
+        function addRow(from = {}) {
+            rows.push({
+                id: Date.now() + '_' + Math.random().toString(16).slice(2),
+                order: rows.length,
+                date: from.date || $('dateInput').value || todayISO(),
+                className: from.className || $('classInput').value.trim(),
+                studentName: from.studentName || '',
+                detail: from.detail || $('detailInput').value.trim(),
+                fee: parseMoney(from.fee ?? $('feeInput').value),
+                lessonStatus: from.lessonStatus || $('lessonStatusInput').value,
+                payStatus: from.payStatus || $('payStatusInput').value,
+                received: from.received || $('receivedInput').value,
+                note: from.note || ''
+            });
+            $('detailInput').value = '';
+            save();
+        }
+
+        function updateRow(id, field, value) {
+            const row = rows.find(item => item.id === id);
+            if (!row) return;
+            row[field] = field === 'fee' ? parseMoney(value) : value;
+            localStorage.setItem(storeKey, JSON.stringify(rows));
+            updateSummary();
+            refreshClassOptions();
+        }
+
+        function removeRow(id) {
+            rows = rows.filter(row => row.id !== id);
+            selectedRowIds.delete(id);
+            save();
+        }
+
+        function statusClass(prefix, value) {
+            return `${prefix}-${String(value || '').toLowerCase().replace(/\s+/g, '-')}`;
+        }
+
+        function filteredRows() {
+            rows = normalizeRows(rows);
+            const timeRange = $('timeRangeFilter').value;
+            const month = $('monthFilter').value;
+            const classFilter = $('classFilter').value;
+            const fromDate = $('fromDateFilter').value;
+            const toDate = $('toDateFilter').value;
+            const status = $('statusFilter').value;
+            const payment = $('paymentFilter').value;
+            const search = $('searchInput').value.toLowerCase();
+            return rows.filter(row => {
+                const matchMonth = timeRange !== 'month' || !month || String(row.date || '').startsWith(month);
+                const matchDateRange = timeRange !== 'custom' || ((!fromDate || String(row.date || '') >= fromDate) && (!toDate || String(row.date || '') <= toDate));
+                const matchClass = classFilter === 'All' || row.className === classFilter;
+                const matchStatus = status === 'All' || row.lessonStatus === status;
+                const matchPayment = payment === 'All' || row.payStatus === payment;
+                const matchSearch = [row.className, row.detail, row.note].join(' ').toLowerCase().includes(search);
+                return matchMonth && matchDateRange && matchClass && matchStatus && matchPayment && matchSearch;
+            });
+        }
+
+        function render() {
+            refreshClassOptions();
+            renderColumnControls();
+            renderHeader();
+            const list = sortPayrollRows(filteredRows());
+            const body = $('sheetBody');
+            if (!list.length) {
+                body.innerHTML = `<tr><td colspan="${columnOrder.length}" class="empty">No payroll rows yet.</td></tr>`;
+                updateSummary();
+                renderParentSummary([]);
+                updateBulkCount();
+                return;
+            }
+            body.innerHTML = renderRowsWithGroups(list);
+            updateSummary();
+            renderParentSummary(list);
+            updateBulkCount();
+        }
+
+        function sortPayrollRows(list) {
+            return list.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0) || String(a.date).localeCompare(String(b.date)));
+        }
+
+        function renderHeader() {
+            $('payrollHead').innerHTML = columnOrder.map(key => {
+                const column = payrollColumns[key];
+                if (key === 'select') {
+                    return `<th class="select-cell" style="width:${column.width};"><input type="checkbox" id="selectAllRows" onchange="toggleAllPayrollRows(this.checked)" aria-label="Select all payroll rows" /></th>`;
+                }
+                return `<th style="width:${column.width};">${escapeHTML(column.label)}</th>`;
+            }).join('');
+        }
+
+        function renderColumnControls() {
+            columnOrder = columnOrder.filter(key => payrollColumns[key]);
+            Object.keys(payrollColumns).forEach(key => { if (!columnOrder.includes(key)) columnOrder.push(key); });
+            columnOrder = ['select', ...columnOrder.filter(key => key !== 'select')];
+            const current = $('columnMoveSelect').value;
+            $('columnMoveSelect').innerHTML = columnOrder.filter(key => !['select', 'actions'].includes(key)).map(key => `<option value="${key}">${escapeHTML(payrollColumns[key].label || key)}</option>`).join('');
+            $('columnMoveSelect').value = columnOrder.includes(current) && !['select', 'actions'].includes(current) ? current : columnOrder.find(key => !['select', 'actions'].includes(key));
+        }
+
+        function moveColumn(direction) {
+            const key = $('columnMoveSelect').value;
+            const index = columnOrder.indexOf(key);
+            const next = index + direction;
+            if (index < 0 || next < 1 || next >= columnOrder.length || columnOrder[next] === 'actions') return;
+            [columnOrder[index], columnOrder[next]] = [columnOrder[next], columnOrder[index]];
+            localStorage.setItem('payrollColumnOrder_v1', JSON.stringify(columnOrder));
+            render();
+        }
+
+        function selectedVisibleRows() {
+            const visibleIds = new Set(filteredRows().map(row => row.id));
+            return rows.filter(row => selectedRowIds.has(row.id) && visibleIds.has(row.id));
+        }
+
+        function updateBulkCount() {
+            const count = selectedVisibleRows().length;
+            const countEl = $('bulkSelectedCount');
+            if (countEl) countEl.textContent = `${count} selected`;
+            const allBox = $('selectAllRows');
+            if (allBox) {
+                const visible = filteredRows();
+                allBox.checked = visible.length > 0 && visible.every(row => selectedRowIds.has(row.id));
+                allBox.indeterminate = visible.some(row => selectedRowIds.has(row.id)) && !allBox.checked;
+            }
+        }
+
+        function togglePayrollRow(id, checked) {
+            if (checked) selectedRowIds.add(id);
+            else selectedRowIds.delete(id);
+            updateBulkCount();
+        }
+
+        function toggleAllPayrollRows(checked) {
+            filteredRows().forEach(row => {
+                if (checked) selectedRowIds.add(row.id);
+                else selectedRowIds.delete(row.id);
+            });
+            render();
+        }
+
+        function clearPayrollSelection() {
+            selectedRowIds.clear();
+            render();
+        }
+
+        function applyBulkStatus(field, value) {
+            if (!value) return alert('Choose a status first.');
+            const selected = selectedVisibleRows();
+            if (!selected.length) return alert('Select at least one payroll row.');
+            selected.forEach(selectedRow => {
+                const row = rows.find(item => item.id === selectedRow.id);
+                if (row) row[field] = value;
+            });
+            save();
+        }
+
+        function moveRow(id, direction) {
+            const list = sortPayrollRows(filteredRows());
+            const index = list.findIndex(row => row.id === id);
+            const next = index + direction;
+            if (index < 0 || next < 0 || next >= list.length) return;
+            const currentRow = rows.find(row => row.id === list[index].id);
+            const nextRow = rows.find(row => row.id === list[next].id);
+            if (!currentRow || !nextRow) return;
+            [currentRow.order, nextRow.order] = [Number(nextRow.order) || next, Number(currentRow.order) || index];
+            save();
+        }
+
+        function groupKey(row) {
+            const mode = $('groupByInput').value;
+            if (mode === 'class') return row.className || 'No class';
+            if (mode === 'month') return String(row.date || '').slice(0, 7) || 'No month';
+            if (mode === 'payment') return row.payStatus || 'No payment status';
+            return '';
+        }
+
+        function renderRowsWithGroups(list) {
+            const mode = $('groupByInput').value;
+            if (mode === 'none') return list.map(renderPayrollRow).join('');
+            let index = 0;
+            let current = null;
+            let html = '';
+            list.forEach(row => {
+                const key = groupKey(row);
+                if (key !== current) {
+                    current = key;
+                    const groupRows = list.filter(item => groupKey(item) === key);
+                    const completed = groupRows.filter(item => item.lessonStatus === 'Completed');
+                    const total = completed.reduce((sum, item) => sum + parseMoney(item.fee), 0);
+                    html += `<tr><td colspan="${columnOrder.length}" class="group-row">${escapeHTML(key)} · ${completed.length} completed · ${formatMoney(total)}</td></tr>`;
+                }
+                html += renderPayrollRow(row, index);
+                index++;
+            });
+            return html;
+        }
+
+        function renderPayrollRow(row, index = 0) {
+            const cells = {
+                select: `<td class="select-cell"><input type="checkbox" ${selectedRowIds.has(row.id) ? 'checked' : ''} onchange="togglePayrollRow('${row.id}', this.checked)" aria-label="Select payroll row" /></td>`,
+                no: `<td class="row-number">${index + 1}</td>`,
+                date: `<td><input type="date" value="${escapeHTML(row.date)}" onchange="updateRow('${row.id}', 'date', this.value)" /></td>`,
+                className: `<td><input list="classOptions" value="${escapeHTML(row.className)}" onchange="updateRow('${row.id}', 'className', this.value)" /></td>`,
+                detail: `<td><textarea onchange="updateRow('${row.id}', 'detail', this.value)">${escapeHTML(row.detail)}</textarea></td>`,
+                fee: `<td><input inputmode="numeric" value="${escapeHTML(formatMoney(row.fee).replace(' VND', ''))}" onchange="updateRow('${row.id}', 'fee', this.value)" /></td>`,
+                lessonStatus: `<td><select class="pill-select ${statusClass('status', row.lessonStatus)}" onchange="updateRow('${row.id}', 'lessonStatus', this.value); this.className='pill-select ' + statusClass('status', this.value);">${['Completed', 'Planned', 'Cancelled'].map(v => `<option ${row.lessonStatus === v ? 'selected' : ''}>${v}</option>`).join('')}</select></td>`,
+                payStatus: `<td><select class="pill-select ${statusClass('pay', row.payStatus)}" onchange="updateRow('${row.id}', 'payStatus', this.value); this.className='pill-select ' + statusClass('pay', this.value);">${['Unpaid', 'Partial', 'Paid'].map(v => `<option value="${v}" ${row.payStatus === v ? 'selected' : ''}>${v === 'Partial' ? 'Partial paid' : v}</option>`).join('')}</select></td>`,
+                received: `<td><select class="pill-select ${statusClass('received', row.received)}" onchange="updateRow('${row.id}', 'received', this.value); this.className='pill-select ' + statusClass('received', this.value);">${['No', 'Yes'].map(v => `<option ${row.received === v ? 'selected' : ''}>${v}</option>`).join('')}</select></td>`,
+                note: `<td><textarea onchange="updateRow('${row.id}', 'note', this.value)">${escapeHTML(row.note)}</textarea></td>`,
+                actions: `<td><div class="row-actions compact"><button type="button" onclick="moveRow('${row.id}', -1)">↑</button><button type="button" onclick="moveRow('${row.id}', 1)">↓</button><button type="button" onclick="removeRow('${row.id}')">Delete</button></div></td>`
+            };
+            return `<tr>${columnOrder.map(key => cells[key] || '').join('')}</tr>`;
+        }
+
+        function updateSummary() {
+            const list = filteredRows();
+            const completed = list.filter(row => row.lessonStatus === 'Completed');
+            const earned = completed.reduce((sum, row) => sum + parseMoney(row.fee), 0);
+            const received = completed.filter(row => row.received === 'Yes' || row.payStatus === 'Paid').reduce((sum, row) => sum + parseMoney(row.fee), 0);
+            $('totalEarned').textContent = formatMoney(earned);
+            $('totalReceived').textContent = formatMoney(received);
+            $('totalOutstanding').textContent = formatMoney(Math.max(0, earned - received));
+            $('lessonCount').textContent = String(completed.length);
+        }
+
+        function renderParentSummary(list) {
+            const completed = list.filter(row => row.lessonStatus === 'Completed');
+            const container = $('parentSummary');
+            if (!completed.length) {
+                container.innerHTML = '<p class="empty">No completed lessons match the current filters.</p>';
+                return;
+            }
+            renderParentClassFilter(completed);
+            const parentClass = $('parentClassFilter').value;
+            const parentRows = parentClass === 'All' ? completed : completed.filter(row => (row.className || 'No class code') === parentClass);
+            const groups = new Map();
+            parentRows.forEach(row => {
+                const key = row.className || 'No class code';
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(row);
+            });
+            const total = parentRows.reduce((sum, row) => sum + parseMoney(row.fee), 0);
+            const timeRange = $('timeRangeFilter').value;
+            const filterLabel = [
+                timeRange === 'all' ? 'All time' : '',
+                timeRange === 'month' && $('monthFilter').value ? `Month: ${$('monthFilter').value}` : '',
+                timeRange === 'custom' && ($('fromDateFilter').value || $('toDateFilter').value) ? `Dates: ${$('fromDateFilter').value || 'start'} to ${$('toDateFilter').value || 'end'}` : '',
+                parentClass !== 'All' ? `Class: ${parentClass}` : ($('classFilter').value !== 'All' ? `Class: ${$('classFilter').value}` : '')
+            ].filter(Boolean).join(' · ') || 'All completed lessons';
+            if (!parentRows.length) {
+                container.innerHTML = '<p class="empty">No completed lessons match this parent class filter.</p>';
+                return;
+            }
+            if (parentClass !== 'All') {
+                container.innerHTML = `
+                    <p class="parent-meta">${escapeHTML(filterLabel)} · ${parentRows.length} lesson(s)</p>
+                    <div class="parent-total"><span>Total</span><strong>${escapeHTML(formatMoney(total))}</strong></div>
+                    <div class="parent-lessons">
+                        ${sortPayrollRows([...parentRows]).map(row => `<div class="parent-lesson">
+                            <span>${escapeHTML(row.date)}</span>
+                            <span>${escapeHTML(row.detail || 'Lesson')}</span>
+                            <strong>${escapeHTML(formatMoney(row.fee))}</strong>
+                        </div>`).join('')}
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = `
+                <p class="parent-meta">${escapeHTML(filterLabel)} · ${parentRows.length} lesson(s)</p>
+                <div class="parent-total"><span>Total</span><strong>${escapeHTML(formatMoney(total))}</strong></div>
+                ${[...groups.entries()].map(([classCode, items]) => {
+                    const subtotal = items.reduce((sum, row) => sum + parseMoney(row.fee), 0);
+                    return `<details class="parent-student">
+                        <summary><strong>${escapeHTML(classCode)}</strong><span>${items.length} lesson(s) · ${escapeHTML(formatMoney(subtotal))}</span></summary>
+                        <div class="parent-lessons">
+                            ${items.map(row => `<div class="parent-lesson">
+                                <span>${escapeHTML(row.date)}</span>
+                                <span>${escapeHTML(row.className || 'Class')} · ${escapeHTML(row.detail || 'Lesson')}</span>
+                                <strong>${escapeHTML(formatMoney(row.fee))}</strong>
+                            </div>`).join('')}
+                        </div>
+                    </details>`;
+                }).join('')}
+            `;
+        }
+
+        function renderParentClassFilter(completed) {
+            const select = $('parentClassFilter');
+            const current = select.value || 'All';
+            const classNames = [...new Set(completed.map(row => row.className || 'No class code'))].sort((a, b) => a.localeCompare(b));
+            select.innerHTML = `<option value="All">All classes</option>` + classNames.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('');
+            select.value = classNames.includes(current) || current === 'All' ? current : 'All';
+        }
+
+        function parentSummaryRows() {
+            const completed = filteredRows().filter(row => row.lessonStatus === 'Completed');
+            const parentClass = $('parentClassFilter').value || 'All';
+            return parentClass === 'All' ? completed : completed.filter(row => (row.className || 'No class code') === parentClass);
+        }
+
+        function importTeachingLessons() {
+            const changed = syncCompletedTeachingLessons();
+            render();
+            alert(changed ? `Synced ${changed} completed lesson update(s).` : 'Payroll is already synced with completed lessons.');
+        }
+
+        function normalizeLessonDate(value) {
+            const text = String(value || '').trim();
+            const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (match) return `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+            return todayISO();
+        }
+
+        function csvCell(value) {
+            return `"${String(value ?? '').replace(/"/g, '""')}"`;
+        }
+
+        function exportDelimited(list = filteredRows(), suffix = $('monthFilter').value || 'filtered', delimiter = ',', extension = 'csv') {
+            const headers = ['date', 'class', 'detail', 'fee', 'lessonStatus', 'tuitionStatus', 'received', 'note'];
+            const content = [headers.join(delimiter)]
+                .concat(list.map(row => [
+                    row.date, row.className, row.detail, row.fee, row.lessonStatus, row.payStatus, row.received, row.note
+                ].map(value => delimiter === '\t' ? String(value ?? '').replace(/\t/g, ' ').replace(/\r?\n/g, ' ') : csvCell(value)).join(delimiter)))
+                .join('\n');
+            const link = document.createElement('a');
+            const type = extension === 'tsv' ? 'text/tab-separated-values;charset=utf-8;' : 'text/csv;charset=utf-8;';
+            link.href = URL.createObjectURL(new Blob(['\uFEFF' + content], { type }));
+            link.download = `teaching_payroll_${suffix}.${extension}`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 0);
+        }
+
+        function exportCSV(list = filteredRows(), suffix = $('monthFilter').value || 'filtered') {
+            exportDelimited(list, suffix, ',', 'csv');
+        }
+
+        function exportTSV(list = filteredRows(), suffix = $('monthFilter').value || 'filtered') {
+            exportDelimited(list, suffix, '\t', 'tsv');
+        }
+
+        function parseCSV(text) {
+            const firstLine = String(text || '').split(/\r?\n/)[0] || '';
+            if (firstLine.includes('\t')) {
+                return String(text || '').split(/\r?\n/).filter(line => line.trim()).map(line => line.split('\t').map(cell => cell.replace(/^\uFEFF/, '').trim()));
+            }
+            const rows = [];
+            let row = [], cell = '', inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], next = text[i + 1];
+                if (char === '"' && inQuotes && next === '"') { cell += '"'; i++; }
+                else if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) { row.push(cell); cell = ''; }
+                else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(cell);
+                    if (row.some(value => value.trim())) rows.push(row);
+                    row = []; cell = '';
+                } else cell += char;
+            }
+            row.push(cell);
+            if (row.some(value => value.trim())) rows.push(row);
+            return rows;
+        }
+
+        function importCSVFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                const table = parseCSV(event.target.result);
+                if (table.length < 2) return alert('CSV has no rows.');
+                const headers = table[0].map(h => h.trim().toLowerCase());
+                let added = 0;
+                table.slice(1).forEach(line => {
+                    const item = {};
+                    headers.forEach((header, index) => item[header] = line[index] || '');
+                    rows.push({
+                        id: Date.now() + '_' + Math.random().toString(16).slice(2),
+                        order: rows.length,
+                        date: normalizeLessonDate(item.date),
+                        className: item.class || item.classname || '',
+                        studentName: item.student || item.studentname || '',
+                        detail: item.detail || '',
+                        fee: parseMoney(item.fee || item.amount),
+                        lessonStatus: item.lessonstatus || 'Completed',
+                        payStatus: item.tuitionstatus || item.paystatus || 'Unpaid',
+                        received: item.received || 'No',
+                        note: item.note || ''
+                    });
+                    added++;
+                });
+                rows = normalizeRows(rows);
+                save();
+                alert(`Imported ${added} row(s).`);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        $('dateInput').value = todayISO();
+        $('timeRangeFilter').value = 'month';
+        $('monthFilter').value = currentMonthISO();
+        $('addBtn').onclick = () => addRow();
+        $('addBlankBtn').onclick = () => addRow({ date: todayISO(), lessonStatus: 'Planned', payStatus: 'Unpaid', received: 'No' });
+        $('todayBtn').onclick = () => { $('dateInput').value = todayISO(); $('timeRangeFilter').value = 'month'; $('monthFilter').value = currentMonthISO(); render(); };
+        $('importLessonsBtn').onclick = importTeachingLessons;
+        $('resetFiltersBtn').onclick = () => {
+            $('timeRangeFilter').value = 'month';
+            $('monthFilter').value = currentMonthISO();
+            $('classFilter').value = 'All';
+            $('fromDateFilter').value = '';
+            $('toDateFilter').value = '';
+            $('statusFilter').value = 'All';
+            $('paymentFilter').value = 'All';
+            $('searchInput').value = '';
+            $('groupByInput').value = 'none';
+            render();
+        };
+        $('moveColumnLeftBtn').onclick = () => moveColumn(-1);
+        $('moveColumnRightBtn').onclick = () => moveColumn(1);
+        $('bulkApplyPayBtn').onclick = () => applyBulkStatus('payStatus', $('bulkPayStatus').value);
+        $('bulkApplyReceivedBtn').onclick = () => applyBulkStatus('received', $('bulkReceivedStatus').value);
+        $('clearSelectionBtn').onclick = clearPayrollSelection;
+        $('exportBtn').onclick = () => exportCSV();
+        $('exportTsvBtn').onclick = () => exportTSV();
+        $('exportParentBtn').onclick = () => exportCSV(parentSummaryRows(), parentExportName());
+        $('exportParentTsvBtn').onclick = () => exportTSV(parentSummaryRows(), parentExportName());
+        $('exportAllBtn').onclick = () => exportCSV(rows, 'all');
+        $('exportAllTsvBtn').onclick = () => exportTSV(rows, 'all');
+        $('importCSV').onchange = event => importCSVFile(event.target.files[0]);
+        $('clearBtn').onclick = () => {
+            if (!confirm('Clear all payroll rows?')) return;
+            rows = [];
+            save();
+        };
+        function parentExportName() {
+            const selectedParentClass = $('parentClassFilter').value || 'All';
+            const className = selectedParentClass !== 'All'
+                ? selectedParentClass
+                : ($('classFilter').value !== 'All' ? $('classFilter').value : 'all_classes');
+            const dateLabel = $('timeRangeFilter').value === 'all'
+                ? 'all_dates'
+                : [$('fromDateFilter').value, $('toDateFilter').value, $('monthFilter').value].filter(Boolean).join('_') || 'all_dates';
+            const dates = dateLabel;
+            return `parent_${className}_${dates}`.replace(/[^\w-]+/g, '_');
+        }
+
+        ['timeRangeFilter', 'monthFilter', 'classFilter', 'fromDateFilter', 'toDateFilter', 'statusFilter', 'paymentFilter', 'searchInput', 'groupByInput'].forEach(id => {
+            $(id).addEventListener(id === 'searchInput' ? 'input' : 'change', render);
+        });
+        $('parentClassFilter').addEventListener('change', () => renderParentSummary(filteredRows()));
+        syncCompletedTeachingLessons();
+        render();
+    </script>
+</body>
+</html>
