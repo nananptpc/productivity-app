@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Từ Vựng - CSV Exporter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Thư viện đọc CSV PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #fff5f7;
+            --card-bg: #ffffff;
+            --primary-color: #f7a1b5;
+            --primary-hover: #f4829d;
+            --text-color: #4a3f44;
+            --border-color: #fde2e8;
+            --alt-row-bg: #fff0f3;
+            --badge-bg: #ffe4eb;
+            --badge-text: #d85d7c;
+        }
+
+        body {
+            font-family: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Thanh điều khiển tải CSV, chọn loại từ vựng và In/Xuất PDF */
+        .controls {
+            width: 100%;
+            max-width: 1100px;
+            background-color: var(--card-bg);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(247, 161, 181, 0.15);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--badge-text);
+            font-weight: bold;
+            font-size: 14px;
+            background: var(--badge-bg);
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .mode-select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .btn-print {
+            background-color: var(--badge-text);
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .btn-print:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background-color: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(247, 161, 181, 0.15);
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #d85d7c;
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 28px;
+            letter-spacing: 0.5px;
+        }
+
+        .zh-text {
+            font-family: 'Yuanti SC', '圆体', 'STYuanti', 'PingFang SC', 'Noto Sans SC', sans-serif;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--alt-row-bg);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .col-no {
+            width: 5%;
+            text-align: center;
+            font-weight: bold;
+            color: #b5838d;
+        }
+
+        .col-2 {
+            width: 18%;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .col-3 {
+            width: 16%;
+            color: #8d5b68;
+        }
+
+        .col-pos {
+            width: 10%;
+            text-align: center;
+        }
+
+        .col-5 {
+            width: 18%;
+            color: #6a535d;
+        }
+
+        .col-example {
+            width: 20%;
+            font-size: 13px;
+            color: #5c4a52;
+            line-height: 1.4;
+        }
+
+        .col-meaning {
+            width: 13%;
+            color: #4a3f44;
+        }
+
+        .pos-badge {
+            display: inline-block;
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 2px 7px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .passage-box {
+            margin-top: 32px;
+            padding: 20px;
+            background-color: #fff0f3;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .passage-title {
+            font-weight: bold;
+            color: #d85d7c;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .passage-content {
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        @media (max-width: 850px) {
+            body {
+                padding: 12px;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .container {
+                padding: 16px;
+            }
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                margin-bottom: 12px;
+                background-color: #fff;
+            }
+            td {
+                border: none;
+                border-bottom: 1px solid #ffeef2;
+                position: relative;
+                padding-left: 35%;
+                text-align: left;
+            }
+            td:before {
+                position: absolute;
+                top: 10px;
+                left: 12px;
+                width: 30%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #b5838d;
+            }
+            td:nth-of-type(1):before { content: "NO"; }
+            td:nth-of-type(2):before { content: attr(data-label-2); }
+            td:nth-of-type(3):before { content: attr(data-label-3); }
+            td:nth-of-type(4):before { content: attr(data-label-4); }
+            td:nth-of-type(5):before { content: attr(data-label-5); }
+            td:nth-of-type(6):before { content: attr(data-label-6); }
+            td:nth-of-type(7):before { content: attr(data-label-7); }
+        }
+
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .controls {
+                display: none !important;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                width: 100%;
+            }
+            tr {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Control bar -->
+    <div class="controls">
+        <div class="controls-left">
+            <a href="../index.html" class="btn-back">← Planner</a>
+            
+            <label for="col2Mode"><b>Cột 2: </b></label>
+            <select id="col2Mode" class="mode-select" onchange="handleModeChange()">
+                <option value="chinese" selected>Chinese (生词)</option>
+                <option value="english">English (Vocabulary)</option>
+            </select>
+
+            <label for="csvInput"><b>Tải file CSV: </b></label>
+            <input type="file" id="csvInput" accept=".csv">
+        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ In / Tải PDF</button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h1 id="pageTitle">Bảng Từ Vựng Tiếng Trung</h1>
+        <table>
+            <thead>
+                <tr id="tableHeader">
+                    <th style="text-align: center;">NO</th>
+                    <th>生词</th>
+                    <th>拼音</th>
+                    <th style="text-align: center;">词类</th>
+                    <th>English</th>
+                    <th>例如</th>
+                    <th>含义</th>
+                </tr>
+            </thead>
+            <tbody id="vocabBody">
+                <!-- Mẫu mặc định tương thích Anki -->
+                <tr>
+                    <td class="col-no">1</td>
+                    <td class="col-2 zh-text">挨</td>
+                    <td class="col-3">/āi/</td>
+                    <td class="col-pos"><span class="pos-badge">(v), (prep)</span></td>
+                    <td class="col-5">to be next to; by</td>
+                    <td class="col-example zh-text">挨着窗户坐。</td>
+                    <td class="col-meaning">kề, sát, cận kề</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Khối chứa trích đoạn văn (ẩn nếu CSV không có bài đọc) -->
+        <div class="passage-box" id="passageBox" style="display: none;">
+            <div class="passage-title">Trích đoạn văn trong yêu cầu:</div>
+            <div class="passage-content zh-text" id="passageContent">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cachedParsedData = null;
+
+        document.getElementById('csvInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    cachedParsedData = results.data;
+                    renderTable();
+                }
+            });
+        });
+
+        function handleModeChange() {
+            renderTable();
+        }
+
+        function renderTable() {
+            const mode = document.getElementById('col2Mode').value;
+            const pageTitle = document.getElementById('pageTitle');
+            const tableHeader = document.getElementById('tableHeader');
+            const tbody = document.getElementById('vocabBody');
+
+            // 1. Tiêu đề & Header chuẩn Anki (7 cột)
+            if (mode === 'english') {
+                pageTitle.textContent = "Bảng Từ Vựng Tiếng Anh";
+                tableHeader.innerHTML = `
+                    <th style="text-align: center;">NO</th>
+                    <th>Vocabulary</th>
+                    <th>Pronunciation</th>
+                    <th style="text-align: center;">POS</th>
+                    <th>Chinese</th>
+                    <th>Example</th>
+                    <th>Meaning</th>
+                `;
+            } else {
+                pageTitle.textContent = "Bảng Từ Vựng Tiếng Trung";
+                tableHeader.innerHTML = `
+                    <th style="text-align: center;">NO</th>
+                    <th>生词</th>
+                    <th>拼音</th>
+                    <th style="text-align: center;">词类</th>
+                    <th>English</th>
+                    <th>例如</th>
+                    <th>含义</th>
+                `;
+            }
+
+            if (!cachedParsedData) return;
+
+            tbody.innerHTML = '';
+            let passage = '';
+
+            cachedParsedData.forEach((row, index) => {
+                // Đọc đúng các tên cột chuẩn Anki từ file CSV: Chinese, Pinyin, POS, English, Example, Vietnamese
+                const rawChinese = row['Chinese'] || row['chinese'] || row['生词'] || row['Chữ Hán'] || '';
+                let rawPinyin = row['Pinyin'] || row['pinyin'] || row['IPA'] || row['Pronunciation'] || row['拼音'] || '';
+                const rawPos = row['POS'] || row['pos'] || row['词类'] || row['Từ loại'] || '';
+                const rawEnglish = row['English'] || row['english'] || row['Vocabulary'] || '';
+                const rawExample = row['Example'] || row['example'] || row['例如'] || row['Ví dụ'] || '';
+                let rawVietnamese = row['Vietnamese'] || row['vietnamese'] || row['Meaning'] || row['meaning'] || row['含义'] || row['Ý nghĩa'] || '';
+
+                if (row.passage || row['passage_text'] || row['Đoạn văn']) {
+                    passage = row.passage || row['passage_text'] || row['Đoạn văn'];
+                }
+
+                // Format Pinyin / Pronunciation luôn bọc dạng /text/
+                if (rawPinyin && !rawPinyin.startsWith('/')) rawPinyin = '/' + rawPinyin;
+                if (rawPinyin && !rawPinyin.endsWith('/')) rawPinyin = rawPinyin + '/';
+
+                // Nghĩa Tiếng Việt bắt buộc viết thường toàn bộ
+                rawVietnamese = rawVietnamese.toLowerCase();
+
+                let col2_val, col3_val, col4_val, col5_val, col6_val, col7_val;
+
+                if (mode === 'english') {
+                    // Cột 2 là Tiếng Anh: NO | Vocabulary | Pronunciation | POS | Chinese | Example | Meaning
+                    col2_val = rawEnglish;
+                    col3_val = rawPinyin;
+                    col4_val = rawPos;
+                    col5_val = rawChinese;
+                    col6_val = rawExample;
+                    col7_val = rawVietnamese;
+                } else {
+                    // Cột 2 là Tiếng Trung (Khớp 100% thứ tự Anki): NO | 生词 | 拼音 | 词类 | English | 例如 | 含义
+                    col2_val = rawChinese;
+                    col3_val = rawPinyin;
+                    col4_val = rawPos;
+                    col5_val = rawEnglish;
+                    col6_val = rawExample;
+                    col7_val = rawVietnamese;
+                }
+
+                const isZhCol2 = (mode === 'chinese');
+                const isZhCol5 = (mode === 'english');
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="col-no">${index + 1}</td>
+                    <td class="col-2 ${isZhCol2 ? 'zh-text' : ''}" data-label-2="${mode === 'english' ? 'Vocabulary' : '生词'}">${col2_val}</td>
+                    <td class="col-3" data-label-3="${mode === 'english' ? 'Pronunciation' : '拼音'}">${col3_val}</td>
+                    <td class="col-pos" data-label-4="${mode === 'english' ? 'POS' : '词类'}"><span class="pos-badge">${col4_val}</span></td>
+                    <td class="col-5 ${isZhCol5 ? 'zh-text' : ''}" data-label-5="${mode === 'english' ? 'Chinese' : 'English'}">${col5_val}</td>
+                    <td class="col-example ${mode === 'chinese' ? 'zh-text' : ''}" data-label-6="${mode === 'english' ? 'Example' : '例如'}">${col6_val}</td>
+                    <td class="col-meaning" data-label-7="${mode === 'english' ? 'Meaning' : '含义'}">${col7_val}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Nếu có bài đọc passage trong CSV thì tự động hiển thị box
+            const passageBox = document.getElementById('passageBox');
+            const passageContent = document.getElementById('passageContent');
+            if (passage.trim() !== '') {
+                passageContent.textContent = passage;
+                passageBox.style.display = 'block';
+            } else {
+                passageBox.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
