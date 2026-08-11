@@ -35,10 +35,9 @@
             align-items: center;
         }
 
-        /* Thanh điều khiển tải CSV, chọn loại từ vựng và In/Xuất PDF */
         .controls {
             width: 100%;
-            max-width: 1100px;
+            max-width: 1200px;
             background-color: var(--card-bg);
             padding: 16px 24px;
             border-radius: 12px;
@@ -70,7 +69,7 @@
             border-radius: 6px;
         }
 
-        .mode-select {
+        .mode-select, .sr-select {
             padding: 6px 10px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
@@ -79,6 +78,16 @@
             font-family: inherit;
             font-size: 14px;
             outline: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--badge-text);
+            cursor: pointer;
         }
 
         .btn-print {
@@ -100,13 +109,14 @@
 
         .container {
             width: 100%;
-            max-width: 1100px;
+            max-width: 1200px;
             background-color: var(--card-bg);
             padding: 32px;
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(247, 161, 181, 0.15);
             border: 1px solid var(--border-color);
             box-sizing: border-box;
+            overflow-x: auto;
         }
 
         h1 {
@@ -115,11 +125,14 @@
             margin-top: 0;
             margin-bottom: 24px;
             font-size: 28px;
-            letter-spacing: 0.5px;
+            font-weight: 800;
+            letter-spacing: 1px;
         }
 
+        /* Font Tiếng Trung to và rõ */
         .zh-text {
             font-family: 'Yuanti SC', '圆体', 'STYuanti', 'PingFang SC', 'Noto Sans SC', sans-serif;
+            font-size: 17px;
         }
 
         table {
@@ -128,86 +141,123 @@
             margin-top: 10px;
             overflow: hidden;
             border-radius: 8px;
+            table-layout: fixed;
         }
 
         th {
-            background-color: var(--primary-color);
-            color: #ffffff;
+            background-color: var(--primary-color) !important;
+            color: #ffffff !important;
             font-weight: 600;
             text-align: left;
-            padding: 12px 14px;
+            padding: 10px 8px;
             font-size: 14px;
+            position: relative;
+            user-select: none;
+            overflow: hidden;
         }
 
         td {
-            padding: 10px 14px;
+            padding: 10px 8px;
             border-bottom: 1px solid var(--border-color);
             font-size: 14px;
             vertical-align: middle;
+            word-wrap: break-word;
+            overflow: hidden;
         }
 
-        tr:nth-child(even) {
-            background-color: var(--alt-row-bg);
+        tr:nth-child(even) td {
+            background-color: var(--alt-row-bg) !important;
         }
 
         tr:last-child td {
             border-bottom: none;
         }
 
+        /* Resizer handle cho các cột */
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 8px;
+            background: rgba(255, 255, 255, 0.25);
+            cursor: col-resize;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .resizer:hover, .resizing {
+            background: var(--badge-text);
+        }
+
         .col-no {
-            width: 5%;
             text-align: center;
             font-weight: bold;
             color: #b5838d;
         }
 
         .col-2 {
-            width: 18%;
-            font-size: 15px;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .col-2.single-line {
+            white-space: nowrap;
+        }
+
+        .col-2.multi-line {
+            white-space: normal;
         }
 
         .col-3 {
-            width: 16%;
             color: #8d5b68;
+            font-size: 14px;
         }
 
         .col-pos {
-            width: 10%;
             text-align: center;
         }
 
         .col-5 {
-            width: 18%;
             color: #6a535d;
+            font-size: 14px;
         }
 
         .col-example {
-            width: 20%;
-            font-size: 13px;
+            font-size: 13.5px;
             color: #5c4a52;
             line-height: 1.4;
         }
 
         .col-meaning {
-            width: 13%;
             color: #4a3f44;
+            font-size: 14px;
+        }
+
+        .col-sr {
+            text-align: center;
+            font-weight: bold;
+            color: var(--badge-text);
+            border-left: 1px dashed var(--border-color);
+            padding: 6px 2px;
         }
 
         .pos-badge {
             display: inline-block;
-            background-color: var(--badge-bg);
-            color: var(--badge-text);
-            padding: 2px 7px;
+            background-color: var(--badge-bg) !important;
+            color: var(--badge-text) !important;
+            padding: 2px 6px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .passage-box {
-            margin-top: 32px;
-            padding: 20px;
-            background-color: #fff0f3;
+            margin-top: 24px;
+            padding: 16px;
+            background-color: #fff0f3 !important;
             border-radius: 12px;
             border-left: 4px solid var(--primary-color);
         }
@@ -215,80 +265,59 @@
         .passage-title {
             font-weight: bold;
             color: #d85d7c;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .passage-content {
-            line-height: 1.8;
+            margin-bottom: 8px;
             font-size: 15px;
         }
 
-        @media (max-width: 850px) {
-            body {
-                padding: 12px;
-            }
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .container {
-                padding: 16px;
-            }
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            tr {
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                margin-bottom: 12px;
-                background-color: #fff;
-            }
-            td {
-                border: none;
-                border-bottom: 1px solid #ffeef2;
-                position: relative;
-                padding-left: 35%;
-                text-align: left;
-            }
-            td:before {
-                position: absolute;
-                top: 10px;
-                left: 12px;
-                width: 30%;
-                padding-right: 10px;
-                white-space: nowrap;
-                font-weight: bold;
-                color: #b5838d;
-            }
-            td:nth-of-type(1):before { content: "NO"; }
-            td:nth-of-type(2):before { content: attr(data-label-2); }
-            td:nth-of-type(3):before { content: attr(data-label-3); }
-            td:nth-of-type(4):before { content: attr(data-label-4); }
-            td:nth-of-type(5):before { content: attr(data-label-5); }
-            td:nth-of-type(6):before { content: attr(data-label-6); }
-            td:nth-of-type(7):before { content: attr(data-label-7); }
+        .passage-content {
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* CONFIG DÀNH RIÊNG CHO PRINT / XUẤT PDF */
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
         }
 
         @media print {
-            body {
-                background-color: #ffffff;
-                padding: 0;
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
+
+            body {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
             .controls {
                 display: none !important;
             }
+
             .container {
-                box-shadow: none;
-                border: none;
-                padding: 0;
-                width: 100%;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
+
+            table {
+                width: 100% !important;
+                table-layout: auto !important; /* Tự co giãn cột vừa khít trang */
+            }
+
+            th, td {
+                padding: 8px 6px !important;
+            }
+
+            .resizer {
+                display: none !important;
+            }
+
             tr {
                 page-break-inside: avoid;
             }
@@ -302,13 +331,36 @@
         <div class="controls-left">
             <a href="../index.html" class="btn-back">← Planner</a>
             
-            <label for="col2Mode"><b>Cột 2: </b></label>
-            <select id="col2Mode" class="mode-select" onchange="handleModeChange()">
-                <option value="chinese" selected>Chinese (生词)</option>
-                <option value="english">English (Vocabulary)</option>
+            <label for="col2Mode"><b>Loại: </b></label>
+            <select id="col2Mode" class="mode-select" onchange="renderTable()">
+                <option value="chinese">Tiếng Trung</option>
+                <option value="english" selected>Tiếng Anh</option>
             </select>
 
-            <label for="csvInput"><b>Tải file CSV: </b></label>
+            <label for="userRole"><b>Chế độ xem: </b></label>
+            <select id="userRole" class="mode-select" onchange="renderTable()">
+                <option value="teacher">Giáo viên (Đủ cột)</option>
+                <option value="student" selected>Học sinh (Ẩn dịch)</option>
+            </select>
+
+            <label class="checkbox-group">
+                <input type="checkbox" id="srToggle" checked onchange="toggleSRControls()"> Ôn tập (SR)
+            </label>
+            
+            <span id="srRangeWrapper">
+                <label for="srDays"><b>Số ngày: </b></label>
+                <select id="srDays" class="sr-select" onchange="renderTable()">
+                    <option value="1">1 ngày</option>
+                    <option value="2">2 ngày</option>
+                    <option value="3">3 ngày</option>
+                    <option value="4">4 ngày</option>
+                    <option value="5">5 ngày</option>
+                    <option value="6">6 ngày</option>
+                    <option value="7" selected>7 ngày</option>
+                </select>
+            </span>
+
+            <label for="csvInput"><b>Tải CSV: </b></label>
             <input type="file" id="csvInput" accept=".csv">
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ In / Tải PDF</button>
@@ -316,43 +368,39 @@
 
     <!-- Main Container -->
     <div class="container">
-        <h1 id="pageTitle">Bảng Từ Vựng Tiếng Trung</h1>
-        <table>
+        <h1 id="pageTitle">BẢNG TỪ VỰNG TIẾNG ANH</h1>
+        <table id="vocabTable">
             <thead>
-                <tr id="tableHeader">
-                    <th style="text-align: center;">NO</th>
-                    <th>生词</th>
-                    <th>拼音</th>
-                    <th style="text-align: center;">词类</th>
-                    <th>English</th>
-                    <th>例如</th>
-                    <th>含义</th>
-                </tr>
+                <tr id="tableHeader"></tr>
             </thead>
-            <tbody id="vocabBody">
-                <!-- Mẫu mặc định tương thích Anki -->
-                <tr>
-                    <td class="col-no">1</td>
-                    <td class="col-2 zh-text">挨</td>
-                    <td class="col-3">/āi/</td>
-                    <td class="col-pos"><span class="pos-badge">(v), (prep)</span></td>
-                    <td class="col-5">to be next to; by</td>
-                    <td class="col-example zh-text">挨着窗户坐。</td>
-                    <td class="col-meaning">kề, sát, cận kề</td>
-                </tr>
-            </tbody>
+            <tbody id="vocabBody"></tbody>
         </table>
 
-        <!-- Khối chứa trích đoạn văn (ẩn nếu CSV không có bài đọc) -->
         <div class="passage-box" id="passageBox" style="display: none;">
             <div class="passage-title">Trích đoạn văn trong yêu cầu:</div>
-            <div class="passage-content zh-text" id="passageContent">
-            </div>
+            <div class="passage-content zh-text" id="passageContent"></div>
         </div>
     </div>
 
     <script>
-        let cachedParsedData = null;
+        let cachedParsedData = [
+            {
+                English: 'door to door; house by house',
+                Chinese: '挨家挨户',
+                Pinyin: '/āijiā-āihù/',
+                POS: '(idi)',
+                Example: '志愿者挨家挨户发宣讲资料。',
+                Vietnamese: 'từng nhà từng hộ, từng nhà một'
+            },
+            {
+                English: 'to love something so much that one cannot put it down',
+                Chinese: '爱不释手',
+                Pinyin: '/àibúshìshǒu/',
+                POS: '(idi)',
+                Example: '他对这本书爱不释手。',
+                Vietnamese: 'yêu thích không lỡ rời tay'
+            }
+        ];
 
         document.getElementById('csvInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -363,53 +411,82 @@
                 skipEmptyLines: true,
                 complete: function(results) {
                     cachedParsedData = results.data;
+                    
+                    if (cachedParsedData.length > 0) {
+                        const sample = cachedParsedData[0];
+                        if (sample['Chinese'] || sample['生词'] || sample['Chữ Hán']) {
+                            document.getElementById('col2Mode').value = 'chinese';
+                        } else if (sample['English'] || sample['Vocabulary']) {
+                            document.getElementById('col2Mode').value = 'english';
+                        }
+                    }
                     renderTable();
                 }
             });
         });
 
-        function handleModeChange() {
+        function toggleSRControls() {
+            const isChecked = document.getElementById('srToggle').checked;
+            document.getElementById('srRangeWrapper').style.display = isChecked ? 'inline-block' : 'none';
             renderTable();
+        }
+
+        function countWords(str) {
+            if (!str) return 0;
+            return str.trim().split(/\s+/).filter(word => word.length > 0).length;
         }
 
         function renderTable() {
             const mode = document.getElementById('col2Mode').value;
+            const role = document.getElementById('userRole').value;
+            const srEnabled = document.getElementById('srToggle').checked;
+            const srDays = parseInt(document.getElementById('srDays').value) || 7;
+
             const pageTitle = document.getElementById('pageTitle');
             const tableHeader = document.getElementById('tableHeader');
             const tbody = document.getElementById('vocabBody');
 
-            // 1. Tiêu đề & Header chuẩn Anki (7 cột)
+            pageTitle.textContent = mode === 'english' ? "BẢNG TỪ VỰNG TIẾNG ANH" : "BẢNG TỪ VỰNG TIẾNG TRUNG";
+
+            let headerList = [
+                { name: 'NO', width: '40px' }
+            ];
+
             if (mode === 'english') {
-                pageTitle.textContent = "Bảng Từ Vựng Tiếng Anh";
-                tableHeader.innerHTML = `
-                    <th style="text-align: center;">NO</th>
-                    <th>Vocabulary</th>
-                    <th>Pronunciation</th>
-                    <th style="text-align: center;">POS</th>
-                    <th>Chinese</th>
-                    <th>Example</th>
-                    <th>Meaning</th>
-                `;
+                headerList.push({ name: 'Vocabulary', width: '200px' });
+                headerList.push({ name: 'Pronunciation', width: '130px' });
+                headerList.push({ name: 'POS', width: '60px' });
+                if (role === 'teacher') headerList.push({ name: 'Chinese', width: '140px' });
+                headerList.push({ name: 'Example', width: '230px' });
+                headerList.push({ name: 'Meaning', width: '160px' });
             } else {
-                pageTitle.textContent = "Bảng Từ Vựng Tiếng Trung";
-                tableHeader.innerHTML = `
-                    <th style="text-align: center;">NO</th>
-                    <th>生词</th>
-                    <th>拼音</th>
-                    <th style="text-align: center;">词类</th>
-                    <th>English</th>
-                    <th>例如</th>
-                    <th>含义</th>
-                `;
+                headerList.push({ name: '生词', width: '160px' });
+                headerList.push({ name: '拼音', width: '130px' });
+                headerList.push({ name: '词类', width: '60px' });
+                if (role === 'teacher') headerList.push({ name: 'English', width: '180px' });
+                headerList.push({ name: '例如', width: '230px' });
+                headerList.push({ name: '含义', width: '160px' });
             }
 
-            if (!cachedParsedData) return;
+            if (srEnabled) {
+                for (let d = 1; d <= srDays; d++) {
+                    headerList.push({ name: `D${d}`, width: '28px', class: 'col-sr' });
+                }
+            }
+
+            tableHeader.innerHTML = headerList.map(h => `
+                <th style="width: ${h.width};" class="${h.class || ''}">
+                    ${h.name}
+                    <div class="resizer"></div>
+                </th>
+            `).join('');
+
+            makeAllColumnsResizable();
 
             tbody.innerHTML = '';
             let passage = '';
 
             cachedParsedData.forEach((row, index) => {
-                // Đọc đúng các tên cột chuẩn Anki từ file CSV: Chinese, Pinyin, POS, English, Example, Vietnamese
                 const rawChinese = row['Chinese'] || row['chinese'] || row['生词'] || row['Chữ Hán'] || '';
                 let rawPinyin = row['Pinyin'] || row['pinyin'] || row['IPA'] || row['Pronunciation'] || row['拼音'] || '';
                 const rawPos = row['POS'] || row['pos'] || row['词类'] || row['Từ loại'] || '';
@@ -421,50 +498,43 @@
                     passage = row.passage || row['passage_text'] || row['Đoạn văn'];
                 }
 
-                // Format Pinyin / Pronunciation luôn bọc dạng /text/
                 if (rawPinyin && !rawPinyin.startsWith('/')) rawPinyin = '/' + rawPinyin;
                 if (rawPinyin && !rawPinyin.endsWith('/')) rawPinyin = rawPinyin + '/';
+                if (rawVietnamese) rawVietnamese = rawVietnamese.toLowerCase();
 
-                // Nghĩa Tiếng Việt bắt buộc viết thường toàn bộ
-                rawVietnamese = rawVietnamese.toLowerCase();
+                let mainWord = mode === 'english' ? (rawEnglish || rawChinese) : (rawChinese || rawEnglish);
+                let wordCount = mode === 'english' ? countWords(mainWord) : mainWord.length;
+                let lineClass = wordCount <= 6 ? 'single-line' : 'multi-line';
 
-                let col2_val, col3_val, col4_val, col5_val, col6_val, col7_val;
+                let rowHtml = `<td class="col-no">${index + 1}</td>`;
 
                 if (mode === 'english') {
-                    // Cột 2 là Tiếng Anh: NO | Vocabulary | Pronunciation | POS | Chinese | Example | Meaning
-                    col2_val = rawEnglish;
-                    col3_val = rawPinyin;
-                    col4_val = rawPos;
-                    col5_val = rawChinese;
-                    col6_val = rawExample;
-                    col7_val = rawVietnamese;
+                    rowHtml += `<td class="col-2 ${lineClass}">${rawEnglish || rawChinese}</td>`;
+                    rowHtml += `<td class="col-3">${rawPinyin}</td>`;
+                    rowHtml += `<td class="col-pos"><span class="pos-badge">${rawPos}</span></td>`;
+                    if (role === 'teacher') rowHtml += `<td class="col-5 zh-text">${rawChinese}</td>`;
+                    rowHtml += `<td class="col-example zh-text">${rawExample}</td>`;
+                    rowHtml += `<td class="col-meaning">${rawVietnamese}</td>`;
                 } else {
-                    // Cột 2 là Tiếng Trung (Khớp 100% thứ tự Anki): NO | 生词 | 拼音 | 词类 | English | 例如 | 含义
-                    col2_val = rawChinese;
-                    col3_val = rawPinyin;
-                    col4_val = rawPos;
-                    col5_val = rawEnglish;
-                    col6_val = rawExample;
-                    col7_val = rawVietnamese;
+                    rowHtml += `<td class="col-2 zh-text ${lineClass}">${rawChinese || rawEnglish}</td>`;
+                    rowHtml += `<td class="col-3">${rawPinyin}</td>`;
+                    rowHtml += `<td class="col-pos"><span class="pos-badge">${rawPos}</span></td>`;
+                    if (role === 'teacher') rowHtml += `<td class="col-5">${rawEnglish}</td>`;
+                    rowHtml += `<td class="col-example zh-text">${rawExample}</td>`;
+                    rowHtml += `<td class="col-meaning">${rawVietnamese}</td>`;
                 }
 
-                const isZhCol2 = (mode === 'chinese');
-                const isZhCol5 = (mode === 'english');
+                if (srEnabled) {
+                    for (let d = 1; d <= srDays; d++) {
+                        rowHtml += `<td class="col-sr"></td>`;
+                    }
+                }
 
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="col-no">${index + 1}</td>
-                    <td class="col-2 ${isZhCol2 ? 'zh-text' : ''}" data-label-2="${mode === 'english' ? 'Vocabulary' : '生词'}">${col2_val}</td>
-                    <td class="col-3" data-label-3="${mode === 'english' ? 'Pronunciation' : '拼音'}">${col3_val}</td>
-                    <td class="col-pos" data-label-4="${mode === 'english' ? 'POS' : '词类'}"><span class="pos-badge">${col4_val}</span></td>
-                    <td class="col-5 ${isZhCol5 ? 'zh-text' : ''}" data-label-5="${mode === 'english' ? 'Chinese' : 'English'}">${col5_val}</td>
-                    <td class="col-example ${mode === 'chinese' ? 'zh-text' : ''}" data-label-6="${mode === 'english' ? 'Example' : '例如'}">${col6_val}</td>
-                    <td class="col-meaning" data-label-7="${mode === 'english' ? 'Meaning' : '含义'}">${col7_val}</td>
-                `;
+                tr.innerHTML = rowHtml;
                 tbody.appendChild(tr);
             });
 
-            // Nếu có bài đọc passage trong CSV thì tự động hiển thị box
             const passageBox = document.getElementById('passageBox');
             const passageContent = document.getElementById('passageContent');
             if (passage.trim() !== '') {
@@ -474,6 +544,42 @@
                 passageBox.style.display = 'none';
             }
         }
+
+        function makeAllColumnsResizable() {
+            const cols = document.querySelectorAll('th');
+            cols.forEach(col => {
+                const resizer = col.querySelector('.resizer');
+                if (!resizer) return;
+
+                let x = 0;
+                let w = 0;
+
+                const mouseDownHandler = function (e) {
+                    x = e.clientX;
+                    const styles = window.getComputedStyle(col);
+                    w = parseInt(styles.width, 10);
+
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                    resizer.classList.add('resizing');
+                };
+
+                const mouseMoveHandler = function (e) {
+                    const dx = e.clientX - x;
+                    col.style.width = `${Math.max(20, w + dx)}px`;
+                };
+
+                const mouseUpHandler = function () {
+                    document.removeEventListener('mousemove', mouseMoveHandler);
+                    document.removeEventListener('mouseup', mouseUpHandler);
+                    resizer.classList.remove('resizing');
+                };
+
+                resizer.addEventListener('mousedown', mouseDownHandler);
+            });
+        }
+
+        renderTable();
     </script>
 </body>
 </html>
