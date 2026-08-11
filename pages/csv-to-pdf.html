@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Từ Vựng & Ngữ Pháp - CSV Exporter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Thư viện đọc CSV PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #fff5f7;
+            --card-bg: #ffffff;
+            --primary-color: #f7a1b5;
+            --primary-hover: #f4829d;
+            --text-color: #4a3f44;
+            --border-color: #fde2e8;
+            --alt-row-bg: #fff0f3;
+            --badge-bg: #ffe4eb;
+            --badge-text: #d85d7c;
+        }
+
+        /* ƯU TIÊN FONT AMERICAN TYPEWRITER CHO TIẾNG VIỆT */
+        body {
+            font-family: 'American Typewriter', 'Courier New', serif, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 1200px;
+            background-color: var(--card-bg);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(247, 161, 181, 0.15);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--badge-text);
+            font-weight: bold;
+            font-size: 14px;
+            background: var(--badge-bg);
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .mode-select, .sr-select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'American Typewriter', 'Courier New', serif;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--badge-text);
+            cursor: pointer;
+        }
+
+        .btn-print {
+            background-color: var(--badge-text);
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-family: 'American Typewriter', 'Courier New', serif;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .btn-print:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(247, 161, 181, 0.15);
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #d85d7c;
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-family: 'American Typewriter', 'Courier New', serif;
+        }
+
+        /* CHỈ DÀNH RIÊNG CHO CHỮ HÁN / TIẾNG TRUNG */
+        .zh-text {
+            font-family: 'Yuanti SC', '圆体', 'STYuanti', 'PingFang SC', 'Noto Sans SC', sans-serif;
+            font-size: 16.5px;
+        }
+
+        /* DÀNH RIÊNG CHO TIẾNG VIỆT ĐỂ KHÔNG BỊ LỖI DẤU */
+        .vn-text {
+            font-family: 'American Typewriter', 'Courier New', serif !important;
+            font-size: 14.5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            overflow: hidden;
+            border-radius: 8px;
+            table-layout: fixed;
+        }
+
+        th {
+            background-color: var(--primary-color) !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 8px;
+            font-size: 14px;
+            position: relative;
+            user-select: none;
+            overflow: hidden;
+            font-family: 'American Typewriter', 'Courier New', serif;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            vertical-align: middle;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+
+        tr:nth-child(even) td {
+            background-color: var(--alt-row-bg) !important;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 8px;
+            background: rgba(255, 255, 255, 0.25);
+            cursor: col-resize;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .resizer:hover, .resizing {
+            background: var(--badge-text);
+        }
+
+        .col-no {
+            text-align: center;
+            font-weight: bold;
+            color: #b5838d;
+        }
+
+        .col-2 {
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .col-2.single-line { white-space: nowrap; }
+        .col-2.multi-line { white-space: normal; }
+
+        .col-3 { color: #8d5b68; font-size: 14px; }
+        .col-pos { text-align: center; }
+        .col-5 { color: #6a535d; font-size: 14px; }
+
+        .col-example {
+            font-size: 13.5px;
+            color: #5c4a52;
+            line-height: 1.4;
+        }
+
+        .col-meaning {
+            color: #4a3f44;
+            font-size: 14px;
+            font-family: 'American Typewriter', 'Courier New', serif;
+        }
+
+        .col-sr {
+            text-align: center;
+            font-weight: bold;
+            color: var(--badge-text);
+            border-left: 1px dashed var(--border-color);
+            padding: 6px 2px;
+        }
+
+        .pos-badge {
+            display: inline-block;
+            background-color: var(--badge-bg) !important;
+            color: var(--badge-text) !important;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .passage-box {
+            margin-top: 24px;
+            padding: 16px;
+            background-color: #fff0f3 !important;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .passage-title {
+            font-weight: bold;
+            color: #d85d7c;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-family: 'American Typewriter', 'Courier New', serif;
+        }
+
+        .passage-content {
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* STYLES DÀNH RIÊNG CHO TRÌNH BÀY DỌC (NGỮ PHÁP) */
+        .grammar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-top: 10px;
+        }
+
+        .grammar-item {
+            background-color: var(--alt-row-bg);
+            border: 1px solid var(--border-color);
+            border-left: 6px solid var(--badge-text);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(247, 161, 181, 0.08);
+        }
+
+        .grammar-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--badge-text);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--primary-color);
+        }
+
+        .grammar-field {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .grammar-field:last-child {
+            margin-bottom: 0;
+        }
+
+        .grammar-label {
+            font-weight: bold;
+            color: #8d5b68;
+            margin-bottom: 4px;
+            font-family: 'American Typewriter', 'Courier New', serif;
+        }
+
+        .grammar-questions {
+            background-color: var(--card-bg);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 6px;
+        }
+
+        .grammar-questions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .grammar-questions li {
+            margin-bottom: 6px;
+            color: var(--text-color);
+            font-family: 'American Typewriter', 'Courier New', serif;
+        }
+
+        .grammar-questions li:last-child {
+            margin-bottom: 0;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            body {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .controls {
+                display: none !important;
+            }
+
+            .container {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            table {
+                width: 100% !important;
+                table-layout: auto !important;
+            }
+
+            th, td {
+                padding: 8px 6px !important;
+            }
+
+            .resizer { display: none !important; }
+
+            tr, .grammar-item {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Control bar -->
+    <div class="controls">
+        <div class="controls-left">
+            <a href="../index.html" class="btn-back">← Planner</a>
+            
+            <label class="checkbox-group" style="background: var(--badge-bg); padding: 4px 8px; border-radius: 6px;">
+                <input type="checkbox" id="grammarToggle" onchange="toggleGrammarMode()"> 📖 Ngữ pháp
+            </label>
+
+            <span id="vocabControls" style="display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <label for="col2Mode"><b>Loại: </b></label>
+                <select id="col2Mode" class="mode-select" onchange="renderTable()">
+                    <option value="chinese" selected>Tiếng Trung</option>
+                    <option value="english">Tiếng Anh</option>
+                </select>
+
+                <label for="userRole"><b>Chế độ xem: </b></label>
+                <select id="userRole" class="mode-select" onchange="renderTable()">
+                    <option value="teacher">Giáo viên (Đủ cột)</option>
+                    <option value="student" selected>Học sinh (Ẩn dịch)</option>
+                </select>
+
+                <label class="checkbox-group">
+                    <input type="checkbox" id="srToggle" checked onchange="toggleSRControls()"> Ôn tập (SR)
+                </label>
+                
+                <span id="srRangeWrapper">
+                    <label for="srDays"><b>Số ngày: </b></label>
+                    <select id="srDays" class="sr-select" onchange="renderTable()">
+                        <option value="1">1 ngày</option>
+                        <option value="2">2 ngày</option>
+                        <option value="3">3 ngày</option>
+                        <option value="4">4 ngày</option>
+                        <option value="5">5 ngày</option>
+                        <option value="6">6 ngày</option>
+                        <option value="7" selected>7 ngày</option>
+                    </select>
+                </span>
+            </span>
+
+            <label for="csvInput"><b>Tải CSV: </b></label>
+            <input type="file" id="csvInput" accept=".csv">
+        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ In / Tải PDF</button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h1 id="pageTitle">BẢNG TỪ VỰNG TIẾNG TRUNG</h1>
+        
+        <table id="vocabTable">
+            <thead>
+                <tr id="tableHeader"></tr>
+            </thead>
+            <tbody id="vocabBody"></tbody>
+        </table>
+
+        <div id="grammarContainer" class="grammar-list" style="display: none;"></div>
+
+        <div class="passage-box" id="passageBox" style="display: none;">
+            <div class="passage-title">Trích đoạn văn trong yêu cầu:</div>
+            <div class="passage-content zh-text" id="passageContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // TEMPLATE DỮ LIỆU TỪ VỰNG MẶC ĐỊNH
+        const defaultVocabData = [
+            { Chinese: "晚饭", Pinyin: "/wǎnfàn/", POS: "(n)", English: "dinner", Example: "我吃晚饭。", Vietnamese: "cơm tối" },
+            { Chinese: "早饭", Pinyin: "/zǎofàn/", POS: "(n)", English: "breakfast", Example: "你吃早饭了吗？", Vietnamese: "cơm sáng" },
+            { Chinese: "午饭", Pinyin: "/wǔfàn/", POS: "(n)", English: "lunch", Example: "我们一起吃午饭吧。", Vietnamese: "cơm trưa" },
+            { Chinese: "早上", Pinyin: "/zǎoshang/", POS: "(n)", English: "morning", Example: "早上好！", Vietnamese: "buổi sáng" },
+            { Chinese: "课", Pinyin: "/kè/", POS: "(n)", English: "class, lesson", Example: "上课了。", Vietnamese: "lớp học, tiết học" },
+            { Chinese: "见", Pinyin: "/jiàn/", POS: "(v)", English: "to see, to meet", Example: "明天见。", Vietnamese: "gặp mặt" },
+            { Chinese: "现在", Pinyin: "/xiànzài/", POS: "(n)", English: "now", Example: "现在几点了？", Vietnamese: "hiện tại, bây giờ" },
+            { Chinese: "有事", Pinyin: "/yǒushì/", POS: "(v)", English: "to be busy", Example: "你今天有事吗？", Vietnamese: "có việc, có việc bận" },
+            { Chinese: "上班", Pinyin: "/shàngbān/", POS: "(v)", English: "to go to work", Example: "他去上班了。", Vietnamese: "đi làm" },
+            { Chinese: "能", Pinyin: "/néng/", POS: "(v)", English: "can, to be able to", Example: "我不能去。", Vietnamese: "có thể" }
+        ];
+
+        // TEMPLATE DỮ LIỆU NGỮ PHÁP MẶC ĐỊNH
+        const defaultGrammarData = [
+            {
+                "Cấu trúc": "Danh từ + 外 / 内 / 里",
+                "Ý nghĩa": "Chỉ vị trí, phương hướng (bên ngoài / bên trong của một không gian, địa điểm).",
+                "Ví dụ": "1. 门外有人。(Có người ở ngoài cửa.)<br>2. 房内很干净。(Bên trong phòng rất sạch sẽ.)<br>3. 房间里没有人。(Trong phòng không có ai.)",
+                "Lưu ý": "Khi danh từ đã chỉ địa điểm rõ ràng hoặc danh từ riêng (như tên nước, tên thành phố), không thêm 里. Không dùng '北京里' mà dùng '北京'.",
+                "Câu hỏi": "1. Bàn làm việc ở bên trong phòng.<br>2. Bên ngoài cửa có một chiếc ghế.<br>3. Trong sách có rất nhiều chữ Hán."
+            },
+            {
+                "Cấu trúc": "在 + Địa điểm (+ Động từ)",
+                "Ý nghĩa": "Diễn tả sự tồn tại ở một vị trí nào đó (ở...) hoặc hành động đang diễn ra tại một địa điểm (làm gì ở đâu).",
+                "Ví dụ": "1. 我在家。(Tôi ở nhà.)<br>2. 我在房间里看书。(Tôi đang đọc sách trong phòng.)<br>3. 售货员在商店上班。(Người bán hàng làm việc ở cửa hàng.)",
+                "Lưu ý": "Trong tiếng Trung, trạng ngữ chỉ địa điểm '在 + địa điểm' luôn đứng TRƯỚC động từ chính (cấu trúc: Chủ ngữ + 在 + Địa điểm + Động từ).",
+                "Câu hỏi": "1. Hôm nay bạn có ở nhà không?<br>2. Tôi đọc sách ở trong phòng.<br>3. Người bán hàng đang làm việc ở bên ngoài."
+            },
+            {
+                "Cấu trúc": "Địa điểm + 有 + Danh từ",
+                "Ý nghĩa": "Cấu trúc biểu thị sự tồn tại: 'Ở đâu đó có cái gì'.",
+                "Ví dụ": "1. 桌子上有一本书。(Trên bàn có một cuốn sách.)<br>2. 房间里有一张桌子和两把椅子。(Trong phòng có một cái bàn và hai cái ghế.)",
+                "Lưu ý": "Khác với 在 (chủ ngữ là vật/người xác định 'A ở B'), cấu trúc 有 có chủ ngữ là địa điểm ('Ở B có A' - A thường là vật/người chưa xác định).",
+                "Câu hỏi": "1. Trên bàn có quả táo nào không?<br>2. Trong phòng có hai người bán hàng."
+            }
+        ];
+
+        let cachedParsedData = [...defaultVocabData];
+
+        document.getElementById('csvInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    cachedParsedData = results.data;
+                    
+                    if (cachedParsedData.length > 0) {
+                        const sample = cachedParsedData[0];
+                        if (sample['Cấu trúc'] || sample['Structure'] || sample['Grammar'] || sample['cấu trúc']) {
+                            document.getElementById('grammarToggle').checked = true;
+                        } else if (sample['Chinese'] || sample['生词'] || sample['Chữ Hán']) {
+                            document.getElementById('col2Mode').value = 'chinese';
+                            document.getElementById('grammarToggle').checked = false;
+                        } else if (sample['English'] || sample['Vocabulary']) {
+                            document.getElementById('col2Mode').value = 'english';
+                            document.getElementById('grammarToggle').checked = false;
+                        }
+                    }
+                    toggleGrammarMode();
+                }
+            });
+        });
+
+        function toggleGrammarMode() {
+            const isGrammar = document.getElementById('grammarToggle').checked;
+            document.getElementById('vocabControls').style.display = isGrammar ? 'none' : 'inline-flex';
+            document.getElementById('vocabTable').style.display = isGrammar ? 'none' : 'table';
+            document.getElementById('grammarContainer').style.display = isGrammar ? 'flex' : 'none';
+
+            const isUsingDefault = (cachedParsedData === defaultVocabData || cachedParsedData === defaultGrammarData);
+            if (isUsingDefault) {
+                cachedParsedData = isGrammar ? [...defaultGrammarData] : [...defaultVocabData];
+            }
+
+            if (isGrammar) {
+                renderGrammarLayout();
+            } else {
+                renderTable();
+            }
+        }
+
+        function toggleSRControls() {
+            const isChecked = document.getElementById('srToggle').checked;
+            document.getElementById('srRangeWrapper').style.display = isChecked ? 'inline-block' : 'none';
+            renderTable();
+        }
+
+        function countWords(str) {
+            if (!str) return 0;
+            return str.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        function renderGrammarLayout() {
+            const pageTitle = document.getElementById('pageTitle');
+            const container = document.getElementById('grammarContainer');
+            pageTitle.textContent = "BẢNG CẤU TRÚC NGỮ PHÁP";
+            container.innerHTML = '';
+
+            let passage = '';
+
+            cachedParsedData.forEach((row, index) => {
+                const structure = row['Cấu trúc'] || row['Cấu trúc ngữ pháp'] || row['Structure'] || row['Grammar'] || row['cấu trúc'] || '';
+                const meaning = row['Ý nghĩa'] || row['Ý nghĩa, cách dùng'] || row['Meaning'] || row['ý nghĩa'] || '';
+                let example = row['Ví dụ'] || row['Example'] || row['例如'] || row['ví dụ'] || '';
+                const notes = row['Lưu ý'] || row['Notes'] || row['Note'] || row['lưu ý'] || 'Không có';
+                let questionsRaw = row['Câu hỏi'] || row['Câu hỏi vận dụng'] || row['Questions'] || row['câu hỏi'] || '';
+
+                if (row.passage || row['passage_text'] || row['Đoạn văn']) {
+                    passage = row.passage || row['passage_text'] || row['Đoạn văn'];
+                }
+
+                // XỬ LÝ NGẮT DÒNG THÔNG MINH CHO PHẦN VÍ DỤ:
+                // 1. Chuyển \n thành <br>
+                let formattedExample = example.replace(/\r?\n/g, '<br>');
+                // 2. Tự động ngắt dòng trước các số thứ tự (2. 3. 4. 5.) nếu bị dính liền hàng
+                formattedExample = formattedExample.replace(/\s+(\d+\.\s*)/g, '<br>$1');
+
+                // XỬ LÝ CÂU HỎI VẬN DỤNG:
+                let qList = [];
+                if (questionsRaw) {
+                    qList = questionsRaw.split(/<br\s*\/?>|\r?\n|;/i)
+                        .map(q => q.trim().replace(/^\d+[\.\s\-]+/, ''))
+                        .filter(q => q.length > 0);
+                }
+
+                let questionsHtml = '';
+                if (qList.length > 0) {
+                    questionsHtml = `<div class="grammar-questions"><ol>${qList.map(q => `<li class="vn-text">${q}</li>`).join('')}</ol></div>`;
+                } else {
+                    questionsHtml = `<div class="grammar-questions vn-text">Chưa có câu hỏi vận dụng.</div>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'grammar-item';
+                card.innerHTML = `
+                    <div class="grammar-title zh-text"><strong>${index + 1}. ${structure}</strong></div>
+                    
+                    <div class="grammar-field">
+                        <div class="grammar-label">Ý nghĩa, cách dùng:</div>
+                        <div class="vn-text">${meaning}</div>
+                    </div>
+
+                    <div class="grammar-field">
+                        <div class="grammar-label">Ví dụ:</div>
+                        <div class="zh-text">${formattedExample}</div>
+                    </div>
+
+                    <div class="grammar-field">
+                        <div class="grammar-label">Lưu ý:</div>
+                        <div class="vn-text">${notes}</div>
+                    </div>
+
+                    <div class="grammar-field">
+                        <div class="grammar-label">Câu hỏi vận dụng:</div>
+                        ${questionsHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const passageBox = document.getElementById('passageBox');
+            const passageContent = document.getElementById('passageContent');
+            if (passage.trim() !== '') {
+                passageContent.textContent = passage;
+                passageBox.style.display = 'block';
+            } else {
+                passageBox.style.display = 'none';
+            }
+        }
+
+        function renderTable() {
+            const mode = document.getElementById('col2Mode').value;
+            const role = document.getElementById('userRole').value;
+            const srEnabled = document.getElementById('srToggle').checked;
+            const srDays = parseInt(document.getElementById('srDays').value) || 7;
+
+            const pageTitle = document.getElementById('pageTitle');
+            const tableHeader = document.getElementById('tableHeader');
+            const tbody = document.getElementById('vocabBody');
+
+            pageTitle.textContent = mode === 'english' ? "BẢNG TỪ VỰNG TIẾNG ANH" : "BẢNG TỪ VỰNG TIẾNG TRUNG";
+
+            let headerList = [{ name: 'NO', width: '40px' }];
+
+            if (mode === 'english') {
+                headerList.push({ name: 'Vocabulary', width: '200px' });
+                headerList.push({ name: 'Pronunciation', width: '130px' });
+                headerList.push({ name: 'POS', width: '60px' });
+                if (role === 'teacher') headerList.push({ name: 'Chinese', width: '140px' });
+                headerList.push({ name: 'Example', width: '230px' });
+                headerList.push({ name: 'Meaning', width: '160px' });
+            } else {
+                headerList.push({ name: '生词', width: '160px' });
+                headerList.push({ name: '拼音', width: '130px' });
+                headerList.push({ name: '词类', width: '60px' });
+                if (role === 'teacher') headerList.push({ name: 'English', width: '180px' });
+                headerList.push({ name: '例如', width: '230px' });
+                headerList.push({ name: '含义', width: '160px' });
+            }
+
+            if (srEnabled) {
+                for (let d = 1; d <= srDays; d++) {
+                    headerList.push({ name: `D${d}`, width: '28px', class: 'col-sr' });
+                }
+            }
+
+            tableHeader.innerHTML = headerList.map(h => `
+                <th style="width: ${h.width};" class="${h.class || ''}">
+                    ${h.name}
+                    <div class="resizer"></div>
+                </th>
+            `).join('');
+
+            makeAllColumnsResizable();
+
+            tbody.innerHTML = '';
+            let passage = '';
+
+            cachedParsedData.forEach((row, index) => {
+                const rawChinese = row['Chinese'] || row['chinese'] || row['生词'] || row['Chữ Hán'] || '';
+                let rawPinyin = row['Pinyin'] || row['pinyin'] || row['IPA'] || row['Pronunciation'] || row['拼音'] || '';
+                const rawPos = row['POS'] || row['pos'] || row['词类'] || row['Từ loại'] || '';
+                const rawEnglish = row['English'] || row['english'] || row['Vocabulary'] || '';
+                const rawExample = row['Example'] || row['example'] || row['例如'] || row['Ví dụ'] || '';
+                let rawVietnamese = row['Vietnamese'] || row['vietnamese'] || row['Meaning'] || row['meaning'] || row['含义'] || row['Ý nghĩa'] || '';
+
+                if (row.passage || row['passage_text'] || row['Đoạn văn']) {
+                    passage = row.passage || row['passage_text'] || row['Đoạn văn'];
+                }
+
+                if (rawPinyin && !rawPinyin.startsWith('/')) rawPinyin = '/' + rawPinyin;
+                if (rawPinyin && !rawPinyin.endsWith('/')) rawPinyin = rawPinyin + '/';
+                if (rawVietnamese) rawVietnamese = rawVietnamese.toLowerCase();
+
+                let mainWord = mode === 'english' ? (rawEnglish || rawChinese) : (rawChinese || rawEnglish);
+                let wordCount = mode === 'english' ? countWords(mainWord) : mainWord.length;
+                let lineClass = wordCount <= 6 ? 'single-line' : 'multi-line';
+
+                let rowHtml = `<td class="col-no">${index + 1}</td>`;
+
+                if (mode === 'english') {
+                    rowHtml += `<td class="col-2 ${lineClass}">${rawEnglish || rawChinese}</td>`;
+                    rowHtml += `<td class="col-3">${rawPinyin}</td>`;
+                    rowHtml += `<td class="col-pos"><span class="pos-badge">${rawPos}</span></td>`;
+                    if (role === 'teacher') rowHtml += `<td class="col-5 zh-text">${rawChinese}</td>`;
+                    rowHtml += `<td class="col-example zh-text">${rawExample}</td>`;
+                    rowHtml += `<td class="col-meaning vn-text">${rawVietnamese}</td>`;
+                } else {
+                    rowHtml += `<td class="col-2 zh-text ${lineClass}">${rawChinese || rawEnglish}</td>`;
+                    rowHtml += `<td class="col-3">${rawPinyin}</td>`;
+                    rowHtml += `<td class="col-pos"><span class="pos-badge">${rawPos}</span></td>`;
+                    if (role === 'teacher') rowHtml += `<td class="col-5">${rawEnglish}</td>`;
+                    rowHtml += `<td class="col-example zh-text">${rawExample}</td>`;
+                    rowHtml += `<td class="col-meaning vn-text">${rawVietnamese}</td>`;
+                }
+
+                if (srEnabled) {
+                    for (let d = 1; d <= srDays; d++) {
+                        rowHtml += `<td class="col-sr"></td>`;
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = rowHtml;
+                tbody.appendChild(tr);
+            });
+
+            const passageBox = document.getElementById('passageBox');
+            const passageContent = document.getElementById('passageContent');
+            if (passage.trim() !== '') {
+                passageContent.textContent = passage;
+                passageBox.style.display = 'block';
+            } else {
+                passageBox.style.display = 'none';
+            }
+        }
+
+        function makeAllColumnsResizable() {
+            const cols = document.querySelectorAll('th');
+            cols.forEach(col => {
+                const resizer = col.querySelector('.resizer');
+                if (!resizer) return;
+
+                let x = 0;
+                let w = 0;
+
+                const mouseDownHandler = function (e) {
+                    x = e.clientX;
+                    const styles = window.getComputedStyle(col);
+                    w = parseInt(styles.width, 10);
+
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                    resizer.classList.add('resizing');
+                };
+
+                const mouseMoveHandler = function (e) {
+                    const dx = e.clientX - x;
+                    col.style.width = `${Math.max(20, w + dx)}px`;
+                };
+
+                const mouseUpHandler = function () {
+                    document.removeEventListener('mousemove', mouseMoveHandler);
+                    document.removeEventListener('mouseup', mouseUpHandler);
+                    resizer.classList.remove('resizing');
+                };
+
+                resizer.addEventListener('mousedown', mouseDownHandler);
+            });
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>
