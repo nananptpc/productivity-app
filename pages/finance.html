@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Tay Quản Lý Tài Chính & Tiết Kiệm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fff5f7;
+            --card-bg: #ffffff;
+            --primary-pink: #f7a1b5;
+            --primary-hover: #e8869f;
+            --accent-pink: #fde8ed;
+            --text-color: #4a3f44;
+            --border-color: #f3c2ce;
+            --shadow: 0 8px 24px rgba(247, 161, 181, 0.15);
+            --green: #6bc080;
+            --red: #f17282;
+            --blue: #71a9de;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'American Typewriter', 'Courier New', 'Comfortaa', monospace, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 24px 16px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 24px; }
+        header h1 { color: #d85c77; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        header p { font-size: 14px; color: #7a6870; }
+
+        /* Dashboard Overview Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-card h3 { font-size: 13px; color: #8c737e; text-transform: uppercase; margin-bottom: 6px; }
+        .stat-card .amount { font-size: 22px; font-weight: 700; color: #d85c77; }
+        .stat-card.income .amount { color: #409153; }
+        .stat-card.expense .amount { color: #d94b5e; }
+        .stat-card.saving .amount { color: #3b74a3; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1.2fr 1.5fr 1.2fr 120px;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 992px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 576px) { .form-grid { grid-template-columns: 1fr; } }
+
+        label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #6b555e; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+            background-color: #fffafb;
+            color: var(--text-color);
+        }
+
+        input:focus, select:focus {
+            border-color: #e8869f;
+            box-shadow: 0 0 0 3px rgba(247, 161, 181, 0.25);
+            background-color: #ffffff;
+        }
+
+        .btn {
+            background-color: var(--primary-pink);
+            color: white;
+            border: none;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: #f3dbe1; color: #6b434e; }
+        .btn-secondary:hover { background-color: #e8c6ce; }
+        .btn-danger { background-color: var(--red); color: white; padding: 4px 8px; font-size: 11px; border-radius: 6px; cursor: pointer; }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .search-box { position: relative; min-width: 220px; }
+        .search-box input { padding-left: 32px; background-color: #ffffff; }
+        .search-box::before { content: "🔍"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; }
+
+        .table-container { 
+            overflow-x: auto; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+            text-align: left;
+            table-layout: fixed;
+        }
+
+        th {
+            background-color: #fce8ed;
+            color: #6b3e4b;
+            padding: 12px 10px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+            position: relative;
+            user-select: none;
+        }
+
+        /* Resize Handle - Fixed */
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 8px;
+            background: transparent;
+            cursor: col-resize;
+            user-select: none;
+            z-index: 10;
+        }
+        .resizer:hover, .resizer.active {
+            background: #e8869f;
+            opacity: 0.6;
+        }
+        .resizer.dragging {
+            background: #d85c77;
+            opacity: 0.8;
+        }
+
+        /* Column resize ghost line */
+        .resize-ghost {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #d85c77;
+            z-index: 999;
+            pointer-events: none;
+            display: none;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #f9e6eb;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) { background-color: #fffafc; }
+        tr:hover { background-color: #fdf0f4; }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .badge-income { background: #e2f5e7; color: #276e38; }
+        .badge-expense { background: #ffe3e6; color: #b82c3e; }
+        .badge-saving { background: #e1f0ff; color: #215988; }
+
+        .amount-pos { color: #276e38; font-weight: 700; }
+        .amount-neg { color: #b82c3e; font-weight: 700; }
+
+        .table-select, .table-input {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13px;
+            color: inherit;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .table-select:focus, .table-input:focus {
+            border-color: #e8869f;
+            background: #ffffff;
+            outline: none;
+        }
+
+        /* Fixed column widths */
+        .col-no { width: 50px; text-align: center; }
+        .col-date { width: 130px; }
+        .col-type { width: 160px; }
+        .col-title { width: auto; }
+        .col-amount { width: 180px; text-align: right; }
+        .col-action { width: 60px; text-align: center; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; font-size: 11px; }
+            .card { box-shadow: none; border: none; padding: 0; }
+            .table-container { border: 1px solid #ccc; }
+            th { background-color: #fce8ed !important; -webkit-print-color-adjust: exact; }
+            .resizer { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="no-print">
+        <h1>💸 Sổ Tay Quản Lý Tài Chính & Tiết Kiệm</h1>
+        <p>Theo dõi lương, phân bổ các khoản chi lớn & tình hình tích lũy tiết kiệm</p>
+    </header>
+
+    <!-- Thống kê tổng quan -->
+    <div class="stats-grid">
+        <div class="stat-card income">
+            <h3>Tổng Thu Nhập (Lương/Khác)</h3>
+            <div class="amount" id="totalIncome">0 ₫</div>
+        </div>
+        <div class="stat-card expense">
+            <h3>Tổng Khoản Chi Lớn</h3>
+            <div class="amount" id="totalExpense">0 ₫</div>
+        </div>
+        <div class="stat-card saving">
+            <h3>Quỹ Tiết Kiệm Tích Lũy</h3>
+            <div class="amount" id="totalSaving">0 ₫</div>
+        </div>
+        <div class="stat-card">
+            <h3>Số Dư Khả Dụng</h3>
+            <div class="amount" id="netBalance">0 ₫</div>
+        </div>
+    </div>
+
+    <!-- Form Thêm Giao Dịch -->
+    <div class="card no-print">
+        <div class="form-grid">
+            <div>
+                <label for="txDate">📅 Ngày thực hiện:</label>
+                <input type="date" id="txDate">
+            </div>
+            <div>
+                <label for="txType">🏷️ Loại giao dịch:</label>
+                <select id="txType" onchange="updateCategoryDropdown()">
+                    <option value="income">💵 Thu Nhập (Lương/Khác)</option>
+                    <option value="expense">💸 Chi Tiêu / Khoản To</option>
+                    <option value="saving">🏦 Tiết Kiệm / Tích Lũy</option>
+                </select>
+            </div>
+            <div>
+                <label for="txCategory">📂 Phân loại chi tiết:</label>
+                <select id="txCategory"></select>
+            </div>
+            <div>
+                <label for="txTitle">📝 Tên khoản / Nội dung:</label>
+                <input type="text" id="txTitle" placeholder="Ví dụ: Lương tháng 9, Mua MacBook, Gửi tiết kiệm...">
+            </div>
+            <div>
+                <label for="txAmount">💰 Số tiền (VNĐ):</label>
+                <input type="number" id="txAmount" placeholder="0" step="1000">
+            </div>
+            <button class="btn" onclick="addTransaction()">➕ Thêm Mới</button>
+        </div>
+    </div>
+
+    <!-- Bảng Dữ Liệu -->
+    <div class="card">
+        <div class="toolbar no-print">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm khoản chi/thu..." oninput="renderTable()">
+                </div>
+                
+                <!-- Chế độ sắp xếp / Xem -->
+                <div>
+                    <select id="sortMode" onchange="renderTable()" style="width: auto;">
+                        <option value="newest">📅 Sắp xếp: Mới nhất</option>
+                        <option value="oldest">📅 Sắp xếp: Cũ nhất</option>
+                        <option value="type">🏷️ Nhóm/Gộp theo loại chi tiêu</option>
+                        <option value="amount-desc">💰 Số tiền: Cao → Thấp</option>
+                        <option value="amount-asc">💰 Số tiền: Thấp → Cao</option>
+                    </select>
+                </div>
+
+                <select id="filterType" onchange="renderTable()" style="width: auto;">
+                    <option value="all">Tất cả loại</option>
+                    <option value="income">Thu nhập</option>
+                    <option value="expense">Khoản chi lớn</option>
+                    <option value="saving">Tiết kiệm</option>
+                </select>
+                
+                <select id="filterMonth" onchange="renderTable()" style="width: auto;"></select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary" onclick="exportCSV()">📥 Xuất CSV</button>
+                <button class="btn btn-secondary" onclick="window.print()">🖨️ In / Save PDF</button>
+                <button class="btn btn-secondary" style="color: var(--red);" onclick="clearAllData()">🗑️ Xóa Tất Cả</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="resize-ghost" id="resizeGhost"></div>
+            <table id="mainTable">
+                <thead>
+                    <tr>
+                        <th class="col-no" style="text-align: center;">NO</th>
+                        <th class="col-date">Ngày</th>
+                        <th class="col-type">Loại</th>
+                        <th class="col-title">Nội Dung / Khoản Chi</th>
+                        <th class="col-amount" style="text-align: right;">Số Tiền (VNĐ)</th>
+                        <th class="col-action no-print" style="text-align: center;">Xóa</th>
+                    </tr>
+                </thead>
+                <tbody id="txTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const categories = {
+        income: ["Lương Trung Tâm", "Lương Dạy Thêm", "Thưởng / Lập Trình", "Thu Nhập Khác"],
+        expense: ["Học Phí / Thi Bằng", "Thiết Bị / Công Nghệ", "Mua Sắm Khoản To", "Du Lịch / Sự Kiện", "Chi Phí Gia Đình", "Khác"],
+        saving: ["Tiết Kiệm Ngân Hàng", "Vàng / Tích Lũy", "Quỹ Dự Phòng", "Đầu Tư"]
+    };
+
+    let transactions = JSON.parse(localStorage.getItem('finance_transactions') || '[]');
+
+    window.onload = function() {
+        document.getElementById('txDate').valueAsDate = new Date();
+        updateCategoryDropdown();
+        populateMonthFilter();
+        renderTable();
+        makeColumnsResizable();
+    };
+
+    function updateCategoryDropdown() {
+        const type = document.getElementById('txType').value;
+        const catSelect = document.getElementById('txCategory');
+        catSelect.innerHTML = categories[type].map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function addTransaction() {
+        const date = document.getElementById('txDate').value;
+        const type = document.getElementById('txType').value;
+        const category = document.getElementById('txCategory').value;
+        const title = document.getElementById('txTitle').value.trim();
+        const amount = parseFloat(document.getElementById('txAmount').value);
+
+        if (!date || !title || isNaN(amount) || amount <= 0) {
+            alert("Vui lòng nhập đầy đủ ngày, tên khoản và số tiền hợp lệ!");
+            return;
+        }
+
+        const item = {
+            id: Date.now(),
+            date,
+            type,
+            category,
+            title,
+            amount
+        };
+
+        transactions.push(item);
+        saveAndReload();
+
+        document.getElementById('txTitle').value = '';
+        document.getElementById('txAmount').value = '';
+    }
+
+    function updateField(id, field, value) {
+        const item = transactions.find(t => t.id === id);
+        if (!item) return;
+
+        if (field === 'amount') {
+            const val = parseFloat(value);
+            if (!isNaN(val) && val >= 0) item.amount = val;
+        } else if (field === 'type') {
+            item.type = value;
+            if (!categories[value].includes(item.category)) {
+                item.category = categories[value][0];
+            }
+        } else {
+            item[field] = value;
+        }
+        saveAndReload();
+    }
+
+    function deleteItem(id) {
+        if (!confirm("Xóa giao dịch này?")) return;
+        transactions = transactions.filter(t => t.id !== id);
+        saveAndReload();
+    }
+
+    function clearAllData() {
+        if (confirm("⚠️ Cảnh báo: Toàn bộ dữ liệu thu chi & tiết kiệm sẽ bị xóa sạch!")) {
+            transactions = [];
+            saveAndReload();
+        }
+    }
+
+    function saveAndReload() {
+        localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+        populateMonthFilter();
+        renderTable();
+    }
+
+    function populateMonthFilter() {
+        const monthSelect = document.getElementById('filterMonth');
+        const currentSelection = monthSelect.value;
+        const months = new Set();
+
+        transactions.forEach(t => {
+            if (t.date) months.add(t.date.substring(0, 7));
+        });
+
+        let html = '<option value="all">Tất cả tháng</option>';
+        Array.from(months).sort().reverse().forEach(m => {
+            html += `<option value="${m}">${m}</option>`;
+        });
+
+        monthSelect.innerHTML = html;
+        monthSelect.value = currentSelection || 'all';
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('txTableBody');
+        const search = document.getElementById('searchInput').value.toLowerCase().trim();
+        const filterType = document.getElementById('filterType').value;
+        const filterMonth = document.getElementById('filterMonth').value;
+        const sortMode = document.getElementById('sortMode').value;
+
+        let filtered = transactions.filter(t => {
+            const matchSearch = t.title.toLowerCase().includes(search) || t.category.toLowerCase().includes(search);
+            const matchType = filterType === 'all' || t.type === filterType;
+            const matchMonth = filterMonth === 'all' || (t.date && t.date.startsWith(filterMonth));
+            return matchSearch && matchType && matchMonth;
+        });
+
+        // Sắp xếp
+        if (sortMode === 'newest') {
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
+        } else if (sortMode === 'oldest') {
+            filtered.sort((a, b) => new Date(a.date) - new Date(b.date) || a.id - b.id);
+        } else if (sortMode === 'type') {
+            const typeOrder = { expense: 1, income: 2, saving: 3 };
+            filtered.sort((a, b) => {
+                if (typeOrder[a.type] !== typeOrder[b.type]) {
+                    return typeOrder[a.type] - typeOrder[b.type];
+                }
+                return new Date(b.date) - new Date(a.date);
+            });
+        } else if (sortMode === 'amount-desc') {
+            filtered.sort((a, b) => b.amount - a.amount);
+        } else if (sortMode === 'amount-asc') {
+            filtered.sort((a, b) => a.amount - b.amount);
+        }
+
+        // Stats
+        let inc = 0, exp = 0, sav = 0;
+        transactions.forEach(t => {
+            if (t.type === 'income') inc += t.amount;
+            else if (t.type === 'expense') exp += t.amount;
+            else if (t.type === 'saving') sav += t.amount;
+        });
+
+        document.getElementById('totalIncome').innerText = formatVND(inc);
+        document.getElementById('totalExpense').innerText = formatVND(exp);
+        document.getElementById('totalSaving').innerText = formatVND(sav);
+        document.getElementById('netBalance').innerText = formatVND(inc - exp - sav);
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #a08c95; padding: 20px;">Chưa có dữ liệu nào!</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        filtered.forEach((t, idx) => {
+            let amountClass = t.type === 'income' ? 'amount-pos' : 'amount-neg';
+            let prefix = t.type === 'income' ? '+' : '-';
+
+            html += `<tr>
+                <td class="col-no" style="text-align: center; font-weight: 700; color: #d85c77;">${idx + 1}</td>
+                <td class="col-date"><input type="date" class="table-input" value="${t.date}" onchange="updateField(${t.id}, 'date', this.value)"></td>
+                <td class="col-type">
+                    <select class="table-select" onchange="updateField(${t.id}, 'type', this.value)">
+                        <option value="income" ${t.type === 'income' ? 'selected' : ''}>💵 Thu Nhập</option>
+                        <option value="expense" ${t.type === 'expense' ? 'selected' : ''}>💸 Khoản Chi</option>
+                        <option value="saving" ${t.type === 'saving' ? 'selected' : ''}>🏦 Tiết Kiệm</option>
+                    </select>
+                </td>
+                <td class="col-title"><input type="text" class="table-input" value="${escapeHtml(t.title)}" onchange="updateField(${t.id}, 'title', this.value)"></td>
+                <td class="col-amount" style="text-align: right;" class="${amountClass}">
+                    ${prefix} <input type="number" class="table-input" value="${t.amount}" style="width: 110px; text-align: right; font-weight: 700;" onchange="updateField(${t.id}, 'amount', this.value)"> ₫
+                </td>
+                <td class="col-action no-print" style="text-align: center;">
+                    <button class="btn btn-danger" onclick="deleteItem(${t.id})">✕</button>
+                </td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    function formatVND(val) {
+        return val.toLocaleString('vi-VN') + ' ₫';
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function exportCSV() {
+        if (!transactions.length) { alert("Không có dữ liệu để xuất!"); return; }
+        let csv = "﻿NO,Ngay,Loai,Danh Muc,Noi Dung,So Tien (VND)\n";
+        transactions.forEach((t, idx) => {
+            csv += `${idx + 1},"${t.date}","${t.type}","${t.category}","${t.title.replace(/"/g, '""')}",${t.amount}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Quan_Ly_Tai_Chinh_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    }
+
+    function makeColumnsResizable() {
+        const table = document.getElementById('mainTable');
+        const ghost = document.getElementById('resizeGhost');
+        
+        // Get all th elements except the last one (action column)
+        const headers = table.querySelectorAll('thead th:not(:last-child)');
+
+        headers.forEach((header) => {
+            // Check if resizer already exists
+            let resizer = header.querySelector('.resizer');
+            if (!resizer) {
+                resizer = document.createElement('div');
+                resizer.classList.add('resizer');
+                header.appendChild(resizer);
+            }
+
+            let startX, startWidth, nextWidth;
+
+            const startResize = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                startX = e.pageX;
+                startWidth = header.offsetWidth;
+
+                // Get the next header for min width
+                const nextHeader = header.nextElementSibling;
+                if (nextHeader) {
+                    nextWidth = nextHeader.offsetWidth;
+                }
+
+                resizer.classList.add('dragging');
+                ghost.style.display = 'block';
+                ghost.style.left = startX + 'px';
+
+                document.addEventListener('mousemove', onResize);
+                document.addEventListener('mouseup', stopResize);
+            };
+
+            const onResize = (e) => {
+                const diff = e.pageX - startX;
+                const newWidth = startWidth + diff;
+
+                // Min width for column
+                if (newWidth > 40) {
+                    header.style.width = newWidth + 'px';
+                    // Also adjust next column if needed
+                    const nextHeader = header.nextElementSibling;
+                    if (nextHeader && nextHeader.tagName === 'TH') {
+                        const newNextWidth = nextWidth - diff;
+                        if (newNextWidth > 40) {
+                            nextHeader.style.width = newNextWidth + 'px';
+                        }
+                    }
+                }
+
+                ghost.style.left = e.pageX + 'px';
+            };
+
+            const stopResize = () => {
+                resizer.classList.remove('dragging');
+                ghost.style.display = 'none';
+                document.removeEventListener('mousemove', onResize);
+                document.removeEventListener('mouseup', stopResize);
+            };
+
+            // Remove old event listeners by cloning
+            const newResizer = resizer.cloneNode(true);
+            header.replaceChild(newResizer, resizer);
+            
+            // Add new event listener
+            newResizer.addEventListener('mousedown', startResize);
+        });
+    }
+</script>
+
+</body>
+</html>
