@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>南芳 format studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- @page (margin + page number) is written here by JS -->
+    <style id="pageStyle"></style>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #fff0f6;
+            --text: #3f3037;
+            --card: #fffafb;
+            --border: #f3b8c8;
+            --accent: #ee7fa1;
+            --accent2: #ffc1d1;
+            --shadow: 0 6px 22px rgba(229, 103, 139, 0.18);
+            --font: 'American Typewriter', 'Yuanti SC', '圆体', 'STYuanti', 'Huninn', 'jf open 粉圓', 'Noto Sans SC', 'Courier New', monospace;
+            --radius: 8px;
+        }
+        body.dark {
+            --bg: #2d2428;
+            --text: #f5e6ea;
+            --card: #3d3238;
+            --border: #5a454c;
+            --accent: #d47b92;
+            --accent2: #a06275;
+            --shadow: 0 4px 16px rgba(0,0,0,0.35);
+        }
+        body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 16px; }
+        button, input, select, textarea { font-family: inherit; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header, .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+        header { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        h1 { font-size: 28px; }
+        h2 { font-size: 16px; margin-bottom: 8px; }
+        .hint { color: color-mix(in srgb, var(--text), transparent 32%); font-size: 12px; line-height: 1.45; margin-top: 3px; }
+        .nav, .toolbar, .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .nav a, button { background: var(--accent2); border: 1px solid var(--accent); border-radius: var(--radius); color: var(--text); cursor: pointer; padding: 8px 12px; text-decoration: none; font-size: 13px; font-weight: bold; transition: 0.2s; }
+        .nav a:hover, button:hover { background: var(--accent); color: white; }
+        button:disabled, input:disabled, select:disabled { opacity: 0.45; cursor: not-allowed; }
+        button.primary, button.active { background: var(--accent); color: white; font-weight: 800; }
+        .layout { display: grid; gap: 14px; grid-template-columns: 350px 1fr; }
+        .stack { display: grid; gap: 12px; align-content: start; }
+        input, select, textarea { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); min-width: 0; padding: 8px 10px; width: 100%; font-size: 13px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+        textarea { min-height: 200px; resize: vertical; }
+        label { display: grid; gap: 4px; font-size: 11px; font-weight: 800; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; user-select: none; }
+        .checkbox-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+        input[type="range"] { padding: 0; accent-color: var(--accent); }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .form { display: grid; gap: 8px; }
+        .sub-section { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); display: grid; gap: 8px; }
+        .preset-buttons { display: grid; gap: 6px; margin-top: 8px; }
+        .preset-buttons button { padding: 7px 10px; font-size: 12px; }
+        details { margin-top: 8px; }
+        summary { cursor: pointer; font-weight: 800; color: var(--accent); user-select: none; font-size: 13px; }
+        .details-content { margin-top: 8px; padding: 10px; background: color-mix(in srgb, var(--bg), white 3%); border-radius: var(--radius); display: grid; gap: 8px; }
+        .preview-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); min-height: 500px; max-height: calc(100vh - 120px); overflow: auto; padding: 16px; position: relative; }
+        .stats { font-size: 12px; color: color-mix(in srgb, var(--text), transparent 25%); }
+
+        /* A4 SHEET: margins come from CSS variables set by JS */
+        .doc-preview {
+            --mt: 15mm; --mr: 15mm; --mb: 20mm; --ml: 15mm;
+            background: var(--card); color: var(--text); font-size: 14px; line-height: 1.6;
+            width: 210mm; max-width: 100%; min-height: 297mm; margin: 0 auto;
+            padding: var(--mt) var(--mr) var(--mb) var(--ml);
+            position: relative; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);
+        }
+        .doc-preview-content { width: 100%; padding-bottom: 20px; }
+        .custom-header { text-align: center; font-size: 18px; font-weight: 700; padding-bottom: 12px; margin-bottom: 20px; border-bottom: 1px dashed var(--border); }
+        .doc-preview h2 { font-size: 24px; line-height: 1.3; margin-bottom: 16px; text-align: center; color: var(--text); }
+        .doc-preview h3 { font-size: 16px; margin-top: 14px; margin-bottom: 8px; color: var(--accent); }
+        .doc-item { margin-bottom: 8px; overflow-wrap: anywhere; }
+        .num { font-weight: 800; color: var(--accent); }
+        .doc-item .num { margin-right: 6px; }
+        .mcq-item { margin-bottom: 18px; }
+        .mcq-item .question { font-weight: 800; margin-bottom: 8px; }
+        .mcq-item .options { margin-left: 20px; }
+        .mcq-item .option { margin-bottom: 4px; }
+        .fill-section { margin-bottom: 28px; width: 100%; }
+        .word-bank-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; font-size: 15px; flex-wrap: wrap; background: var(--bg); padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border); }
+        .word-bank-title { font-weight: 800; font-size: 15px; white-space: nowrap; color: var(--accent); }
+        .word-bank-items { font-weight: 700; letter-spacing: 0.5px; }
+        .fill-item { margin-bottom: 14px; display: flex; align-items: baseline; width: 100%; }
+        .fill-item .num { min-width: 28px; flex-shrink: 0; }
+        .fill-item .text { flex: 1; width: 100%; word-break: break-word; }
+        .preview-footer { margin-top: 30px; padding-top: 12px; border-top: 1px dashed var(--border); text-align: center; font-size: 12px; color: color-mix(in srgb, var(--text), transparent 40%); width: 100%; display: block; }
+
+        /* TABLES (rich text + sheet share one style) */
+        .doc-preview table, table.sheet-preview { border-collapse: collapse; width: 100%; margin: 14px 0; background: var(--card); color: var(--text); }
+        .doc-preview table { table-layout: fixed; }
+        .doc-preview th, .doc-preview td, table.sheet-preview th, table.sheet-preview td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; overflow-wrap: anywhere; }
+        .doc-preview th, table.sheet-preview th { background: var(--accent2); font-weight: 800; color: var(--text); }
+        .doc-preview tr:nth-child(even) td, table.sheet-preview tr:nth-child(even) td { background: var(--bg); }
+        table.tbl-noborder th, table.tbl-noborder td { border-color: transparent !important; }
+        table.tbl-nobg, table.tbl-nobg th, table.tbl-nobg td, table.tbl-nobg tr:nth-child(even) td { background: transparent !important; }
+        .doc-preview table.tbl-active { outline: 2px dashed var(--accent); outline-offset: 2px; }
+        .rich-editor-area.col-hover, .rich-editor-area.col-hover * { cursor: col-resize !important; }
+        body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-select: none !important; }
+
+        /* RICH TEXT */
+        .editor-toolbar { position: sticky; top: -16px; z-index: 5; display: grid; gap: 6px; padding: 8px; margin-bottom: 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+        .tb-row, .tb-more { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+        .tb-more { padding-top: 6px; border-top: 1px dashed var(--border); max-height: 40vh; overflow: auto; }
+        .tb-group { display: inline-flex; align-items: center; gap: 4px; }
+        .tb-pick { display: flex; flex-wrap: wrap; gap: 4px 14px; width: 100%; padding-top: 6px; border-top: 1px dashed var(--border); font-size: 12px; }
+        .editor-toolbar button { padding: 4px 8px; font-size: 12px; background: var(--card); }
+        .editor-toolbar button:hover { background: var(--accent); color: white; }
+        .editor-toolbar input[type="number"] { width: 52px; padding: 4px 6px; font-size: 12px; }
+        .rich-editor-area { min-height: 60vh; outline: none; padding: 12px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--card); line-height: inherit; }
+        .rich-editor-area:focus { border-color: var(--accent); border-style: solid; }
+        .rich-editor-area h2 { font-size: 20px; margin: 16px 0 8px; color: var(--accent); text-align: left; }
+        .rich-editor-area h3 { font-size: 16px; margin: 12px 0 6px; color: var(--text); }
+        .rich-editor-area ul, .rich-editor-area ol { padding-left: 24px !important; margin: 8px 0; }
+        .rich-editor-area ul { list-style-type: disc !important; }
+        .rich-editor-area ol { list-style-type: decimal !important; }
+
+        body.focus header, body.focus .stack { display: none; }
+        body.focus .layout { grid-template-columns: 1fr; }
+        body.focus .preview-wrap { max-height: calc(100vh - 100px); }
+
+        @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+
+        /* PRINT: margins come from the dynamic @page rule */
+        @media print {
+            body { background: white; padding: 0; color: #3f3037; }
+            header, .stack, .toolbar, .editor-toolbar, .preview-footer { display: none !important; }
+            .layout { display: block; }
+            .card { border: 0; box-shadow: none; padding: 0; background: transparent; }
+            .preview-wrap { border: 0; padding: 0; background: white; max-height: none; overflow: visible; }
+            .doc-preview { width: auto; max-width: none; padding: 0 !important; background: white; min-height: auto; border: 0; box-shadow: none; color: #3f3037; }
+            .doc-preview table.tbl-active { outline: none; }
+            .word-bank-row { background: #fff0f6; border: 1px solid #f3b8c8; }
+            .rich-editor-area { border: none !important; padding: 0 !important; background: transparent !important; }
+            :is(.doc-preview table, table.sheet-preview):not(.tbl-nobg) th { background: #ffc1d1 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            :is(.doc-preview table, table.sheet-preview):not(.tbl-nobg) td { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr, .mcq-item, .fill-item, .doc-item { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🧾 南芳 format studio</h1>
+                <p class="hint">Paste text, upload CSV, or edit freely in Rich Text mode</p>
+            </div>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="./teaching.html">Teaching</a>
+                <button id="langBtn" title="Chuyển chế độ Ngôn ngữ">EN</button>
+                <button id="themeBtn">Theme</button>
+            </nav>
+        </header>
+
+        <main class="layout">
+            <section class="stack">
+                <div class="card">
+                    <h2>Input</h2>
+                    <textarea id="rawInput" placeholder="Paste text or copy from CSV..."></textarea>
+                    <div class="actions" style="margin-top: 8px;">
+                        <button class="primary" id="formatBtn">Format</button>
+                        <button onclick="document.getElementById('csvFile').click()">Upload CSV</button>
+                        <input type="file" id="csvFile" accept=".csv,.tsv" style="display:none" />
+                        <button onclick="document.getElementById('docFile').click()" title="Mở file .docx / .html / .md / .txt vào Rich Text">Open document</button>
+                        <input type="file" id="docFile" accept=".docx,.html,.htm,.md,.markdown,.txt" style="display:none" />
+                        <button id="sampleBtn">Sample MCQ</button>
+                        <button id="sampleFillBtn">Sample Fill Blank</button>
+                        <button id="clearBtn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Mode</h2>
+                    <div class="preset-buttons">
+                        <button class="preset active" data-mode="doc">Doc</button>
+                        <button class="preset" data-mode="mcq">MCQ</button>
+                        <button class="preset" data-mode="fill">Fill Blank</button>
+                        <button class="preset" data-mode="richtext">✍️ Rich Text (Free Edit)</button>
+                        <button class="preset" data-mode="sheet">Sheet</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Settings</h2>
+                    <div class="form">
+                        <label>Header Text (Căn giữa)
+                            <input id="headerInput" value="" placeholder="Nhập header ở đây (ví dụ: HSK4 - Bài tập)" />
+                        </label>
+                        <label>Title
+                            <input id="titleInput" value="Practice" />
+                        </label>
+                        <label>Split by
+                            <select id="splitMode">
+                                <option value="line">Line</option>
+                                <option value="numbered">Numbered (1. 2. 3.)</option>
+                                <option value="blank">Blank line</option>
+                            </select>
+                        </label>
+                        <label>Show item numbers
+                            <select id="numbering">
+                                <option value="yes" selected>Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="sub-section">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showPageNumbers" checked />
+                            <span>Show page numbers (Footer)</span>
+                        </label>
+                        <label id="startPageLabel">Start page number
+                            <input id="startPageNumber" type="number" value="1" min="1" style="max-width: 80px;" />
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Page margin (A4)</h2>
+                    <div class="form">
+                        <select id="marginMode">
+                            <option value="auto" selected>Auto (fewest pages, widest margin)</option>
+                            <option value="manual">Manual</option>
+                        </select>
+                        <div id="autoBox" class="grid2">
+                            <label>Auto min (mm)<input id="autoMin" type="number" value="10" min="5" max="40" /></label>
+                            <label>Auto max (mm)<input id="autoMax" type="number" value="25" min="5" max="40" /></label>
+                        </div>
+                        <div id="manualBox" class="grid2" style="display:none;">
+                            <label>Top (mm)<input id="mT" type="number" value="15" min="0" max="60" /></label>
+                            <label>Right (mm)<input id="mR" type="number" value="15" min="0" max="60" /></label>
+                            <label>Bottom (mm)<input id="mB" type="number" value="20" min="0" max="60" /></label>
+                            <label>Left (mm)<input id="mL" type="number" value="15" min="0" max="60" /></label>
+                        </div>
+                        <p class="hint" id="marginInfo"></p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Table</h2>
+                    <p class="hint" id="tblStatus" style="margin: 0 0 8px;"></p>
+                    <div class="form">
+                        <label>Width (%)
+                            <div class="grid2" style="grid-template-columns: 70px 1fr; align-items: center;">
+                                <input id="tbWidth" type="number" value="100" min="20" max="100" step="5" />
+                                <input id="tbWidthRange" type="range" value="100" min="20" max="100" step="1" />
+                            </div>
+                        </label>
+                        <div class="grid2">
+                            <label>Align
+                                <select id="tbAlign">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </label>
+                            <label>Columns
+                                <select id="tbLayout">
+                                    <option value="fixed">Fixed (draggable)</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </label>
+                        </div>
+                        <label class="checkbox-label"><input type="checkbox" id="tbNoBorder" /><span>Invisible border</span></label>
+                        <label class="checkbox-label"><input type="checkbox" id="tbNoFill" /><span>Invisible fill (header + rows)</span></label>
+                        <div class="grid2">
+                            <button id="tbFit" type="button" title="Size columns by content">Fit columns</button>
+                            <button id="tbEqual" type="button" title="Equal column widths">Equal columns</button>
+                        </div>
+                        <button id="tbApplyAll" type="button">Apply to all tables</button>
+                        <p class="hint">Rich Text: click a table to edit it, drag column borders to resize. With no table selected, these set the defaults for new tables and Sheet.</p>
+                    </div>
+                </div>
+
+                <details>
+                    <summary>More Options ▼</summary>
+                    <div class="details-content">
+                        <label>Columns
+                            <select id="columnCount">
+                                <option value="1">1</option>
+                                <option value="2" selected>2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </label>
+                        <label>Blank length
+                            <input id="blankLength" type="number" value="12" style="max-width: 80px;" />
+                        </label>
+                        <label>Start item number
+                            <input id="startNumber" type="number" value="1" style="max-width: 80px;" />
+                        </label>
+                        <label>Font size
+                            <select id="fontSize">
+                                <option value="12px">Small</option>
+                                <option value="14px" selected>Normal</option>
+                                <option value="16px">Large</option>
+                            </select>
+                        </label>
+                        <label>Line spacing
+                            <select id="lineSpacing">
+                                <option value="1.4">Tight</option>
+                                <option value="1.6" selected>Normal</option>
+                                <option value="2">Roomy</option>
+                            </select>
+                        </label>
+                    </div>
+                </details>
+            </section>
+
+            <section class="card">
+                <div class="toolbar" style="justify-content: space-between; margin-bottom: 10px;">
+                    <p class="stats" id="stats">0 items</p>
+                    <div class="actions">
+                        <button id="focusBtn" title="Hide side panels to enlarge the editor">⛶ Focus</button>
+                        <button id="copyBtn">Copy</button>
+                        <button id="csvExportBtn">Export CSV</button>
+                        <button id="printBtn">Print</button>
+                    </div>
+                </div>
+                <div class="preview-wrap" id="preview"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        /* ================= STATE & HELPERS ================= */
+        const $ = id => document.getElementById(id);
+        const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        const PX_PER_MM = 96 / 25.4;
+        const PAGE_H_MM = 297;
+
+        let mode = 'doc';
+        let lang = 'en';
+        let rows = [];
+        let fillSections = [];
+        let richContent = '';
+        let activeTable = null;
+        let layoutTimer = null;
+        let colDrag = null;
+        const tblDefaults = { w: 100, align: 'left', layout: 'fixed', nb: false, nf: false };
+
+        const escapeHTML = val => String(val || '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const csvCell = s => '"' + String(s).replace(/"/g, '""') + '"';
+        const blankify = (text, blank) => /_{3,}/.test(text)
+            ? text.replace(/_{3,}/g, blank)
+            : text.replace(/\(([^)]+)\)/, '($1) ' + blank);
+        const currentList = () => mode === 'fill' ? fillSections.flatMap(s => s.items) : rows;
+
+        function setMode(m) {
+            mode = m;
+            document.querySelectorAll('.preset').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+        }
+
+        function updateStats() {
+            $('stats').textContent = mode === 'richtext' ? 'Rich Text Mode' : `${currentList().length} items`;
+        }
+
+        /* ================= THEME & LANGUAGE ================= */
+        document.body.classList.toggle('dark', localStorage.getItem('appTheme') === 'dark');
+        $('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('appTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        };
+        $('langBtn').onclick = () => {
+            lang = lang === 'en' ? 'zh' : 'en';
+            $('langBtn').textContent = lang.toUpperCase();
+            render();
+        };
+
+        /* ================= CSV IMPORT ================= */
+        function parseCSV(text) {
+            const out = [];
+            let row = [], cell = '', inQuotes = false;
+            const pushRow = () => {
+                row.push(cell.trim());
+                if (row.some(c => c.length > 0)) out.push(row);
+                row = []; cell = '';
+            };
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i], next = text[i + 1];
+                if (ch === '"') {
+                    if (inQuotes && next === '"') { cell += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (ch === ',' && !inQuotes) {
+                    row.push(cell.trim()); cell = '';
+                } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+                    pushRow();
+                    if (ch === '\r' && next === '\n') i++;
+                } else {
+                    cell += ch;
+                }
+            }
+            if (cell.length > 0 || row.length > 0) pushRow();
+            return out;
+        }
+
+        function importCSV(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                const table = parseCSV(event.target.result);
+                if (table.length < 2) { alert('CSV phải có header row + data rows'); return; }
+
+                const headers = table[0].map(h => h.toLowerCase());
+                const qIdx = headers.findIndex(h => h.includes('question') || h.includes('stem') || h.includes('prompt') || h.includes('content'));
+                const aIdx = headers.findIndex(h => h === 'a');
+                const bIdx = headers.findIndex(h => h === 'b');
+                const cIdx = headers.findIndex(h => h === 'c');
+                const dIdx = headers.findIndex(h => h === 'd');
+                const wbIdx = headers.findIndex(h => h.includes('wordbank') || h.includes('words') || h.includes('bank') || h.includes('词库') || h.includes('选词'));
+                const cell = (row, i) => row[i] ? row[i].trim() : '';
+
+                if (wbIdx >= 0) {
+                    setMode('fill');
+                    const defaultBank = lang === 'zh' ? '选词填空' : 'Word Bank';
+                    const groups = {};
+                    table.slice(1).forEach(row => {
+                        const q = cell(row, qIdx >= 0 ? qIdx : 0);
+                        if (!q) return;
+                        const bank = cell(row, wbIdx) || defaultBank;
+                        (groups[bank] = groups[bank] || []).push(q);
+                    });
+                    const prefix = lang === 'zh' ? '选词填空:' : 'Word Bank:';
+                    $('rawInput').value = Object.keys(groups)
+                        .map(bank => `${prefix} ${bank}\n` + groups[bank].join('\n'))
+                        .join('\n\n').trim();
+                    render();
+                    alert(`✓ Imported nhiều nhóm ${lang === 'zh' ? '选词填空' : 'Word Bank'} từ CSV thành công!`);
+                    return;
+                }
+
+                if (qIdx >= 0 && aIdx >= 0 && bIdx >= 0 && cIdx >= 0 && dIdx >= 0) {
+                    setMode('mcq');
+                    rows = [];
+                    table.slice(1).forEach(row => {
+                        const question = cell(row, qIdx);
+                        if (!question) return;
+                        rows.push({ no: rows.length + 1, text: question, a: cell(row, aIdx), b: cell(row, bIdx), c: cell(row, cIdx), d: cell(row, dIdx), answer: '' });
+                    });
+                    render();
+                    alert(`✓ Imported ${rows.length} MCQ questions`);
+                } else {
+                    const colIdx = qIdx >= 0 ? qIdx : 0;
+                    $('splitMode').value = 'line';
+                    $('rawInput').value = table.slice(1).map(row => cell(row, colIdx)).filter(Boolean).join('\n');
+                    render();
+                    alert(`✓ Imported ${table.length - 1} rows`);
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        /* ================= TEXT PARSING ================= */
+        const cleanLine = line => line.replace(/^\s*\d+[\).、:-]\s*/, '').replace(/\s+/g, ' ').trim();
+
+        function splitText() {
+            const raw = $('rawInput').value.trim();
+            if (!raw) return [];
+            if ($('splitMode').value === 'blank') return raw.split(/\n\s*\n/).map(cleanLine).filter(Boolean);
+            return raw.split(/\r?\n/).map(cleanLine).filter(Boolean);
+        }
+
+        function buildRows() {
+            if (mode === 'mcq' || mode === 'richtext') return;
+
+            const raw = $('rawInput').value.trim();
+            const start = Number($('startNumber').value) || 1;
+            const blank = '_'.repeat(Math.max(3, Number($('blankLength').value) || 12));
+
+            if (mode === 'fill') {
+                fillSections = [];
+                const wbRegex = /(word\s*bank|选词填空|词库|词汇)\s*:/i;
+                const standaloneWb = /^\s*(word\s*bank|选词填空|词库|词汇)\s*$/i;
+
+                if (wbRegex.test(raw)) {
+                    const parts = raw.split(new RegExp(`(?=${wbRegex.source})`, 'i')).filter(Boolean);
+                    let n = start;
+                    parts.forEach(part => {
+                        let bank = '';
+                        const items = [];
+                        part.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(line => {
+                            if (wbRegex.test(line)) {
+                                bank = line.replace(new RegExp(`^${wbRegex.source}\\s*`, 'i'), '').trim();
+                            } else {
+                                const clean = cleanLine(line);
+                                if (clean && !standaloneWb.test(clean)) items.push({ no: n++, text: blankify(clean, blank) });
+                            }
+                        });
+                        if (items.length) fillSections.push({ bank, items });
+                    });
+                } else {
+                    const items = splitText()
+                        .filter(t => !standaloneWb.test(t))
+                        .map((t, i) => ({ no: start + i, text: blankify(t, blank) }));
+                    fillSections = [{ bank: '', items }];
+                }
+                return;
+            }
+
+            rows = splitText().map((t, i) => ({ no: start + i, text: blankify(t, blank) }));
+        }
+
+        /* ================= MARGIN (manual + auto) ================= */
+        function readManualMargins() {
+            const g = id => clamp(Number($(id).value) || 0, 0, 60);
+            return { t: g('mT'), r: g('mR'), b: g('mB'), l: g('mL') };
+        }
+
+        function setSheetMargins(sheet, m) {
+            sheet.style.setProperty('--mt', m.t + 'mm');
+            sheet.style.setProperty('--mr', m.r + 'mm');
+            sheet.style.setProperty('--mb', m.b + 'mm');
+            sheet.style.setProperty('--ml', m.l + 'mm');
+        }
+
+        function setPageStyle(m) {
+            const counter = $('showPageNumbers').checked
+                ? `@bottom-center { content: counter(page, decimal-leading-zero); font-family: 'American Typewriter', 'Yuanti SC', 'Noto Sans SC', sans-serif; font-size: 10pt; color: #666; }`
+                : '';
+            $('pageStyle').textContent = `@page { size: A4; margin: ${m.t}mm ${m.r}mm ${m.b}mm ${m.l}mm; ${counter} }`;
+        }
+
+        function pagesFor(sheet, m) {
+            setSheetMargins(sheet, m);
+            const content = sheet.querySelector('.doc-preview-content');
+            const ed = content.querySelector('.rich-editor-area');
+            const prevMin = ed ? ed.style.minHeight : '';
+            if (ed) ed.style.minHeight = '0';
+            const h = content.getBoundingClientRect().height;
+            if (ed) ed.style.minHeight = prevMin;
+            const pageH = Math.max(50, (PAGE_H_MM - m.t - m.b) * PX_PER_MM);
+            return Math.max(1, Math.ceil((h - 2) / pageH));
+        }
+
+        function applyLayout() {
+            const auto = $('marginMode').value === 'auto';
+            $('autoBox').style.display = auto ? 'grid' : 'none';
+            $('manualBox').style.display = auto ? 'none' : 'grid';
+
+            const sheet = document.querySelector('#preview .doc-preview');
+            const info = $('marginInfo');
+            const lo = clamp(Number($('autoMin').value) || 10, 5, 40);
+            const hi = Math.max(lo, clamp(Number($('autoMax').value) || 25, 5, 40));
+            const pad = $('showPageNumbers').checked ? 5 : 0;
+            const plural = n => `${n} page${n > 1 ? 's' : ''}`;
+
+            let m;
+            if (auto) {
+                if (sheet) {
+                    let best = null;
+                    for (let M = hi; M >= lo; M--) {
+                        const cand = { t: M, r: M, b: M + pad, l: M };
+                        const pages = pagesFor(sheet, cand);
+                        if (!best || pages < best.pages) best = { M, pages, m: cand };
+                    }
+                    m = best.m;
+                    setSheetMargins(sheet, m);
+                    info.textContent = `Auto: ${best.M} mm (bottom ${m.b} mm), about ${plural(best.pages)}`;
+                } else {
+                    m = { t: hi, r: hi, b: hi + pad, l: hi };
+                    info.textContent = `Auto: ${hi} mm (print only in this mode)`;
+                }
+            } else {
+                m = readManualMargins();
+                info.textContent = sheet ? `Manual: about ${plural(pagesFor(sheet, m))}` : 'Manual (print only in this mode)';
+            }
+            setPageStyle(m);
+        }
+
+        function applyLayoutSoon() {
+            clearTimeout(layoutTimer);
+            layoutTimer = setTimeout(applyLayout, 250);
+        }
+
+        /* ================= TABLE: one control panel for everything ================= */
+        function readTable(t) {
+            return {
+                w: clamp(parseInt(t.style.width) || 100, 20, 100),
+                align: t.dataset.align || 'left',
+                layout: t.style.tableLayout || 'fixed',
+                nb: t.classList.contains('tbl-noborder'),
+                nf: t.classList.contains('tbl-nobg')
+            };
+        }
+
+        function writeTable(t, o) {
+            t.style.width = o.w + '%';
+            t.style.tableLayout = o.layout;
+            t.dataset.align = o.align;
+            t.style.marginLeft = o.align === 'left' ? '0' : 'auto';
+            t.style.marginRight = o.align === 'right' ? '0' : 'auto';
+            t.classList.toggle('tbl-noborder', o.nb);
+            t.classList.toggle('tbl-nobg', o.nf);
+        }
+
+        function readUI() {
+            return {
+                w: clamp(Number($('tbWidth').value) || 100, 20, 100),
+                align: $('tbAlign').value,
+                layout: $('tbLayout').value,
+                nb: $('tbNoBorder').checked,
+                nf: $('tbNoFill').checked
+            };
+        }
+
+        function writeUI(o) {
+            $('tbWidth').value = o.w;
+            $('tbWidthRange').value = o.w;
+            $('tbAlign').value = o.align;
+            $('tbLayout').value = o.layout;
+            $('tbNoBorder').checked = o.nb;
+            $('tbNoFill').checked = o.nf;
+        }
+
+        const hasActiveTable = () => !!(activeTable && activeTable.isConnected);
+
+        function refreshTableUI() {
+            const on = hasActiveTable();
+            writeUI(on ? readTable(activeTable) : tblDefaults);
+            $('tbFit').disabled = !on;
+            $('tbEqual').disabled = !on;
+            $('tblStatus').textContent = on
+                ? 'Editing the selected table'
+                : (mode === 'richtext' ? 'No table selected: editing defaults for new tables' : 'Editing defaults (new tables and Sheet)');
+        }
+
+        function onTableUI() {
+            const o = readUI();
+            if (hasActiveTable()) {
+                writeTable(activeTable, o);
+                syncRich();
+                applyLayoutSoon();
+            } else {
+                Object.assign(tblDefaults, o);
+                if (mode === 'sheet') render();
+            }
+        }
+
+        function syncRich() {
+            const ed = $('richEditor');
+            if (!ed) return;
+            ed.querySelectorAll('.tbl-active').forEach(t => t.classList.remove('tbl-active'));
+            richContent = ed.innerHTML;
+            if (hasActiveTable()) activeTable.classList.add('tbl-active');
+        }
+
+        $('tbWidth').addEventListener('input', e => { $('tbWidthRange').value = e.target.value; onTableUI(); });
+        $('tbWidthRange').addEventListener('input', e => { $('tbWidth').value = e.target.value; onTableUI(); });
+        ['tbAlign', 'tbLayout', 'tbNoBorder', 'tbNoFill'].forEach(id => $(id).addEventListener('change', onTableUI));
+
+        $('tbApplyAll').onclick = () => {
+            Object.assign(tblDefaults, readUI());
+            if (mode === 'richtext') {
+                const ed = $('richEditor');
+                if (!ed) return;
+                ed.querySelectorAll('table').forEach(t => writeTable(t, tblDefaults));
+                syncRich();
+                applyLayoutSoon();
+            } else if (mode === 'sheet') {
+                render();
+            }
+        };
+
+        document.addEventListener('selectionchange', () => {
+            const ed = $('richEditor');
+            if (!ed) return;
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount) return;
+            const n = sel.anchorNode;
+            if (!n || !ed.contains(n)) return;
+            const el = n.nodeType === 1 ? n : n.parentElement;
+            const t = el ? el.closest('table') : null;
+            if (t !== activeTable) {
+                if (activeTable) activeTable.classList.remove('tbl-active');
+                activeTable = t;
+                if (t) t.classList.add('tbl-active');
+                refreshTableUI();
+            }
+        });
+
+        /* ---------- column widths (colgroup, %), drag + fit + equal ---------- */
+        function getCols(t) {
+            const first = t.rows[0];
+            if (!first) return null;
+            const n = first.cells.length;
+            let cg = t.querySelector(':scope > colgroup');
+            if (!cg || cg.children.length !== n) {
+                if (cg) cg.remove();
+                cg = document.createElement('colgroup');
+                const tw = t.getBoundingClientRect().width || 1;
+                let acc = 0;
+                for (let i = 0; i < n; i++) {
+                    const col = document.createElement('col');
+                    const w = i === n - 1
+                        ? Math.round((100 - acc) * 10) / 10
+                        : Math.round(first.cells[i].getBoundingClientRect().width / tw * 1000) / 10;
+                    acc += w;
+                    col.style.width = w + '%';
+                    cg.appendChild(col);
+                }
+                t.insertBefore(cg, t.firstChild);
+            }
+            return Array.from(cg.children);
+        }
+
+        function edgeAt(e, ed) {
+            const cell = e.target.closest ? e.target.closest('td,th') : null;
+            if (!cell || !ed.contains(cell)) return null;
+            const r = cell.getBoundingClientRect();
+            const tol = 5;
+            if (Math.abs(e.clientX - r.right) <= tol && cell.nextElementSibling) return { cell, idx: cell.cellIndex };
+            if (Math.abs(e.clientX - r.left) <= tol && cell.previousElementSibling) return { cell, idx: cell.cellIndex - 1 };
+            return null;
+        }
+
+        function bindColResize(ed) {
+            ed.addEventListener('mousemove', e => { if (!colDrag) ed.classList.toggle('col-hover', !!edgeAt(e, ed)); });
+            ed.addEventListener('mouseleave', () => { if (!colDrag) ed.classList.remove('col-hover'); });
+            ed.addEventListener('mousedown', e => {
+                if (e.button !== 0) return;
+                const hit = edgeAt(e, ed);
+                if (!hit) return;
+                const t = hit.cell.closest('table');
+                const cols = getCols(t);
+                if (!cols || !cols[hit.idx + 1]) return;
+                e.preventDefault();
+                colDrag = {
+                    cols, i: hit.idx, x: e.clientX, tw: t.getBoundingClientRect().width || 1,
+                    a: parseFloat(cols[hit.idx].style.width), b: parseFloat(cols[hit.idx + 1].style.width)
+                };
+                document.body.classList.add('col-resizing');
+            });
+        }
+
+        document.addEventListener('mousemove', e => {
+            if (!colDrag) return;
+            const d = colDrag, total = d.a + d.b;
+            const na = clamp(d.a + (e.clientX - d.x) / d.tw * 100, 4, total - 4);
+            d.cols[d.i].style.width = na.toFixed(1) + '%';
+            d.cols[d.i + 1].style.width = (total - na).toFixed(1) + '%';
+        });
+        document.addEventListener('mouseup', () => {
+            if (!colDrag) return;
+            colDrag = null;
+            document.body.classList.remove('col-resizing');
+            const ed = $('richEditor');
+            if (ed) ed.classList.remove('col-hover');
+            syncRich();
+            applyLayoutSoon();
+        });
+
+        function withActiveCols(fn) {
+            if (!hasActiveTable()) return;
+            const cols = getCols(activeTable);
+            if (!cols) return;
+            fn(cols, activeTable);
+            syncRich();
+            applyLayoutSoon();
+        }
+
+        $('tbFit').onclick = () => withActiveCols((cols, t) => {
+            const len = new Array(cols.length).fill(0);
+            Array.from(t.rows).forEach(r => Array.from(r.cells).forEach((c, i) => {
+                if (i >= len.length) return;
+                let l = 0;
+                for (const ch of c.textContent.trim()) l += ch.charCodeAt(0) > 255 ? 2 : 1;
+                len[i] = Math.max(len[i], Math.min(l, 40));
+            }));
+            const w = len.map(l => Math.max(l, 6));
+            const sum = w.reduce((a, b) => a + b, 0);
+            cols.forEach((c, i) => { c.style.width = (w[i] / sum * 100).toFixed(1) + '%'; });
+        });
+
+        $('tbEqual').onclick = () => withActiveCols(cols => {
+            cols.forEach(c => { c.style.width = (100 / cols.length).toFixed(1) + '%'; });
+        });
+
+        /* ================= RICH TEXT EDITOR ================= */
+        function ensureEditorFocus() {
+            const ed = $('richEditor');
+            if (!ed) return false;
+            const sel = window.getSelection();
+            if (!sel.rangeCount || !ed.contains(sel.anchorNode)) {
+                ed.focus();
+                const range = document.createRange();
+                range.selectNodeContents(ed);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            return true;
+        }
+
+        function execEditorCmd(cmd, value = null) {
+            ensureEditorFocus();
+            document.execCommand(cmd, false, value);
+            syncRich();
+        }
+
+        function insertBlankToEditor() {
+            execEditorCmd('insertText', ' ' + '_'.repeat(Math.max(3, Number($('blankLength').value) || 12)) + ' ');
+        }
+
+        function insertTableToEditor() {
+            ensureEditorFocus();
+            const r = clamp(Number(tbRows) || 3, 1, 30);
+            const c = clamp(Number(tbCols) || 3, 1, 12);
+            const o = tblDefaults;
+            const cls = [o.nb ? 'tbl-noborder' : '', o.nf ? 'tbl-nobg' : ''].filter(Boolean).join(' ');
+            const cg = '<colgroup>' + Array.from({ length: c }, () => `<col style="width:${(100 / c).toFixed(1)}%">`).join('') + '</colgroup>';
+            let html = `<table${cls ? ` class="${cls}"` : ''} style="width:${o.w}%;table-layout:${o.layout};" data-align="${o.align}">${cg}<thead><tr>`;
+            for (let j = 1; j <= c; j++) html += `<th>Col ${j}</th>`;
+            html += '</tr></thead><tbody>';
+            let n = 1;
+            for (let i = 1; i < r; i++) {
+                html += '<tr>';
+                for (let j = 0; j < c; j++) html += `<td>Data ${n++}</td>`;
+                html += '</tr>';
+            }
+            html += '</tbody></table><p><br></p>';
+            document.execCommand('insertHTML', false, html);
+            syncRich();
+            applyLayoutSoon();
+        }
+
+        const RICH_TOOLS = [
+            { id: 'bold', label: '<b>B</b>', title: 'Bold', main: true, run: () => execEditorCmd('bold') },
+            { id: 'italic', label: '<i>I</i>', title: 'Italic', main: true, run: () => execEditorCmd('italic') },
+            { id: 'underline', label: '<u>U</u>', title: 'Underline', main: true, run: () => execEditorCmd('underline') },
+            { id: 'h2', label: 'H2', title: 'Heading 2', main: true, run: () => execEditorCmd('formatBlock', '<h2>') },
+            { id: 'h3', label: 'H3', title: 'Heading 3', run: () => execEditorCmd('formatBlock', '<h3>') },
+            { id: 'p', label: 'P', title: 'Paragraph', run: () => execEditorCmd('formatBlock', '<p>') },
+            { id: 'ol', label: '1. List', title: 'Numbered list', run: () => execEditorCmd('insertOrderedList') },
+            { id: 'ul', label: '• List', title: 'Bullet list', run: () => execEditorCmd('insertUnorderedList') },
+            { id: 'blank', label: '____ Blank', title: 'Insert blank', main: true, run: insertBlankToEditor },
+            { id: 'table', label: '📊 Table', title: 'Insert table', main: true, run: insertTableToEditor },
+            { id: 'left', label: 'Left', title: 'Align left', run: () => execEditorCmd('justifyLeft') },
+            { id: 'center', label: 'Center', title: 'Align center', run: () => execEditorCmd('justifyCenter') },
+            { id: 'right', label: 'Right', title: 'Align right', run: () => execEditorCmd('justifyRight') },
+            { id: 'clear', label: 'Clear', title: 'Clear formatting', run: () => execEditorCmd('removeFormat') }
+        ];
+        const TOOL_KEY = 'richToolsMain';
+        let mainTools = (() => {
+            try { const v = JSON.parse(localStorage.getItem(TOOL_KEY)); if (Array.isArray(v)) return v; } catch (_) {}
+            return RICH_TOOLS.filter(t => t.main).map(t => t.id);
+        })();
+        let moreOpen = false;
+        let tbRows = 3;
+        let tbCols = 3;
+
+        function buildToolbar() {
+            const inMain = RICH_TOOLS.filter(t => mainTools.includes(t.id));
+            const inMore = RICH_TOOLS.filter(t => !mainTools.includes(t.id));
+            const btn = t => `<span class="tb-group"><button type="button" data-tool="${t.id}" title="${t.title}">${t.label}</button>${
+                t.id === 'table'
+                    ? `<input id="tbRows" type="number" min="1" max="30" value="${tbRows}" title="Rows (including header)" /><span>×</span><input id="tbCols" type="number" min="1" max="12" value="${tbCols}" title="Columns" />`
+                    : ''}</span>`;
+            const more = moreOpen ? `<div class="tb-more">
+                ${inMore.map(btn).join('') || '<span class="hint">All tools are in the main bar</span>'}
+                <div class="tb-pick"><b>Show in main bar:</b>${RICH_TOOLS.map(t =>
+                    `<label class="checkbox-label"><input type="checkbox" data-pick="${t.id}" ${mainTools.includes(t.id) ? 'checked' : ''} /><span>${t.title}</span></label>`).join('')}</div>
+            </div>` : '';
+            return `<div class="tb-row">${inMain.map(btn).join('')}<button type="button" data-act="more" class="${moreOpen ? 'active' : ''}">⋯ More${inMore.length ? ` (${inMore.length})` : ''}</button></div>${more}`;
+        }
+
+        const refreshToolbar = () => { $('editorToolbar').innerHTML = buildToolbar(); };
+        const richToolbarHTML = () => `<div class="editor-toolbar" id="editorToolbar">${buildToolbar()}</div>`;
+
+        function initEditor() {
+            const ed = $('richEditor'), tb = $('editorToolbar');
+            ed.addEventListener('input', () => { syncRich(); applyLayoutSoon(); });
+            tb.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+            tb.addEventListener('click', e => {
+                const b = e.target.closest('button');
+                if (!b) return;
+                if (b.dataset.act === 'more') { moreOpen = !moreOpen; refreshToolbar(); return; }
+                const tool = RICH_TOOLS.find(t => t.id === b.dataset.tool);
+                if (tool) tool.run();
+            });
+            tb.addEventListener('change', e => {
+                const c = e.target.closest('input[data-pick]');
+                if (!c) return;
+                mainTools = RICH_TOOLS.filter(t => t.id === c.dataset.pick ? c.checked : mainTools.includes(t.id)).map(t => t.id);
+                try { localStorage.setItem(TOOL_KEY, JSON.stringify(mainTools)); } catch (_) {}
+                refreshToolbar();
+            });
+            tb.addEventListener('input', e => {
+                if (e.target.id === 'tbRows') tbRows = e.target.value;
+                if (e.target.id === 'tbCols') tbCols = e.target.value;
+            });
+            bindColResize(ed);
+        }
+
+        /* ================= RENDERERS ================= */
+        function renderHeader() {
+            const v = $('headerInput').value.trim();
+            return v ? `<div class="custom-header">${escapeHTML(v)}</div>` : '';
+        }
+
+        function renderFooter() {
+            if (!$('showPageNumbers').checked) return '';
+            const page = String(Number($('startPageNumber').value) || 1).padStart(2, '0');
+            return `<div class="preview-footer">${page}</div>`;
+        }
+
+        function docShell(inner) {
+            const title = escapeHTML($('titleInput').value);
+            return `<div class="doc-preview" style="line-height: ${$('lineSpacing').value}; font-size: ${$('fontSize').value};">
+                <div class="doc-preview-content">${renderHeader()}${title ? `<h2>${title}</h2>` : ''}${inner}</div>${renderFooter()}</div>`;
+        }
+
+        function bodyDoc() {
+            const cols = Number($('columnCount').value) || 1;
+            const showNum = $('numbering').value === 'yes';
+            let html = '';
+            for (let i = 0; i < rows.length; i += cols) {
+                html += `<div style="display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: 18px; margin-bottom: 10px; width: 100%;">`;
+                rows.slice(i, i + cols).forEach(row => {
+                    html += `<div class="doc-item">${showNum ? `<span class="num">${row.no}.</span>` : ''} ${escapeHTML(row.text)}</div>`;
+                });
+                html += '</div>';
+            }
+            return html;
+        }
+
+        function bodyMCQ() {
+            return rows.map(row => `<div class="mcq-item">
+                <div class="question">${row.no}. ${escapeHTML(row.text)}</div>
+                <div class="options">${['a', 'b', 'c', 'd'].map(k =>
+                    `<div class="option"><strong>${k.toUpperCase()})</strong> ${escapeHTML(row[k])}</div>`).join('')}</div>
+            </div>`).join('');
+        }
+
+        function bodyFill() {
+            const showNum = $('numbering').value === 'yes';
+            const bankTitle = lang === 'zh' ? '选词填空:' : 'Word Bank:';
+            return fillSections.map(sec => `<div class="fill-section">
+                ${sec.bank ? `<div class="word-bank-row"><span class="word-bank-title">${bankTitle}</span><span class="word-bank-items">${escapeHTML(sec.bank)}</span></div>` : ''}
+                ${sec.items.map(row => `<div class="fill-item">${showNum ? `<div class="num">${row.no}.</div>` : ''}<div class="text">${escapeHTML(row.text)}</div></div>`).join('')}
+            </div>`).join('');
+        }
+
+        function bodyRich() {
+            if (!richContent) {
+                const raw = $('rawInput').value.trim();
+                richContent = raw ? raw.replace(/\n/g, '<br>') : '<div>Nhập hoặc soạn thảo nội dung bài tập tự do ở đây...</div>';
+            }
+            return `<div id="richEditor" class="rich-editor-area" contenteditable="true">${richContent}</div>`;
+        }
+
+        function renderSheet() {
+            let html = `<table class="sheet-preview"><thead><tr><th>No</th><th>Content</th><th>Answer</th><th>Note</th></tr></thead><tbody>`;
+            currentList().forEach(row => {
+                html += `<tr><td>${row.no}</td><td>${escapeHTML(row.text)}</td><td></td><td></td></tr>`;
+            });
+            $('preview').innerHTML = html + '</tbody></table>';
+            writeTable($('preview').firstElementChild, tblDefaults);
+        }
+
+        function render() {
+            buildRows();
+            updateStats();
+            activeTable = null;
+
+            if (mode === 'sheet') {
+                renderSheet();
+            } else {
+                const body = { doc: bodyDoc, mcq: bodyMCQ, fill: bodyFill, richtext: bodyRich }[mode]();
+                $('preview').innerHTML = (mode === 'richtext' ? richToolbarHTML() : '') + docShell(body);
+                if (mode === 'richtext') initEditor();
+            }
+            refreshTableUI();
+            applyLayout();
+        }
+
+        /* ================= SAMPLES ================= */
+        $('sampleBtn').onclick = () => {
+            setMode('mcq');
+            $('rawInput').value = '';
+            rows = lang === 'zh' ? [
+                { no: 1, text: '“苹果”的拼音是什么？', a: 'píngguǒ', b: 'píngguō', c: 'pǐngguǒ', d: 'píngguò', answer: 'A' },
+                { no: 2, text: '中国的首都在哪里？', a: '上海', b: '广州', c: '北京', d: '深圳', answer: 'C' }
+            ] : [
+                { no: 1, text: 'What is 2 + 2?', a: '3', b: '4', c: '5', d: '6', answer: 'B' },
+                { no: 2, text: 'Capital of France?', a: 'London', b: 'Berlin', c: 'Paris', d: 'Madrid', answer: 'C' }
+            ];
+            render();
+        };
+
+        $('sampleFillBtn').onclick = () => {
+            setMode('fill');
+            $('rawInput').value = lang === 'zh'
+                ? `选词填空: 苹果 — 大象 — 学校 — 老师 — 学习
+1. 我在 ___________ 学习汉语，这里的环境很好。
+2. 他是一位非常负责任的 ___________。
+3. 这里的 ___________ 又甜又香，非常好吃。
+4. ___________ 是陆地上体型最大的动物。
+5. 每天 ___________ 新词汇能提高语言水平。
+
+选词填空: 喝 — 听 — 读 — 写
+6. 我喜欢边 ___________ 音乐边做作业。
+7. 早上喝一杯 ___________ 对身体很好。`
+                : `Word Bank: same — heavy — subject — uniform — smart
+1. My favorite ___________ at school is English because I like talking to foreign friends.
+2. We go to the same school, so we wear the ___________ every day.
+3. Anna is a very ___________ student; she always gets high marks in math.
+4. I cannot carry this bag by myself because it is too ___________.
+5. Tom and I have the ___________ shoes. They look exactly identical!
+
+Word Bank: cat — dog — milk — fish
+6. The ___________ loves to eat fish.
+7. I drink a glass of ___________ every morning.`;
+            render();
+        };
+
+        /* ================= TOOLBAR BUTTONS ================= */
+        $('formatBtn').onclick = () => { if (mode === 'richtext') richContent = ''; render(); };
+        $('clearBtn').onclick = () => { $('rawInput').value = ''; rows = []; fillSections = []; richContent = ''; render(); };
+        $('csvFile').onchange = e => importCSV(e.target.files[0]);
+
+        /* ================= OPEN DOCUMENT (.docx / .html / .md / .txt -> Rich Text) ================= */
+        function loadScriptOnce(src, test) {
+            return new Promise((resolve, reject) => {
+                if (test()) return resolve();
+                const el = document.createElement('script');
+                el.src = src;
+                el.onload = () => resolve();
+                el.onerror = () => reject(new Error('Không tải được thư viện (kiểm tra mạng): ' + src));
+                document.head.appendChild(el);
+            });
+        }
+        function cleanImportedHTML(html) {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            doc.querySelectorAll('script, style, link, meta, iframe, object, embed, title').forEach(n => n.remove());
+            doc.body.querySelectorAll('*').forEach(el => {
+                [...el.attributes].forEach(a => {
+                    if (/^on/i.test(a.name)) el.removeAttribute(a.name);
+                    if (a.name === 'href' && /^\s*javascript:/i.test(a.value)) el.removeAttribute('href');
+                });
+                // bỏ font/màu/cỡ chữ của file gốc để dùng font của trang
+                if (el.hasAttribute('style')) {
+                    const kept = el.getAttribute('style').split(';').filter(r => {
+                        const k = r.split(':')[0].trim().toLowerCase();
+                        return k && !/^(font|color|background|line-height|margin|padding|mso-)/.test(k) && !/^-/.test(k);
+                    }).join(';');
+                    kept ? el.setAttribute('style', kept) : el.removeAttribute('style');
+                }
+                el.removeAttribute('class');
+                el.removeAttribute('face');
+            });
+            return doc.body.innerHTML.trim();
+        }
+        async function importDoc(file) {
+            if (!file) return;
+            const ext = (file.name.split('.').pop() || '').toLowerCase();
+            try {
+                let html = '';
+                if (ext === 'docx') {
+                    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js', () => window.mammoth);
+                    const res = await window.mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+                    html = res.value;
+                } else if (ext === 'html' || ext === 'htm') {
+                    html = await file.text();
+                } else if (ext === 'md' || ext === 'markdown') {
+                    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js', () => window.marked);
+                    html = window.marked.parse(await file.text());
+                } else {
+                    const text = await file.text();
+                    html = text.split(/\n{2,}/).map(p => '<div>' + escapeHTML(p.trim()).replace(/\n/g, '<br>') + '</div>').join('');
+                }
+                html = cleanImportedHTML(html);
+                if (!html) { alert('File trống hoặc không đọc được nội dung.'); return; }
+                setMode('richtext');
+                richContent = html;
+                render();
+                const ed = $('richEditor');
+                if (ed) {
+                    ed.querySelectorAll('table').forEach(t => writeTable(t, tblDefaults));
+                    syncRich();
+                    applyLayoutSoon();
+                }
+            } catch (err) {
+                alert('Không mở được file: ' + err.message);
+            } finally {
+                $('docFile').value = '';
+            }
+        }
+        $('docFile').onchange = e => importDoc(e.target.files[0]);
+        $('focusBtn').onclick = () => {
+            const on = document.body.classList.toggle('focus');
+            $('focusBtn').textContent = on ? 'Exit focus' : '⛶ Focus';
+        };
+        $('printBtn').onclick = () => window.print();
+
+        $('copyBtn').onclick = () => {
+            const range = document.createRange();
+            range.selectNodeContents($('preview'));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            $('stats').textContent = 'Copied!';
+            setTimeout(updateStats, 1500);
+        };
+
+        $('csvExportBtn').onclick = () => {
+            if (!rows.length && !fillSections.length) render();
+            const lines = [(mode === 'mcq' ? ['No', 'Question', 'A', 'B', 'C', 'D'] : ['No', 'Content']).join(',')];
+            currentList().forEach(row => {
+                lines.push(mode === 'mcq'
+                    ? [row.no, csvCell(row.text), csvCell(row.a), csvCell(row.b), csvCell(row.c), csvCell(row.d)].join(',')
+                    : `${row.no},${csvCell(row.text)}`);
+            });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type: 'text/csv' }));
+            link.download = 'formatted.csv';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 0);
+        };
+
+        document.querySelectorAll('.preset').forEach(btn => btn.addEventListener('click', () => {
+            setMode(btn.dataset.mode);
+            if (mode === 'richtext') richContent = '';
+            render();
+        }));
+
+        /* ================= SETTINGS WIRING ================= */
+        $('showPageNumbers').addEventListener('change', e => {
+            $('startPageLabel').style.display = e.target.checked ? 'grid' : 'none';
+            render();
+        });
+
+        ['rawInput', 'headerInput', 'titleInput', 'splitMode', 'columnCount', 'numbering', 'blankLength', 'startNumber', 'lineSpacing', 'fontSize', 'startPageNumber'].forEach(id => {
+            $(id).addEventListener(id === 'rawInput' || id === 'headerInput' ? 'input' : 'change', render);
+        });
+
+        ['marginMode', 'autoMin', 'autoMax', 'mT', 'mR', 'mB', 'mL'].forEach(id => $(id).addEventListener('change', applyLayout));
+
+        render();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(applyLayout);
+    </script>
+</body>
+</html>
